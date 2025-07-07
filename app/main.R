@@ -203,31 +203,31 @@ server <- function(id) {
                                   fusion_overview = list(),
                                   navigation_context = reactiveVal(NULL))     # somatic or germline or fusion     # from where are we opening IGV
     
-# ## run summary module
-#     
-#     lapply(patients_list(), function(patient) {
-# 
-#       summary$server(paste0("summary_table_", patient), patient, shared_data)
-#       create_report$server(paste0("create_report_", patient), patient, shared_data)
-#     })
-# 
+## run summary module
+
+    lapply(patients_list(), function(patient) {
+
+      summary$server(paste0("summary_table_", patient), patient, shared_data)
+      create_report$server(paste0("create_report_", patient), patient, shared_data)
+    })
+
 
 #################
 # filter table columns dropdown button for fusion
-# 
-#     ## run fusion genes module
-#     samples_fuze <- set_patient_to_sample("fusion")
-#     lapply(names(samples_fuze), function(patient) {
-#       fusion_genes_table$server(paste0("geneFusion_tab_", patient), samples_fuze[[patient]], shared_data)
-#     })
-# # ##################
-#     # Run somatic varcall module
-# 
-#     samples_som <- set_patient_to_sample("somatic")
-# 
-#     lapply(names(samples_som), function(patient) {
-#       somatic_var_call_table$server(paste0("somatic_tab_", patient), samples_som[[patient]], shared_data)
-#     })
+
+    ## run fusion genes module
+    samples_fuze <- set_patient_to_sample("fusion")
+    lapply(names(samples_fuze), function(patient) {
+      fusion_genes_table$server(paste0("geneFusion_tab_", patient), samples_fuze[[patient]], shared_data)
+    })
+# ##################
+    # Run somatic varcall module
+
+    samples_som <- set_patient_to_sample("somatic")
+
+    lapply(names(samples_som), function(patient) {
+      somatic_var_call_table$server(paste0("somatic_tab_", patient), samples_som[[patient]], shared_data)
+    })
 
 ##################
 
@@ -239,17 +239,17 @@ server <- function(id) {
     })
 
 ##################
-# 
-#     samples_expr <- set_patient_to_sample("expression")
-# 
-#     observe({
-#       lapply(names(samples_expr), function(patient) {
-#         expression_profile_table$server(paste0("genesOfinterest_tab_", patient),samples_expr[[patient]],"genes_of_interest",shared_data$expression_goi_var)
-#         expression_profile_table$server(paste0("allGenes_tab_", patient),samples_expr[[patient]],"all_genes",shared_data$expression_all_var)
-#       })
-#     })
-# 
-# 
+
+    samples_expr <- set_patient_to_sample("expression")
+
+    observe({
+      lapply(names(samples_expr), function(patient) {
+        expression_profile_table$server(paste0("genesOfinterest_tab_", patient),samples_expr[[patient]],"genes_of_interest",shared_data$expression_goi_var)
+        expression_profile_table$server(paste0("allGenes_tab_", patient),samples_expr[[patient]],"all_genes",shared_data$expression_all_var)
+      })
+    })
+
+
 # ##################    
     # run network graph module
 

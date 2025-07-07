@@ -216,7 +216,8 @@ get_inputs <- function(flag){
     
     ## expression profile results path
     expression_project <- "RNAseq21_NEW"
-    expression_filenames <- list.files(paste(path, expression_project,sep = "/"), pattern = "genes_of_interest.tsv", full.names = TRUE)
+    expression_dirnames <- list.files(paste(path, expression_project,sep = "/"), pattern = "*", full.names = TRUE)
+    expression_filenames <- list.files(paste(expression_dirnames,sep = "/"), pattern = "genes_of_interest.tsv", full.names = TRUE)
     
     return(list(goi.somatic = somatic_filenames,
                 goi.germline = germline_filenames,

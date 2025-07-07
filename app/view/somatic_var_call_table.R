@@ -146,13 +146,13 @@ server <- function(id, selected_samples, shared_data) {
     selected_variants <- reactiveVal(data.frame(patient = character(),var_name = character(), Gene_symbol = character()))
 
     
-    # # Call generate_columnsDef to generate colDef setting for reactable
-    # column_defs <- reactive({
-    #   req(data())
-    #   req(selected_columns())
-    #   generate_columnsDef(names(data()), selected_columns(), "somatic", map_list)
-    # })
-    
+    # Call generate_columnsDef to generate colDef setting for reactable
+    column_defs <- reactive({
+      req(data())
+      req(selected_columns())
+      generate_columnsDef(names(data()), selected_columns(), "somatic", map_list)
+    })
+
     
     filtered_data <- reactive({
       req(data())

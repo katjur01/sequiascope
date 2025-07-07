@@ -1,15 +1,17 @@
 # app/logic/prepare_table.R
 
 box::use(
-  data.table[fread,tstrsplit,setcolorder,setnames,uniqueN,dcast],
+  data.table[fread,tstrsplit,setcolorder,setnames,uniqueN,dcast,fifelse,is.data.table],
   shiny[observe],
   openxlsx[read.xlsx],
-  scales[scientific_format]
+  scales[scientific_format],
+  stats[setNames]
 )
 box::use(
   app/logic/load_data[get_inputs,load_data],
   app/logic/prepare_arriba_pictures[pdf2png],
-  app/logic/load_data[get_inputs]
+  app/logic/load_data[get_inputs],
+  stringi[stri_trans_totitle]
 )
 
 #' @export
@@ -20,12 +22,39 @@ get_tissue_list <- function(){
   return(tissue_list)
 }
 
+capitalize_first_letter <- function(x) {
+  ifelse(
+    is.na(x),
+    NA_character_,
+    paste0(toupper(substr(x, 1, 1)), substr(x, 2, nchar(x)))
+  )
+}
 
-replace_dot_with_na <- function(data) {
-  for (col in names(data)) {
-    data[get(col) == ".", (col) := NA]
+#' @export
+replace_underscore_with_space <- function(dt, cols_to_clean) {
+  if (!is.data.table(dt)) setDT(dt)
+  
+  existing_cols <- cols_to_clean[cols_to_clean %in% names(dt)]
+  
+  if (length(existing_cols) > 0) {
+    # Nahrazení "_" za " "
+    dt[, (existing_cols) := lapply(.SD, function(x) {
+      if (is.character(x)) gsub("_", " ", x) else x
+    }), .SDcols = existing_cols]
+    
+    # Capitalize pouze první písmeno celého stringu
+    dt[, (existing_cols) := lapply(.SD, function(x) {
+      if (is.character(x)) capitalize_first_letter(x) else x
+    }), .SDcols = existing_cols]
   }
-  return(data)
+  
+  return(dt)
+}
+
+
+replace_dot_with_na <- function(dt) {
+  dt[, (names(dt)) := lapply(.SD, function(x) fifelse(x == ".", NA, x))]
+  return(dt)
 }
 
 split_genes <- function(dt) {
@@ -37,6 +66,47 @@ split_genes <- function(dt) {
   
   return(dt_gene2)
 }
+
+clean_consequence <- function(x) {
+  if (is.na(x) || trimws(x) == "") {
+    return("missing value")
+  } else {
+    parts <- unlist(strsplit(x, ","))
+    cleaned_parts <- trimws(parts)
+    cleaned_parts <- cleaned_parts[cleaned_parts != ""]
+    return(cleaned_parts)
+  }
+}
+clean_clinvar_sig <- function(x) {
+  if (is.na(x) || trimws(x) == "" || is.null(x)) {
+    return("missing value")
+  } else {
+    parts <- unlist(strsplit(x, ","))
+    all_parts <- unlist(strsplit(parts, "[|/]"))
+    cleaned_parts <- trimws(gsub("^_+", "", all_parts))
+    cleaned_parts <- cleaned_parts[cleaned_parts != ""]
+    return(cleaned_parts)
+  }
+}
+fast_lookup_column <- function(dt, input_col, output_col, clean_fun) {
+  input_vector <- dt[[input_col]]
+  input_vector_nafix <- ifelse(is.na(input_vector), "__NA__", input_vector)
+  unique_vals <- unique(input_vector_nafix)
+  
+  lookup <- setNames(
+    lapply(unique_vals, function(x) {
+      if (x == "__NA__") {
+        clean_fun(NA)
+      } else {
+        clean_fun(x)
+      }
+    }),
+    unique_vals
+  )
+  
+  dt[, (output_col) := lookup[input_vector_nafix]]
+}
+
 
 prepare_igv_snapshot_paths <- function(data,sample){   # sample = "DZ1601fuze"
   
@@ -107,80 +177,35 @@ prepare_fusion_genes_table <- function(data,selected_samples){
 
 #' @export
 prepare_somatic_table <- function(dt){
-
   dt <- replace_dot_with_na(dt)
-  dt[,gnomAD_NFE := as.numeric(gnomAD_NFE)]
-  dt[,tumor_variant_freq := as.numeric(tumor_variant_freq)]
-  # dt[is.na(clinvar_sig), clinvar_sig := " "]
-  dt[,consequence_trimws := lapply(Consequence, function(x) {
-    if (is.na(x) || trimws(x) == "") {
-      return("missing_value")
-    } else {
-      parts <- unlist(strsplit(x, ","))
-      cleaned_parts <- trimws(parts)
-      cleaned_parts <- cleaned_parts[cleaned_parts != ""]
-      return(cleaned_parts)
-    }
-  })]
-  dt[,clinvar_trimws := lapply(clinvar_sig, function(x) {
-    if (is.na(x) || trimws(x) == "") {
-      return("missing_value")
-    } else {
-      parts <- unlist(strsplit(x, ","))
-      all_parts <- unlist(lapply(parts, function(part) {
-        unlist(strsplit(part, "[|/]"))
-      }))
-      cleaned_parts <- trimws(gsub("^_+", "", all_parts))
-      cleaned_parts <- cleaned_parts[cleaned_parts != ""]
-      
-      return(cleaned_parts)
-    }
-  })]
+  dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "Consequence", "clinvar_DBN"))
+  cols_to_numeric <- c("gnomAD_NFE", "tumor_variant_freq")
+  dt[, (cols_to_numeric) := lapply(.SD, as.numeric), .SDcols = cols_to_numeric]
+  
+  fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
   
   default_columns <- colFilter("somatic")$default_columns
-  # dt <- dt[, c("SOMATIC", "PHENO","GENE_PHENO") := NULL]
-  
   dt <- setcolorder(dt,default_columns)
   
   message(paste0("Somatic varcall, pacient ",unique(dt$sample)," (prepare_table script)"))
   return(dt)
 }
 
+
 #' @export
 prepare_germline_table <- function(dt){
-  
   dt <- replace_dot_with_na(dt)
-  dt[,gnomAD_NFE := as.numeric(gnomAD_NFE)]
-  dt[,variant_freq := as.numeric(variant_freq)]
-  dt[,consequence_trimws := lapply(Consequence, function(x) {
-    if (is.na(x) || trimws(x) == "") {
-      return("missing_value")
-    } else {
-      parts <- unlist(strsplit(x, ","))
-      cleaned_parts <- trimws(parts)
-      cleaned_parts <- cleaned_parts[cleaned_parts != ""]
-      return(cleaned_parts)
-    }
-  })]
-  dt[,clinvar_trimws := lapply(clinvar_sig, function(x) {
-    if (is.na(x) || trimws(x) == "") {
-      return("missing_value")
-    } else {
-      parts <- unlist(strsplit(x, ","))
-      all_parts <- unlist(lapply(parts, function(part) {
-        unlist(strsplit(part, "[|/]"))
-      }))
-      cleaned_parts <- trimws(gsub("^_+", "", all_parts))
-      cleaned_parts <- cleaned_parts[cleaned_parts != ""]
-      
-      return(cleaned_parts)
-    }
-  })]
+  dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "Consequence", "clinvar_DBN"))
+  cols_to_numeric <- c("gnomAD_NFE", "variant_freq")
+  dt[, (cols_to_numeric) := lapply(.SD, as.numeric), .SDcols = cols_to_numeric]
+
+  fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
+  fast_lookup_column(dt, "clinvar_sig", "clinvar_trimws", clean_clinvar_sig)
   
   default_selection <- c("var_name","variant_freq","in_library","Gene_symbol","coverage_depth","gene_region",
                          "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name")
   setcolorder(dt, default_selection)
-          
+
   message(paste0("Germline varcall, pacient ",unique(dt$sample)," (prepare_table script)"))
   return(dt)
 }
