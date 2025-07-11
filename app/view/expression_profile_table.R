@@ -10,7 +10,8 @@ box::use(
   plotly[plotlyOutput, renderPlotly, toWebGL],
   reactablefmtr[pill_buttons, data_bars],
   utils[head],
-  shinyWidgets[radioGroupButtons, checkboxGroupButtons, prettyCheckboxGroup, updatePrettyCheckboxGroup, updateCheckboxGroupButtons, dropdown, dropdownButton, actionBttn, awesomeCheckboxGroup, pickerInput],
+  shinyWidgets[radioGroupButtons, checkboxGroupButtons, updateCheckboxGroupButtons,prettyCheckboxGroup, updatePrettyCheckboxGroup, dropdown, dropdownButton, actionBttn,
+               awesomeCheckboxGroup, pickerInput, updatePickerInput],
   data.table[rbindlist, dcast.data.table, as.data.table, melt.data.table, copy],
   grDevices[colorRampPalette],
   pheatmap[pheatmap],
@@ -28,7 +29,8 @@ box::use(
   app/logic/reactable_helpers[custom_colGroup_setting],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/prepare_table[prepare_expression_table, set_pathway_colors, get_tissue_list],
-  app/logic/networkGraph_helper[get_pathway_list]
+  app/logic/networkGraph_helper[get_pathway_list],
+  app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
 
@@ -47,11 +49,6 @@ ui <- function(id) {
   ns <- NS(id)
   useShinyjs()
   tagList(
-    # fluidRow(
-    #   div(style = "width: 100%; text-align: right;",
-    # # div(class = "filter-button-wrapper",
-    #     uiOutput(ns("filterTab"))
-    #     )),
     fluidRow(
       div(style = "width: 100%; text-align: right;",
           dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
@@ -167,13 +164,6 @@ server <- function(id,  patient, expr_tag, expression_var) {
       return(df_filtered)
     })
 
-    # # Generování columns pro reactable
-    # column_defs <- reactive({
-    #   req(data())
-    #   req(selected_columns())
-    #   message("▶ column_defs recomputed")
-    #   generate_columnsDef(names(data()), selected_columns(), "expression", column_mapping$table, session)
-    # })
     # Call generate_columnsDef to generate colDef setting for reactable
     column_defs <- reactive({
       req(data())
@@ -269,7 +259,7 @@ server <- function(id,  patient, expr_tag, expression_var) {
     
     output$selectDeregulated_tab <- renderReactable({
       genes <- selected_genes()
-      if (nrow(genes) == 0) {
+      if (is.null(genes) || nrow(genes) == 0) {
         return(NULL)
       } else {
         genes <- as.data.table(genes)[,.(sample, feature_name, geneid, pathway, mean_log2FC)]
@@ -348,6 +338,39 @@ server <- function(id,  patient, expr_tag, expression_var) {
     
     
     plot_server("plot", patient, data, expr_tag) 
+    
+    ###########################
+    ## get / restore session ##
+    ###########################
+    
+    session_handlers <- create_session_handlers(
+      selected_inputs = list(
+        selected_tissue = selected_tissues_final,
+        selected_pathway = selected_pathway_final,
+        selected_columns = selected_columns,
+        
+        log2fc_bigger1_tissue = log2fc_bigger1_final,
+        log2fc_smaller1_tissue = log2fc_smaller1_final,
+        pval_tissue = pval_final,
+        padj_tissue = padj_final,
+        
+        log2fc_bigger1_btn = log2fc_bigger1_btn_final,
+        log2fc_smaller1_btn = log2fc_smaller1_btn_final,
+        pval_btn = pval_btn_final,
+        padj_btn = padj_btn_final,
+        
+        selected_genes = selected_genes
+      ),
+      filter_state = filter_state
+    )
+    
+
+    
+    return(list(
+      get_session_data = session_handlers$get_session_data,
+      restore_session_data = session_handlers$restore_session_data,
+      filter_state = filter_state
+    ))
   })
 }
 
@@ -379,6 +402,23 @@ filterTab_server <- function(id,colnames_list) {
       updateCheckboxGroupButtons(session, "padj_btn", selected = if (length(input$padj_tissue) > 0) "p-adj < 0.05" else character(0))
     }) %>% bindEvent(input$padj_tissue)
     
+    restore_ui_inputs <- function(data) {
+      if (!is.null(data$selected_tissue)) updateCheckboxGroupButtons(session, "select_tissue", selected = safe_extract(data$selected_tissue))
+      if (!is.null(data$selected_pathway)) updateCheckboxGroupButtons(session, "filter_pathway", selected = safe_extract(data$selected_pathway))
+      if (!is.null(data$selected_columns)) updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = safe_extract(data$selected_columns))
+      
+      if (!is.null(data$log2fc_bigger1_tissue)) updatePickerInput(session, "log2fc_bigger1_tissue", selected = safe_extract(data$log2fc_bigger1_tissue))
+      if (!is.null(data$log2fc_smaller1_tissue)) updatePickerInput(session, "log2fc_smaller1_tissue", selected = safe_extract(data$log2fc_smaller1_tissue))
+      if (!is.null(data$pval_tissue)) updatePickerInput(session, "pval_tissue", selected = safe_extract(data$pval_tissue))
+      if (!is.null(data$padj_tissue)) updatePickerInput(session, "padj_tissue", selected = safe_extract(data$padj_tissue))
+      
+      if (!is.null(data$log2fc_bigger1_btn)) updateCheckboxGroupButtons(session, "log2fc_bigger1_btn", selected = safe_extract(data$log2fc_bigger1_btn))
+      if (!is.null(data$log2fc_smaller1_btn)) updateCheckboxGroupButtons(session, "log2fc_smaller1_btn", selected = safe_extract(data$log2fc_smaller1_btn))
+      if (!is.null(data$pval_btn)) updateCheckboxGroupButtons(session, "pval_btn", selected = safe_extract(data$pval_btn))
+      if (!is.null(data$padj_btn)) updateCheckboxGroupButtons(session, "padj_btn", selected = safe_extract(data$padj_btn))
+
+    }
+    
     return(list(
       confirm = reactive(input$confirm_btn),
       selected_tissue = reactive(input$select_tissue),
@@ -393,7 +433,9 @@ filterTab_server <- function(id,colnames_list) {
       log2fc_bigger1_btn = reactive(input$log2fc_bigger1_btn),
       log2fc_smaller1_btn = reactive(input$log2fc_smaller1_btn),
       pval_btn = reactive(input$pval_btn),
-      padj_btn = reactive(input$padj_btn)
+      padj_btn = reactive(input$padj_btn),
+      
+      restore_ui_inputs = restore_ui_inputs
     ))
     
   })
@@ -424,7 +466,6 @@ filterTab_ui <- function(id,expr_tag,default_columns, mapped_checkbox_names){
       right = TRUE,
       # width = "480px",
       icon = HTML('<i class="fa-solid fa-filter download-button"></i>'),
-    # dropdown(right = TRUE,size = "xs",icon = icon("filter"),style = "material-flat",width = "auto",
              fluidRow(style = "width: 45rem;",
                       column(6,
                              div(style = "display: flex; flex-direction: column; flex-wrap: wrap; align-items: baseline; width: 100% !important; border-right: 1px solid #e0e0e0;",
@@ -456,12 +497,6 @@ filterTab_ui <- function(id,expr_tag,default_columns, mapped_checkbox_names){
                                      pickerInput(ns("filter_pathway"), "Filter pathways", 
                                                  choices = get_pathway_list(expr_tag), multiple = TRUE, 
                                                  options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select pathways",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE))),
-                                 # awesomeCheckboxGroup(ns("filter_column"),"Columns selection:", 
-                                 #                      choices  = c("Gene name","Gene ID","Pathway","log2FC","p-value","p-adj"),
-                                 #                      selected = c("Gene name","Gene ID","Pathway","log2FC","p-value","p-adj"))
-                                 
-                                 # column(4,
-                                 #        box(width = 12,title = tags$div(style = "padding-top: 8px;","Select columns:"),closable = FALSE,collapsible = FALSE,height = "100%",
                                             div(class = "two-col-checkbox-group",
                                                 prettyCheckboxGroup(
                                                   inputId = ns("colFilter_checkBox"),
@@ -470,14 +505,10 @@ filterTab_ui <- function(id,expr_tag,default_columns, mapped_checkbox_names){
                                                   selected = default_columns,
                                                   icon = icon("check"),
                                                   status = "primary",
-                                                  outline = FALSE
-                                                ),
-                                            ),
+                                                  outline = FALSE),),
                                             div(style = "display: flex; gap: 10px; width: 100%;",
                                                 actionButton(ns("show_all"), label = "Show All", style = "flex-grow: 1; width: 0;"),
                                                 actionButton(ns("show_default"), label = "Show Default", style = "flex-grow: 1; width: 0;"))
-                                 #        )
-                                 # )
                              )
                       )
              ),

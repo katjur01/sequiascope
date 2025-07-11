@@ -2,18 +2,21 @@
 
 box::use(
   shiny[moduleServer,NS,h3,tagList,div,textInput,renderPrint,reactive,observe,observeEvent,icon,mainPanel,titlePanel,isolate,
-        uiOutput,renderUI,HTML,req,reactiveVal,column,fluidRow,showModal,modalDialog,modalButton,selectInput,downloadButton],
+        uiOutput,renderUI,HTML,req,reactiveVal,column,fluidRow,showModal,modalDialog,modalButton,selectInput,downloadButton,
+        reactiveValues,textOutput,renderText,reactiveValuesToList],
   reactable,
   reactable[reactable,colDef,reactableOutput,renderReactable,JS,getReactableState],
   htmltools[tags, p,span,HTML],
   bs4Dash[actionButton,bs4Card,box],
   shinyjs[useShinyjs,runjs,hide,show],
-  reactablefmtr[pill_buttons,icon_assign],
+  reactablefmtr
+  [pill_buttons,icon_assign],
   data.table[fifelse,setcolorder],
   shinyalert[shinyalert,useShinyalert],
   data.table[data.table,uniqueN,as.data.table,copy],
   shinyWidgets[pickerInput, dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
   stats[setNames],
+  reactable.extras[reactable_extras_dependency],
 )
 box::use(
   app/logic/load_data[get_inputs,load_data],
@@ -21,7 +24,8 @@ box::use(
   app/logic/waiters[use_spinner],
   app/logic/patients_list[sample_list_fuze],
   app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter],
-  app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef]
+  app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
+  app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
 # Load and process data table
@@ -43,6 +47,7 @@ ui <- function(id) {
   ns <- NS(id)
   useShinyjs()
   tagList(
+    reactable_extras_dependency(),
     fluidRow(
       div(style = "width: 100%; text-align: right;",
           dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
@@ -81,17 +86,18 @@ server <- function(id, selected_samples, shared_data) {
     # prepare_arriba_images(selected_samples)
     
   # Call loading function to load data
-    dt <- reactive({
+    data <- reactive({
       message("Loading input data for fusion")
       input_data(selected_samples) 
     })
 
     
     observe({
-      req(dt())
+      req(data())
+      dt <- data()
       overview_dt <- data.table(
-        high_confidence = uniqueN(dt()[arriba.confidence %in% "high"]),
-        potencially_fused = uniqueN(dt()[arriba.confidence %in% c("medium", "low", NA)]))
+        high_confidence = uniqueN(dt[arriba.confidence %in% "high"]),
+        potencially_fused = uniqueN(dt[arriba.confidence %in% c("medium", "low", NA)]))
       shared_data$fusion_overview[[ selected_samples ]] <- overview_dt
     })
 
@@ -101,9 +107,9 @@ server <- function(id, selected_samples, shared_data) {
     
     
     output$filterTab <- renderUI({
-      req(dt())
+      req(data())
       req(map_list)
-      filterTab_ui(ns("filterTab_dropdown"),dt(), colnames_list$default_columns, mapped_checkbox_names)
+      filterTab_ui(ns("filterTab_dropdown"),data(), colnames_list$default_columns, mapped_checkbox_names)
     })
     
     filter_state <- filterTab_server("filterTab_dropdown",colnames_list)
@@ -120,38 +126,38 @@ server <- function(id, selected_samples, shared_data) {
     
   # Call generate_columnsDef to generate colDef setting for reactable
     column_defs <- reactive({
-      req(dt())
+      req(data())
       req(selected_columns())
-      generate_columnsDef(names(dt()), selected_columns(), "fusion", map_list)
+      generate_columnsDef(names(data()), selected_columns(), "fusion", map_list)
     })
     
 
     # filtered_data <- reactive({
-    #   req(dt())
-    #   data <- copy(dt())
+    #   req(data())
+    #   dt <- copy(data())
     #   
     #   if (!is.null(selected_tumor_depth())) {
-    #     data <- data[selected_tumor_depth() <= tumor_depth, ]
+    #     dt <- dt[selected_tumor_depth() <= tumor_depth, ]
     #   }
     #   if (!is.null(selected_gnomAD_min())) {
-    #     data <- data[gnomAD_NFE <= selected_gnomAD_min()]
+    #     dt <- dt[gnomAD_NFE <= selected_gnomAD_min()]
     #   }
     #   if (!is.null(selected_gene_region()) && length(selected_gene_region()) > 0) {
-    #     data <- data[gene_region %in% selected_gene_region(), ]
+    #     dt <- dt[gene_region %in% selected_gene_region(), ]
     #   }
     #   if (!is.null(selected_consequence()) && length(selected_consequence()) > 0) {
-    #     data <- create_consequence_filter(data, selected_consequence())
+    #     dt <- create_consequence_filter(dt, selected_consequence())
     #   }
     #   
-    #   return(data)
+    #   return(dt)
     # })
     
     
     output$fusion_genes_tab <- renderReactable({
       pathogenic_fusions <- selected_fusions() # seznam fúzí, které byly označeny jako patogenní
-      
+      dt <- data()
       message("Rendering Reactable for fusion")
-      reactable(as.data.frame(dt()),
+      reactable(as.data.frame(dt),
                           columns = column_defs(),
                           class = "fusion-table",
                           resizable = TRUE,
@@ -169,8 +175,8 @@ server <- function(id, selected_samples, shared_data) {
                           defaultSorted = list("arriba.confidence" = "asc","arriba.called" = "desc","starfus.called" = "desc"),
                           details = function(index) {
                             # row <- data[index, ]
-                            svg_file <- dt()$svg_path[index]
-                            png_file <- dt()$png_path[index]
+                            svg_file <- dt$svg_path[index]
+                            png_file <- dt$png_path[index]
                             tags$div(
                               style = "display: flex; align-items: center;",
                               if (file.exists(paste0("www/",svg_file))) {
@@ -186,8 +192,8 @@ server <- function(id, selected_samples, shared_data) {
                             )
                           },
                           rowStyle = function(index) {
-                            gene1_in_row <- dt()$gene1[index]
-                            gene2_in_row <- dt()$gene2[index]
+                            gene1_in_row <- dt$gene1[index]
+                            gene2_in_row <- dt$gene2[index]
                             
                             # Pokud je aktuální fúze v seznamu vybraných fúzí, obarvíme ji
                             if ((gene1_in_row %in% pathogenic_fusions$gene1 & 
@@ -199,36 +205,34 @@ server <- function(id, selected_samples, shared_data) {
                               NULL
                             }
                           },
-                          #onClick = "expand",
-                          selection = "multiple",
-                          onClick = JS("function(rowInfo, column, event) {
-                                          if (event.target.classList.contains('rt-expander') || event.target.classList.contains('rt-expander-button')) {
-                                              rowInfo.toggleRowExpanded();  
-                                          } else {
-                                              rowInfo.toggleRowSelected();
-                                        }}")
+                          selection = "multiple"
         )
   })
-    
-    
-    # Sledování vybraného řádku a varianty
-    selected_fusion <- reactive({
-      selected_row <- getReactableState("fusion_genes_tab", "selected")
-      req(selected_row)
+
+
+    observeEvent(input[[paste0("visual_check", "_changed")]], {
       
-      dt()[selected_row, c("gene1","gene2")]  # Získání fúze z vybraného řádku
-      message("data fusion tab: ", dt()[selected_row, c("gene1","gene2")])
-      # var <- filtered_data()[selected_row, c("var_name","Gene_symbol")]  # Získání varianty z vybraného řádku
-      # var$remove <- NA
+      changed_data <- input[[paste0("visual_check", "_changed")]]
+      row_index <- changed_data$row + 1  # R používá 1-based indexing
+      new_value <- changed_data$value
       
+      message("changed_data: ",changed_data)
+      message("row_index: ",row_index)
+      message("new_value: ",new_value)
+      # Aktualizace vašich dat
+      # Například:
+      # your_data[row_index, "visual_check"] <- new_value
+      
+      print(paste("Řádek", row_index, "změněn na:", new_value))
     })
+    
     
     # Akce po kliknutí na tlačítko pro přidání fúze
     observeEvent(input$selectFusion_button, {
       selected_rows <- getReactableState("fusion_genes_tab", "selected")
       req(selected_rows)
       
-      new_variants <- dt()[selected_rows, c("gene1","gene2","overall_support","position1","position2","arriba.confidence","arriba.site1","arriba.site2")]  # Získání vybraných fúzí
+      new_variants <- data()[selected_rows, c("gene1","gene2","overall_support","position1","position2","arriba.confidence","arriba.site1","arriba.site2")]  # Získání vybraných fúzí
       new_variants$sample <- selected_samples
       current_variants <- selected_fusions()  # Stávající přidané varianty
       new_unique_variants <- new_variants[!(new_variants$gene1 %in% current_variants$gene1 &       # Porovnání - přidáme pouze ty varianty, které ještě nejsou v tabulce
@@ -236,8 +240,6 @@ server <- function(id, selected_samples, shared_data) {
       
       if (nrow(new_unique_variants) > 0) {      # Přidáme pouze unikátní varianty
         selected_fusions(rbind(current_variants, new_unique_variants))
-        # shared_data$fusion_var(selected_fusions())
-        # message("Updated fusion_var in shared_data:", shared_data$fusion_var())
       }
       
       # Aktualizace globální proměnné shared_data$germline_data:
@@ -269,7 +271,7 @@ server <- function(id, selected_samples, shared_data) {
     
     output$selectFusion_tab <- renderReactable({
       variants <- selected_fusions()
-      if (nrow(variants) == 0) {
+      if (is.null(variants) || nrow(variants) == 0) {
         return(NULL)
       }
       
@@ -394,6 +396,24 @@ server <- function(id, selected_samples, shared_data) {
       }
     })
 
+    ###########################
+    ## get / restore session ##
+    ###########################
+    
+    
+    session_handlers <- create_session_handlers(
+      selected_inputs = list(
+        selected_cols = selected_columns,
+        selected_vars = selected_fusions
+      ),
+      filter_state = filter_state
+    )
+    
+    return(list(
+      get_session_data = session_handlers$get_session_data,
+      restore_session_data = session_handlers$restore_session_data,
+      filter_state = filter_state
+    ))
   })
 }
 
@@ -401,7 +421,7 @@ server <- function(id, selected_samples, shared_data) {
 
 filterTab_server <- function(id,colnames_list) {
   moduleServer(id, function(input, output, session) {
-    
+
     # observe({
     #   if(isTruthy(is.na(input$tumor_depth))) updateNumericInput(session, "tumor_depth", value = 10)
     # })
@@ -416,6 +436,10 @@ filterTab_server <- function(id,colnames_list) {
     observeEvent(input$show_default, {
       updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = colnames_list$default_columns)
     })
+
+    restore_ui_inputs <- function(data) {
+      if (!is.null(data$selected_cols)) updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = safe_extract(data$selected_cols))
+    }
     
     return(list(
       confirm = reactive(input$confirm_btn),
@@ -423,7 +447,8 @@ filterTab_server <- function(id,colnames_list) {
       # gnomAD_min = reactive(input$gnomAD_min),
       # gene_regions = reactive(input$gene_regions),
       # consequence = reactive(input$consequence),
-      selected_columns = reactive(input$colFilter_checkBox)
+      selected_columns = reactive(input$colFilter_checkBox),
+      restore_ui_inputs = restore_ui_inputs
     ))
   })
 }
@@ -435,13 +460,6 @@ filterTab_ui <- function(id, data, default_columns, mapped_checkbox_names){
   filenames <- get_inputs("per_sample_file")
   file_paths <- filenames$fusions[1]
   patient_names <- substr(basename(file_paths), 1, 6)
-  # consequence_split <- unique(unlist(unique(data$consequence_trimws)))
-  # consequence_list <- sort(unique(ifelse(is.na(consequence_split) | consequence_split == "", "missing_value", consequence_split)))
-  # 
-  # 
-  
-  
-  
   
   tagList(
     tags$head(tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"),
@@ -490,7 +508,6 @@ filterTab_ui <- function(id, data, default_columns, mapped_checkbox_names){
     )
   )
 }
-
 
 
 ###### build_igv_tracks selected_bams ######: list(name = "DZ1601tumor", file = character(0))list(name = "DZ1601normal", file = "./230426_MOII_e117_krve/mapped/DZ1601krev.bam")list(name = "MR1507tumor", file = character(0))list(name = "MR1507normal", file = "./230426_MOII_e117_krve/mapped/MR1507krev.bam")

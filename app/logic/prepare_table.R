@@ -42,10 +42,10 @@ replace_underscore_with_space <- function(dt, cols_to_clean) {
       if (is.character(x)) gsub("_", " ", x) else x
     }), .SDcols = existing_cols]
     
-    # Capitalize pouze první písmeno celého stringu
-    dt[, (existing_cols) := lapply(.SD, function(x) {
-      if (is.character(x)) capitalize_first_letter(x) else x
-    }), .SDcols = existing_cols]
+    # # Capitalize pouze první písmeno celého stringu
+    # dt[, (existing_cols) := lapply(.SD, function(x) {
+    #   if (is.character(x)) capitalize_first_letter(x) else x
+    # }), .SDcols = existing_cols]
   }
   
   return(dt)

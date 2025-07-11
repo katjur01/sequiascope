@@ -31,7 +31,8 @@ box::use(
   app/logic/prepare_table[prepare_somatic_table,colFilter],
   app/logic/patients_list[sample_list_som],
   app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter],
-  app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef]
+  app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
+  app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
 
@@ -174,72 +175,6 @@ server <- function(id, selected_samples, shared_data) {
       return(dt)
     })
 
-    # # Render DT datatable with conditional selection and highlighting
-    # output$somatic_var_call_tab2 <- renderDT({
-    #   req(filtered_data())
-    #   # req(column_defs())  # pokud používáš pro definice sloupců
-    #   
-    #   message("Rendering DT datatable for germline")
-    #   filtered_df <- as.data.frame(filtered_data())  # tvoje data pro hlavní tabulku
-    #   pathogenic_variants <- selected_variants()     # seznam patogenních variant
-    #   # 
-    #   #       # Vytvořím logický vektor pro zvýraznění řádků
-    #   #       highlight_rows <- filtered_df$var_name %in% pathogenic_variants$var_name &
-    #   #         filtered_df$Gene_symbol %in% pathogenic_variants$Gene_symbol
-    #   
-    #   # Vytvoření DT tabulky
-    #   datatable(
-    #     filtered_df,
-    #     options = list(
-    #       columnDefs = list(list(className = 'dt-center',targets = which(colnames(filtered_df) == "gene_region")),
-    #                         list(className = 'dt-center',targets = which(colnames(filtered_df) == "Gene_symbol")),
-    #                         list(className = 'dt-center',targets = which(colnames(filtered_df) == "tumor_variant_freq")),
-    #                         list(className = 'dt-center',targets = which(colnames(filtered_df) == "tumor_depth")),
-    #                         list(targets = which(colnames(filtered_df) == "all_full_annot_name"),
-    #                           render = JS(
-    #                             "function(data, type, row, meta) {",
-    #                             "return type === 'display' && data.length > 20 ?",
-    #                             "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
-    #                             "}")),
-    #                         list(targets = which(colnames(filtered_df) == "Consequence"),
-    #                              render = JS(
-    #                                "function(data, type, row, meta) {",
-    #                                "return type === 'display' && data.length > 30 ?",
-    #                                "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
-    #                                "}"))
-    #                         # list(className = 'dt-center', targets = "_all") # zarovnání na střed
-    #   
-    #   ),
-    #       pageLength = 10,
-    #       lengthMenu =c(10, 20, 50, 100),
-    #       order = list(list(which(colnames(filtered_df) == "CGC_Somatic"), 'desc'),
-    #                    list(which(colnames(filtered_df) == "fOne"), 'desc')),
-    #       dom = 'lBrtip', #l (length menu),f (search box),r (processing display, často se vynechává),t (tabulka),i (info summary),p (paginace)
-    #       scrollX = TRUE,
-    #       autoWidth = TRUE,
-    #       order = list(list(0, 'asc')),  # uprav dle potřeby
-    #       # Ztenčení okrajů a hover efekt
-    #       stripeClasses = c('stripe', 'hover')
-    # 
-    #           # initComplete = JS( ## color of the table`s header
-    #       #   "function(settings, json) {",
-    #       #   "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
-    #       #   "}")
-    #       
-    #     ),
-    #   rownames = FALSE,
-    #   class = "stripe hover compact cell-border")
-    #     
-    #   # ) %>%. ## formátovaná pro vybrané řádky jako pathogenic variants
-    #   #   formatStyle(
-    #   #     columns = names(filtered_df),
-    #   #     target = 'row',
-    #   #     backgroundColor = styleEqual(c(TRUE, FALSE), c('#B5E3B6', NA)),
-    #   #     fontWeight = styleEqual(c(TRUE, FALSE), c('bold', NA)),
-    #   #     condition = highlight_rows
-    #   #   )
-    # })
-
     output$somatic_var_call_tab <- renderReactable({
       req(filtered_data())
       req(column_defs())
@@ -278,14 +213,7 @@ server <- function(id, selected_samples, shared_data) {
         class = "somatic-table"
       )
     })
-    
-    # Sledování vybraného řádku a varianty
-    selected_variant <- reactive({
-      selected_row <- getReactableState("somatic_var_call_tab", "selected")
-      req(selected_row)
-      filtered_data()[selected_row, c("var_name","Gene_symbol")]  # Získání varianty z vybraného řádku
-      message("data somatic tab: ", filtered_data()[selected_row, c("var_name","Gene_symbol")])
-    })
+
     
     # Akce po kliknutí na tlačítko pro přidání varianty
     observeEvent(input$selectPathogenic_button, {
@@ -331,7 +259,7 @@ server <- function(id, selected_samples, shared_data) {
     
     output$selectPathogenic_tab <- renderReactable({
       variants <- selected_variants()
-      if (nrow(variants) == 0) {
+      if (is.null(variants) || nrow(variants) == 0) {
         return(NULL)
       } else {
         variants <- as.data.table(variants)[,.(var_name,Gene_symbol,Consequence,HGVSc,HGVSp,Feature)]
@@ -483,14 +411,35 @@ server <- function(id, selected_samples, shared_data) {
       }
     })
     
+    ###########################
+    ## get / restore session ##
+    ###########################
 
+    session_handlers <- create_session_handlers(
+      selected_inputs = list(
+        gnomAD_min = selected_gnomAD_min,
+        tumor_depth = selected_tumor_depth,
+        gene_regions = selected_gene_region,
+        consequence = selected_consequence,
+        selected_cols = selected_columns,
+        selected_vars = selected_variants
+      ),
+      filter_state = filter_state
+    )
+    
+    return(list(
+      get_session_data = session_handlers$get_session_data,
+      restore_session_data = session_handlers$restore_session_data,
+      filter_state = filter_state
+    ))
     
   })
 }
 
+
 filterTab_server <- function(id,colnames_list) {
   moduleServer(id, function(input, output, session) {
-    
+
     observe({
       if(isTruthy(is.na(input$tumor_depth))) updateNumericInput(session, "tumor_depth", value = 10)
     })
@@ -506,17 +455,24 @@ filterTab_server <- function(id,colnames_list) {
       updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = colnames_list$default_columns)
     })
     
+    restore_ui_inputs <- function(data) {
+      if (!is.null(data$gnomAD_min)) updateNumericInput(session, "gnomAD_min", value = safe_extract(data$gnomAD_min))
+      if (!is.null(data$tumor_depth)) updateNumericInput(session, "tumor_depth", value = safe_extract(data$tumor_depth))
+      if (!is.null(data$gene_regions)) updatePrettyCheckboxGroup(session, "gene_regions", selected = safe_extract(data$gene_regions))
+      if (!is.null(data$consequence)) updatePrettyCheckboxGroup(session, "consequence", selected = safe_extract(data$consequence))
+      if (!is.null(data$selected_cols)) updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = safe_extract(data$selected_cols))
+    }
     return(list(
       confirm = reactive(input$confirm_btn),
       tumor_depth = reactive(input$tumor_depth),
       gnomAD_min = reactive(input$gnomAD_min),
       gene_regions = reactive(input$gene_regions),
       consequence = reactive(input$consequence),
-      selected_columns = reactive(input$colFilter_checkBox)
+      selected_columns = reactive(input$colFilter_checkBox),
+      restore_ui_inputs = restore_ui_inputs
     ))
   })
 }
-
 
   
 filterTab_ui <- function(id, data, default_columns, mapped_checkbox_names){
@@ -596,60 +552,3 @@ filterTab_ui <- function(id, data, default_columns, mapped_checkbox_names){
   )
 }
 
-
-
-    # 
-    # # zakladni nastaveni zobrazovanych sloupcu a jejich aktualizace ____________
-    # default_columns <- default_col()
-    # observe({
-    #   updatePrettyCheckboxGroup(
-    #     inputId = "colFilter_checkBox",
-    #     choiceNames = map_column_names(all_columns),
-    #     choiceValues = all_columns,
-    #     selected = c(
-    #       "var_name", "library", "Gene_symbol", "HGVSp", "HGVSc",
-    #       "tumor_variant_freq", "tumor_depth", "gnomAD_NFE","snpDB","COSMIC","HGMD", "clinvar_sig",
-    #       "clinvar_DBN", "fOne","CGC_Somatic", "gene_region", "Consequence",
-    #       "all_full_annot_name"
-    #     ),
-    #   )
-    # })
-    # observeEvent(input$show_all,{
-    #   updatePrettyCheckboxGroup(
-    #     inputId = "colFilter_checkBox",
-    #     selected = all_columns
-    #   )
-    # })
-    # observeEvent(input$show_default,{
-    #   updatePrettyCheckboxGroup(
-    #     inputId = "colFilter_checkBox",
-    #     selected = c("var_name", "library", "Gene_symbol", "HGVSp", "HGVSc",
-    #                  "tumor_variant_freq", "tumor_depth", "gnomAD_NFE","snpDB","COSMIC",
-    #                  "HGMD", "clinvar_sig", "clinvar_DBN", "fOne","CGC_Somatic", "gene_region",
-    #                  "Consequence", "all_full_annot_name"
-    #     )
-    #   )
-    # })
-    # 
-    # # aktualizace zobrazovanych sloupcu na zaklade zvolenych ___________________
-    # reactive_columns <- reactive({
-    #   req(input$colFilter_checkBox)
-    #   selected_columns <- input$colFilter_checkBox
-    #   updated_columns <- default_col()
-    #   missing_columns <- setdiff(all_columns, names(updated_columns))
-    #   for (col_name in missing_columns) {
-    #     updated_columns[[col_name]] <- colDef(show=FALSE)
-    #   }
-    #   for (col_name in names(updated_columns)) {
-    #     updated_columns[[col_name]]$show <- col_name %in% selected_columns
-    #   }
-    #   return(updated_columns)
-    # })
-    # 
-    # 
-    # 
-    # 
-    # 
-    
-
-#runApp('sequiaViz')

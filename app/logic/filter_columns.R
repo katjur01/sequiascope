@@ -1,3 +1,5 @@
+# app/logic/filter_columns.R
+
 box::use(
   shiny[icon,textInput],
   bs4Dash[actionButton],
@@ -5,6 +7,8 @@ box::use(
   reactable,
   reactable[colDef,JS,colGroup],
   stats[setNames], #na.omit,
+  shinyWidgets[radioGroupButtons],
+  reactable.extras[text_extra],
   # data.table[uniqueN]
 )
 
@@ -91,7 +95,7 @@ generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
 }
 
 #' @export
-colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL,session=NULL){
+colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL, session = NULL){
   if (tag == "fusion"){
     map_list <- list(
       gene1 = colDef(minWidth = 120,filterable = TRUE,sticky = "left",name="Gene 1"),
@@ -107,7 +111,6 @@ colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL,session=
                               cell = JS("function(rowInfo) {
                                    if (rowInfo.value == true || rowInfo.value == false) {
                                     var cls = 'tag called-' + String(rowInfo.value).toLowerCase()
-                                    console.log(cls)
                                     return '<div class=\"' + cls + '\">' + rowInfo.value + '</div>'
                                    }
                                   return rowInfo.value }")),
@@ -119,14 +122,25 @@ colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL,session=
                                     var cls = 'tag confidence-' + rowInfo.value.toLowerCase()
                                     return '<div class=\"' + cls + '\">' + rowInfo.value + '</div>' }")),
       overall_support = colDef(width = 100,name="Overall support"),
-      Visual_Check = colDef(width = 110,name="Visual check",
-                            cell = function(value, index) {
-                              tagList(
-                                actionButton(paste0(session$ns("yesButton_"), index), icon("check"), class = "btn btn-primary btn-md", onclick = sprintf("event.stopPropagation();")),
-                                actionButton(paste0(session$ns("noButton_"), index), icon("close"), class = "btn btn-primary btn-md", onclick = sprintf("event.stopPropagation();")))}),
+      Visual_Check = colDef(width = 110,name="Visual check",html = TRUE,
+                            cell = JS(paste0("function(cellInfo) {
+                                                const rowIndex = cellInfo.index;
+                                                const value = cellInfo.value || '';
+                                                const inputId = '", session$ns("visual_check"), "';
+                                                return `
+                                                  <div class='fusion-radio-group' data-row='${rowIndex}'>
+                                                    <label class='fusion-radio-label'>
+                                                      <input type='radio' name='${inputId}_${rowIndex}' value='yes' ${value === 'yes' ? 'checked' : ''}>
+                                                      <span class='fusion-radio-btn'><i class='fa fa-check'></i></span>
+                                                    </label>
+                                                    <label class='fusion-radio-label'>
+                                                      <input type='radio' name='${inputId}_${rowIndex}' value='no' ${value === 'no' ? 'checked' : ''}>
+                                                      <span class='fusion-radio-btn'><i class='fa fa-times'></i></span>
+                                                    </label>
+                                                  </div>
+                                                `;}"))),
       Notes = colDef(minWidth = 120,name="Notes",
-                     cell = function(value, index) {
-                       textInput(session$ns(paste0("notesTable_", index)), label = NULL)}),
+                     cell = text_extra(id = session$ns("rt_notes"))),
       position1 = colDef(minWidth = 150,name="Position 1"),
       position2 = colDef(minWidth = 150,name="Position 2"),
       strand1 = colDef(width = 100,name="Strand 1"),

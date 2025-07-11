@@ -1,0 +1,113 @@
+{
+  "somatic": {
+    "DZ1601": {
+      "gnomAD_min": {},
+      "tumor_depth": {},
+      "gene_regions": {},
+      "consequence": {},
+      "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
+      "selected_vars": []
+    },
+    "MR1507": {
+      "gnomAD_min": {},
+      "tumor_depth": {},
+      "gene_regions": {},
+      "consequence": {},
+      "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
+      "selected_vars": []
+    },
+    "VH0452": {
+      "gnomAD_min": {},
+      "tumor_depth": {},
+      "gene_regions": {},
+      "consequence": {},
+      "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
+      "selected_vars": []
+    }
+  },
+  "germline": {
+    "DZ1601": {
+      "gnomAD_min": {},
+      "coverage_depth": {},
+      "gene_regions": {},
+      "clinvar_sig": {},
+      "consequence": {},
+      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
+      "selected_vars": []
+    },
+    "MR1507": {
+      "gnomAD_min": {},
+      "coverage_depth": {},
+      "gene_regions": {},
+      "clinvar_sig": {},
+      "consequence": {},
+      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
+      "selected_vars": []
+    },
+    "VH0452": {
+      "gnomAD_min": {},
+      "coverage_depth": {},
+      "gene_regions": {},
+      "clinvar_sig": {},
+      "consequence": {},
+      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
+      "selected_vars": []
+    }
+  },
+  "fusion": {
+    "DZ1601": {
+      "rt_notes": {
+        "13": "asd",
+        "3": "fsaa",
+        "5": "."
+      },
+      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
+      "selected_vars": []
+    },
+    "LK0302": {
+      "rt_notes": {},
+      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
+      "selected_vars": []
+    },
+    "MR1507": {
+      "rt_notes": {},
+      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
+      "selected_vars": []
+    },
+    "VH0452": {
+      "rt_notes": {},
+      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
+      "selected_vars": []
+    }
+  },
+  "expression": {
+    "DZ1601": {
+      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
+      "selected_pathway": ["Apoptosis", "Cell cycle control", "DNA damage/repair", "Epigenetics", "Hedgehog Signaling", "Hormone Signaling", "Immune Checkpoints", "Immune Response", "JAK/STAT Signaling", "MAPK Signaling", "Metabolic Signaling", "Non-receptor kinases", "PI3K/AKT/mTOR Signaling", "RTK Signaling", "TGF-B Signaling", "WNT signaling"],
+      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
+      "log2fc_bigger1_tissue": {},
+      "log2fc_smaller1_tissue": {},
+      "pval_tissue": {},
+      "padj_tissue": {},
+      "log2fc_bigger1_btn": false,
+      "log2fc_smaller1_btn": false,
+      "pval_btn": false,
+      "padj_btn": false,
+      "selected_genes": []
+    },
+    "MR1507": {
+      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
+      "selected_pathway": ["Apoptosis", "Cell cycle control", "DNA damage/repair", "Epigenetics", "Hedgehog Signaling", "Hormone Signaling", "Immune Checkpoints", "Immune Response", "JAK/STAT Signaling", "MAPK Signaling", "Metabolic Signaling", "Non-receptor kinases", "PI3K/AKT/mTOR Signaling", "RTK Signaling", "TGF-B Signaling", "WNT signaling"],
+      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
+      "log2fc_bigger1_tissue": {},
+      "log2fc_smaller1_tissue": {},
+      "pval_tissue": {},
+      "padj_tissue": {},
+      "log2fc_bigger1_btn": false,
+      "log2fc_smaller1_btn": false,
+      "pval_btn": false,
+      "padj_btn": false,
+      "selected_genes": []
+    }
+  }
+}
