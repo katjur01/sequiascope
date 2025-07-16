@@ -6,7 +6,34 @@
       "gene_regions": {},
       "consequence": {},
       "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": []
+      "selected_vars": [
+        {
+          "var_name": "9_116344626_G/A",
+          "Gene_symbol": "PAPPA",
+          "tumor_variant_freq": 0.16,
+          "tumor_depth": 125,
+          "Consequence": "missense variant",
+          "HGVSc": "c.3695G>A",
+          "HGVSp": "p.R1232H",
+          "variant_type": "SNV",
+          "Feature": "NM_002581.5",
+          "gnomAD_NFE": 0.0001,
+          "sample": "DZ1601"
+        },
+        {
+          "var_name": "X_84145545_T/C",
+          "Gene_symbol": "RPS6KA6",
+          "tumor_variant_freq": 0.055,
+          "tumor_depth": 73,
+          "Consequence": "missense variant",
+          "HGVSc": "c.434A>G",
+          "HGVSp": "p.E145G",
+          "variant_type": "SNV",
+          "Feature": "NM_014496.5",
+          "gnomAD_NFE": 0,
+          "sample": "DZ1601"
+        }
+      ]
     },
     "MR1507": {
       "gnomAD_min": {},
@@ -14,7 +41,34 @@
       "gene_regions": {},
       "consequence": {},
       "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": []
+      "selected_vars": [
+        {
+          "var_name": "5_35877233_C/T",
+          "Gene_symbol": "IL7R",
+          "tumor_variant_freq": 0.052,
+          "tumor_depth": 192,
+          "Consequence": "3 prime UTR variant",
+          "HGVSc": "c.*747C>T",
+          "HGVSp": null,
+          "variant_type": "SNV",
+          "Feature": "NM_002185.5",
+          "gnomAD_NFE": 0,
+          "sample": "MR1507"
+        },
+        {
+          "var_name": "5_68297595_G/A",
+          "Gene_symbol": "PIK3R1",
+          "tumor_variant_freq": 0.389,
+          "tumor_depth": 157,
+          "Consequence": "synonymous variant",
+          "HGVSc": "c.2169G>A",
+          "HGVSp": "p.=(p.R723R)",
+          "variant_type": "SNV",
+          "Feature": "NM_181523.3",
+          "gnomAD_NFE": 0,
+          "sample": "MR1507"
+        }
+      ]
     },
     "VH0452": {
       "gnomAD_min": {},
@@ -22,65 +76,137 @@
       "gene_regions": {},
       "consequence": {},
       "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": []
+      "selected_vars": [
+        {
+          "var_name": "16_56831979_A/G",
+          "Gene_symbol": "NUP93",
+          "tumor_variant_freq": 0.16,
+          "tumor_depth": 81,
+          "Consequence": "missense variant",
+          "HGVSc": "c.1223A>G",
+          "HGVSp": "p.D408G",
+          "variant_type": "SNV",
+          "Feature": "NM_014669.5",
+          "gnomAD_NFE": 0,
+          "sample": "VH0452"
+        },
+        {
+          "var_name": "17_18039687_C/G",
+          "Gene_symbol": "GID4",
+          "tumor_variant_freq": 0.455,
+          "tumor_depth": 22,
+          "Consequence": "missense variant",
+          "HGVSc": "c.223C>G",
+          "HGVSp": "p.P75A",
+          "variant_type": "SNV",
+          "Feature": "NM_024052.5",
+          "gnomAD_NFE": 0,
+          "sample": "VH0452"
+        }
+      ]
     }
   },
   "germline": {
     "DZ1601": {
-      "gnomAD_min": {},
-      "coverage_depth": {},
-      "gene_regions": {},
-      "clinvar_sig": {},
-      "consequence": {},
-      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": []
+      "gnomAD_min": 0.01,
+      "coverage_depth": 10,
+      "gene_regions": ["exon", "intron"],
+      "clinvar_sig": ["Affects", "association", "Benign", "confers sensitivity", "Conflicting interpretations of pathogenicity", "drug response", "Likely benign", "Likely pathogenic", "missing value", "not provided", "other", "Pathogenic", "protective", "risk factor", "Uncertain significance"],
+      "consequence": ["3 prime UTR variant", "5 prime UTR variant", "coding sequence variant", "downstream gene variant", "frameshift variant", "inframe deletion", "inframe insertion", "intergenic variant", "intron variant", "missense variant", "NMD transcript variant", "non coding transcript exon variant", "non coding transcript variant", "protein altering variant", "regulatory region variant", "splice acceptor variant", "splice donor 5th base variant", "splice donor region variant", "splice donor variant", "splice polypyrimidine tract variant", "splice region variant", "start lost", "start retained variant", "stop gained", "stop lost", "stop retained variant", "TF binding site variant", "upstream gene variant"],
+      "selected_cols": ["all_full_annot_name", "CGC_Germline", "clinvar_sig", "Consequence", "coverage_depth", "fOne", "gene_region", "Gene_symbol", "gnomAD_NFE", "HGVSc", "HGVSp", "in_library", "snpDB", "trusight_genes", "var_name", "variant_freq"],
+      "selected_vars": [
+        {
+          "var_name": "19_45352801_C/G",
+          "Gene_symbol": "ERCC2",
+          "variant_freq": 0.286,
+          "coverage_depth": 28,
+          "Consequence": "missense variant",
+          "HGVSc": "c.1847G>C",
+          "HGVSp": "p.R616P",
+          "variant_type": "SNV",
+          "Feature": "NM_000400.4",
+          "clinvar_sig": "Pathogenic",
+          "gnomAD_NFE": 0.0003,
+          "sample": "DZ1601krev"
+        }
+      ]
     },
     "MR1507": {
-      "gnomAD_min": {},
-      "coverage_depth": {},
-      "gene_regions": {},
-      "clinvar_sig": {},
-      "consequence": {},
-      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": []
+      "gnomAD_min": 0.01,
+      "coverage_depth": 10,
+      "gene_regions": ["exon", "intron"],
+      "clinvar_sig": ["Affects", "association", "Benign", "confers sensitivity", "Conflicting interpretations of pathogenicity", "drug response", "Likely benign", "Likely pathogenic", "missing value", "not provided", "other", "Pathogenic", "protective", "risk factor", "Uncertain significance"],
+      "consequence": ["3 prime UTR variant", "5 prime UTR variant", "coding sequence variant", "downstream gene variant", "frameshift variant", "incomplete terminal codon variant", "inframe deletion", "inframe insertion", "intergenic variant", "intron variant", "missense variant", "NMD transcript variant", "non coding transcript exon variant", "non coding transcript variant", "protein altering variant", "regulatory region variant", "splice acceptor variant", "splice donor 5th base variant", "splice donor region variant", "splice donor variant", "splice polypyrimidine tract variant", "splice region variant", "start lost", "start retained variant", "stop gained", "stop lost", "stop retained variant", "TF binding site variant", "upstream gene variant"],
+      "selected_cols": ["all_full_annot_name", "CGC_Germline", "clinvar_sig", "Consequence", "coverage_depth", "fOne", "gene_region", "Gene_symbol", "gnomAD_NFE", "HGVSc", "HGVSp", "in_library", "snpDB", "trusight_genes", "var_name", "variant_freq"],
+      "selected_vars": [
+        {
+          "var_name": "16_68822063_G/A",
+          "Gene_symbol": "CDH1",
+          "variant_freq": 0.379,
+          "coverage_depth": 95,
+          "Consequence": "missense variant",
+          "HGVSc": "c.1774G>A",
+          "HGVSp": "p.A592T",
+          "variant_type": "SNV",
+          "Feature": "NM_004360.5",
+          "clinvar_sig": "Benign",
+          "gnomAD_NFE": 0.0047,
+          "sample": "MR1507krev"
+        }
+      ]
     },
     "VH0452": {
-      "gnomAD_min": {},
-      "coverage_depth": {},
-      "gene_regions": {},
-      "clinvar_sig": {},
-      "consequence": {},
-      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": []
+      "gnomAD_min": 0.01,
+      "coverage_depth": 10,
+      "gene_regions": ["intron", "exon"],
+      "clinvar_sig": ["Affects", "association", "Benign", "Conflicting interpretations of pathogenicity", "drug response", "Likely benign", "Likely pathogenic", "missing value", "not provided", "other", "Pathogenic", "protective", "risk factor", "Uncertain significance"],
+      "consequence": ["3 prime UTR variant", "5 prime UTR variant", "coding sequence variant", "downstream gene variant", "frameshift variant", "incomplete terminal codon variant", "inframe deletion", "inframe insertion", "intergenic variant", "intron variant", "missense variant", "NMD transcript variant", "non coding transcript exon variant", "non coding transcript variant", "protein altering variant", "regulatory region variant", "splice acceptor variant", "splice donor 5th base variant", "splice donor region variant", "splice donor variant", "splice polypyrimidine tract variant", "splice region variant", "start lost", "start retained variant", "stop gained", "stop lost", "stop retained variant", "TF binding site variant", "upstream gene variant"],
+      "selected_cols": ["all_full_annot_name", "CGC_Germline", "clinvar_sig", "Consequence", "coverage_depth", "fOne", "gene_region", "Gene_symbol", "gnomAD_NFE", "HGVSc", "HGVSp", "in_library", "snpDB", "trusight_genes", "var_name", "variant_freq"],
+      "selected_vars": [
+        {
+          "var_name": "X_48686113_C/A",
+          "Gene_symbol": "WAS",
+          "variant_freq": 0.418,
+          "coverage_depth": 91,
+          "Consequence": "missense variant",
+          "HGVSc": "c.538C>A",
+          "HGVSp": "p.H180N",
+          "variant_type": "SNV",
+          "Feature": "NM_000377.3",
+          "clinvar_sig": "Conflicting interpretations of pathogenicity",
+          "gnomAD_NFE": 0.0016,
+          "sample": "VH0452krev"
+        }
+      ]
     }
   },
   "fusion": {
     "DZ1601": {
-      "rt_notes": {
-        "13": "asd",
-        "3": "fsaa",
-        "5": "."
-      },
       "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": []
+      "selected_vars": [],
+      "visual_check_state": [],
+      "notes_state": []
     },
     "LK0302": {
-      "rt_notes": {},
       "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": []
+      "selected_vars": [],
+      "visual_check_state": [],
+      "notes_state": []
     },
     "MR1507": {
-      "rt_notes": {},
       "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": []
+      "selected_vars": [],
+      "visual_check_state": [],
+      "notes_state": []
     },
     "VH0452": {
-      "rt_notes": {},
       "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": []
+      "selected_vars": [],
+      "visual_check_state": [],
+      "notes_state": []
     }
   },
-  "expression": {
+  "expression_goi": {
     "DZ1601": {
       "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
       "selected_pathway": ["Apoptosis", "Cell cycle control", "DNA damage/repair", "Epigenetics", "Hedgehog Signaling", "Hormone Signaling", "Immune Checkpoints", "Immune Response", "JAK/STAT Signaling", "MAPK Signaling", "Metabolic Signaling", "Non-receptor kinases", "PI3K/AKT/mTOR Signaling", "RTK Signaling", "TGF-B Signaling", "WNT signaling"],
@@ -93,7 +219,1667 @@
       "log2fc_smaller1_btn": false,
       "pval_btn": false,
       "padj_btn": false,
-      "selected_genes": []
+      "selected_genes": [
+        {
+          "sample": "DZ1601",
+          "feature_name": "ABL1",
+          "geneid": "ENSG00000097007",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 1.2407
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ACO1",
+          "geneid": "ENSG00000122729",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.4942
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ACO2",
+          "geneid": "ENSG00000100412",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.1553
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "AKT1",
+          "geneid": "ENSG00000142208",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.8669
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "AKT2",
+          "geneid": "ENSG00000105221",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.4198
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "AKT3",
+          "geneid": "ENSG00000117020",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.1103
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ALK",
+          "geneid": "ENSG00000171094",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.3738
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "APAF1",
+          "geneid": "ENSG00000120868",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 0.9822
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "APC",
+          "geneid": "ENSG00000134982",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.9789
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "AR",
+          "geneid": "ENSG00000169083",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": 0.1396
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ARAF",
+          "geneid": "ENSG00000078061",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.582
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ASNS",
+          "geneid": "ENSG00000070669",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -3.5222
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ASXL1",
+          "geneid": "ENSG00000171456",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.952
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ATM",
+          "geneid": "ENSG00000149311",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.7664
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ATR",
+          "geneid": "ENSG00000175054",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.9697
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ATRX",
+          "geneid": "ENSG00000085224",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.173
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "AURKA",
+          "geneid": "ENSG00000087586",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.3853
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "AURKB",
+          "geneid": "ENSG00000178999",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.5707
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "AXIN1",
+          "geneid": "ENSG00000103126",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.6434
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BAK1",
+          "geneid": "ENSG00000030110",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 0.9549
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BAX",
+          "geneid": "ENSG00000087088",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 1.2156
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BCL2",
+          "geneid": "ENSG00000171791",
+          "pathway": "Apoptosis",
+          "mean_log2FC": -0.2669
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BID",
+          "geneid": "ENSG00000015475",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 0.8423
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BRAF",
+          "geneid": "ENSG00000157764",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.6903
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BRCA1",
+          "geneid": "ENSG00000012048",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.6146
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BRCA2",
+          "geneid": "ENSG00000139618",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.4106
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BRIP1",
+          "geneid": "ENSG00000136492",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.2233
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BTK",
+          "geneid": "ENSG00000010671",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.4635
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "BTRC",
+          "geneid": "ENSG00000166167",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.6401
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CASP3",
+          "geneid": "ENSG00000164305",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 2.0168
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CASP8",
+          "geneid": "ENSG00000064012",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 1.333
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CASP9",
+          "geneid": "ENSG00000132906",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 0.6211
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CBL",
+          "geneid": "ENSG00000110395",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.8976
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCNA1",
+          "geneid": "ENSG00000133101",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -0.9228
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCNA2",
+          "geneid": "ENSG00000145386",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.4921
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCNB1",
+          "geneid": "ENSG00000134057",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.6853
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCNB2",
+          "geneid": "ENSG00000157456",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.3341
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCNB3",
+          "geneid": "ENSG00000147082",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.844
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCND1",
+          "geneid": "ENSG00000110092",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -0.0456
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCND2",
+          "geneid": "ENSG00000118971",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.4737
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCND3",
+          "geneid": "ENSG00000112576",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.0046
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCNE1",
+          "geneid": "ENSG00000105173",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.7148
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CCNE2",
+          "geneid": "ENSG00000175305",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.4584
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CD274",
+          "geneid": "ENSG00000120217",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -0.0155
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CD79A",
+          "geneid": "ENSG00000105369",
+          "pathway": "Immune Response",
+          "mean_log2FC": -1.4289
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CD79B",
+          "geneid": "ENSG00000007312",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.7127
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDK1",
+          "geneid": "ENSG00000170312",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.0254
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDK12",
+          "geneid": "ENSG00000167258",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.5618
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDK2",
+          "geneid": "ENSG00000123374",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.7948
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDK3",
+          "geneid": "ENSG00000250506",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -2.9348
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDK4",
+          "geneid": "ENSG00000135446",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.269
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDK6",
+          "geneid": "ENSG00000105810",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.2978
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDK8",
+          "geneid": "ENSG00000132964",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.9955
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDKN1B",
+          "geneid": "ENSG00000111276",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.7158
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDKN2A",
+          "geneid": "ENSG00000147889",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.5497
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDKN2B",
+          "geneid": "ENSG00000147883",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -1.0451
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CDKN2C",
+          "geneid": "ENSG00000123080",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.3582
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CHEK1",
+          "geneid": "ENSG00000149554",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.4245
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CHEK2",
+          "geneid": "ENSG00000183765",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.1068
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CRKL",
+          "geneid": "ENSG00000099942",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.6829
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CRLF2",
+          "geneid": "ENSG00000205755",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 1.1979
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CS",
+          "geneid": "ENSG00000062485",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.0103
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CSF1R",
+          "geneid": "ENSG00000182578",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.8218
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CSNK1A1",
+          "geneid": "ENSG00000113712",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.0115
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CTLA4",
+          "geneid": "ENSG00000163599",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -0.3054
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CTNNA1",
+          "geneid": "ENSG00000044115",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.7519
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "CTNNB1",
+          "geneid": "ENSG00000168036",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.941
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "DDR2",
+          "geneid": "ENSG00000162733",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.3553
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "DNMT3A",
+          "geneid": "ENSG00000119772",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 2.1878
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "DOT1L",
+          "geneid": "ENSG00000104885",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.9917
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "DRD2",
+          "geneid": "ENSG00000149295",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.9668
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "DVL1",
+          "geneid": "ENSG00000107404",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.1432
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "E2F1",
+          "geneid": "ENSG00000101412",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.8158
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "EGFR",
+          "geneid": "ENSG00000146648",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.9638
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "EMSY",
+          "geneid": "ENSG00000158636",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.1909
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "EPHA3",
+          "geneid": "ENSG00000044524",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.1368
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "EPHA5",
+          "geneid": "ENSG00000145242",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.2022
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "EPHB1",
+          "geneid": "ENSG00000154928",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.3356
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ERBB2",
+          "geneid": "ENSG00000141736",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.5202
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ERBB3",
+          "geneid": "ENSG00000065361",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.6759
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ERBB4",
+          "geneid": "ENSG00000178568",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.3059
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ESR1",
+          "geneid": "ENSG00000091831",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -1.0523
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "EZH2",
+          "geneid": "ENSG00000106462",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 2.3265
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FAM46C",
+          "geneid": "ENSG00000183508",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.0564
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FANCA",
+          "geneid": "ENSG00000187741",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.4804
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FANCC",
+          "geneid": "ENSG00000158169",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.4812
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FANCD2",
+          "geneid": "ENSG00000144554",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.6475
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FANCE",
+          "geneid": "ENSG00000112039",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.9135
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FANCF",
+          "geneid": "ENSG00000183161",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.3307
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FANCG",
+          "geneid": "ENSG00000221829",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.624
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FANCL",
+          "geneid": "ENSG00000115392",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.1436
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FAS",
+          "geneid": "ENSG00000026103",
+          "pathway": "Apoptosis",
+          "mean_log2FC": -0.3888
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FASLG",
+          "geneid": "ENSG00000117560",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 2.7081
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGF10",
+          "geneid": "ENSG00000070193",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.3785
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGF14",
+          "geneid": "ENSG00000102466",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.7881
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGF19",
+          "geneid": "ENSG00000162344",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.4108
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGF23",
+          "geneid": "ENSG00000118972",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.2482
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGF3",
+          "geneid": "ENSG00000186895",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.0037
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGF4",
+          "geneid": "ENSG00000075388",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.1552
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGF6",
+          "geneid": "ENSG00000111241",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.0092
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGFR1",
+          "geneid": "ENSG00000077782",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.0035
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGFR2",
+          "geneid": "ENSG00000066468",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.5427
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGFR3",
+          "geneid": "ENSG00000068078",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.4676
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FGFR4",
+          "geneid": "ENSG00000160867",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.1836
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FH",
+          "geneid": "ENSG00000091483",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.1787
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FLT1",
+          "geneid": "ENSG00000102755",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.3033
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FLT3",
+          "geneid": "ENSG00000122025",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 1.7405
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FLT4",
+          "geneid": "ENSG00000037280",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.5905
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "FZD1",
+          "geneid": "ENSG00000157240",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.6902
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "GSK3B",
+          "geneid": "ENSG00000082701",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.265
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "HAVCR2",
+          "geneid": "ENSG00000135077",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 0.2945
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "HGF",
+          "geneid": "ENSG00000019991",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.6345
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "HRAS",
+          "geneid": "ENSG00000174775",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 1.3615
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IDH1",
+          "geneid": "ENSG00000138413",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.2995
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IDH2",
+          "geneid": "ENSG00000182054",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.9987
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IDO1",
+          "geneid": "ENSG00000131203",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.0366
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IGF1R",
+          "geneid": "ENSG00000140443",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.459
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IKZF1",
+          "geneid": "ENSG00000185811",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 2.7666
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IL13RA1",
+          "geneid": "ENSG00000131724",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.2218
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IL13RA2",
+          "geneid": "ENSG00000123496",
+          "pathway": "Immune Response",
+          "mean_log2FC": -0.7751
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IL4R",
+          "geneid": "ENSG00000077238",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.0017
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IL7R",
+          "geneid": "ENSG00000168685",
+          "pathway": "Immune Response",
+          "mean_log2FC": 2.3276
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "INHBA",
+          "geneid": "ENSG00000122641",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 0.7265
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IRF4",
+          "geneid": "ENSG00000137265",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.2414
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "IRS2",
+          "geneid": "ENSG00000185950",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": -0.9265
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "JAK1",
+          "geneid": "ENSG00000162434",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 1.6724
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "JAK2",
+          "geneid": "ENSG00000096968",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.0337
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "JAK3",
+          "geneid": "ENSG00000105639",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 2.3169
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KAT6A",
+          "geneid": "ENSG00000083168",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.478
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KDM5A",
+          "geneid": "ENSG00000073614",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.9526
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KDM5C",
+          "geneid": "ENSG00000126012",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.8514
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KDM6A",
+          "geneid": "ENSG00000147050",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.9071
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KDR",
+          "geneid": "ENSG00000128052",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.9907
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KIT",
+          "geneid": "ENSG00000157404",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.2251
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KLHL6",
+          "geneid": "ENSG00000172578",
+          "pathway": "Immune Response",
+          "mean_log2FC": 1.197
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KMT2D",
+          "geneid": "ENSG00000167548",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.4869
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "KRAS",
+          "geneid": "ENSG00000133703",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.5234
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "LAG3",
+          "geneid": "ENSG00000089692",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -0.664
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "LDHA",
+          "geneid": "ENSG00000134333",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.4249
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "LDHB",
+          "geneid": "ENSG00000111716",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.8135
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "LRP1B",
+          "geneid": "ENSG00000168702",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -0.397
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "LRP5",
+          "geneid": "ENSG00000162337",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.6496
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "LRP6",
+          "geneid": "ENSG00000070018",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.2965
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MAP2K1",
+          "geneid": "ENSG00000169032",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.6895
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MAP2K2",
+          "geneid": "ENSG00000126934",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.138
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MAP2K4",
+          "geneid": "ENSG00000065559",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.7789
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MAP3K1",
+          "geneid": "ENSG00000095015",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.1874
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MAPK1",
+          "geneid": "ENSG00000100030",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.8134
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MDH2",
+          "geneid": "ENSG00000146701",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.5792
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MDM2",
+          "geneid": "ENSG00000135679",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.6613
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MDM4",
+          "geneid": "ENSG00000198625",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.8832
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MET",
+          "geneid": "ENSG00000105976",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.1086
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MLH1",
+          "geneid": "ENSG00000076242",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.5177
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MPI",
+          "geneid": "ENSG00000178802",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.2932
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MPL",
+          "geneid": "ENSG00000117400",
+          "pathway": "Immune Response",
+          "mean_log2FC": -0.4659
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MSH2",
+          "geneid": "ENSG00000095002",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.2272
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MSH6",
+          "geneid": "ENSG00000116062",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.2097
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MTOR",
+          "geneid": "ENSG00000198793",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.7619
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MUTYH",
+          "geneid": "ENSG00000132781",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.0744
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MYC",
+          "geneid": "ENSG00000136997",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.3846
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "MYD88",
+          "geneid": "ENSG00000172936",
+          "pathway": "Immune Response",
+          "mean_log2FC": 1.1416
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "NF1",
+          "geneid": "ENSG00000196712",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": -0.221
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "NFKBIA",
+          "geneid": "ENSG00000100906",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.3026
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "NPM1",
+          "geneid": "ENSG00000181163",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": -0.0213
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "NRAS",
+          "geneid": "ENSG00000213281",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 1.8064
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "NTRK1",
+          "geneid": "ENSG00000198400",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 1.1984
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "NTRK2",
+          "geneid": "ENSG00000148053",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.3407
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "NTRK3",
+          "geneid": "ENSG00000140538",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.2349
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "OGDH",
+          "geneid": "ENSG00000105953",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.5444
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PALB2",
+          "geneid": "ENSG00000083093",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.1882
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PBRM1",
+          "geneid": "ENSG00000163939",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.9337
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PC",
+          "geneid": "ENSG00000173599",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.1716
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PDCD1",
+          "geneid": "ENSG00000188389",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 0.84
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PDGFRA",
+          "geneid": "ENSG00000134853",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.7905
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PDGFRB",
+          "geneid": "ENSG00000113721",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.1404
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PDHA1",
+          "geneid": "ENSG00000131828",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.7086
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PDHB",
+          "geneid": "ENSG00000168291",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.0758
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PGR",
+          "geneid": "ENSG00000082175",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -1.6221
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PIK3CA",
+          "geneid": "ENSG00000121879",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.4143
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PIK3CG",
+          "geneid": "ENSG00000105851",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 1.6275
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PIK3R1",
+          "geneid": "ENSG00000145675",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.3892
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PIK3R2",
+          "geneid": "ENSG00000105647",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": -3.8077
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PKM",
+          "geneid": "ENSG00000067225",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.9737
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PPP2R1A",
+          "geneid": "ENSG00000105568",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.5728
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PTCH1",
+          "geneid": "ENSG00000185920",
+          "pathway": "Hedgehog Signaling",
+          "mean_log2FC": 1.2815
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PTEN",
+          "geneid": "ENSG00000171862",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": -0.243
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PTK2",
+          "geneid": "ENSG00000169398",
+          "pathway": "Non-receptor kinases",
+          "mean_log2FC": 0.6914
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "PTPN11",
+          "geneid": "ENSG00000179295",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.5191
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RAD23B",
+          "geneid": "ENSG00000119318",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.2562
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RAD50",
+          "geneid": "ENSG00000113522",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": -2.2732
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RAD51",
+          "geneid": "ENSG00000051180",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.8955
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RAF1",
+          "geneid": "ENSG00000132155",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": -0.1573
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RB1",
+          "geneid": "ENSG00000139687",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.447
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RET",
+          "geneid": "ENSG00000165731",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.5641
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RICTOR",
+          "geneid": "ENSG00000164327",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 1.0757
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RNF43",
+          "geneid": "ENSG00000108375",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.559
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "ROS1",
+          "geneid": "ENSG00000047936",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.1942
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "RPTOR",
+          "geneid": "ENSG00000141564",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 1.502
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SETD2",
+          "geneid": "ENSG00000181555",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.987
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SMAD2",
+          "geneid": "ENSG00000175387",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 0.9224
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SMAD3",
+          "geneid": "ENSG00000166949",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 0.9364
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SMAD4",
+          "geneid": "ENSG00000141646",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 0.7336
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SMO",
+          "geneid": "ENSG00000128602",
+          "pathway": "Hedgehog Signaling",
+          "mean_log2FC": -0.5879
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SOCS1",
+          "geneid": "ENSG00000185338",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 2.6189
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SRC",
+          "geneid": "ENSG00000197122",
+          "pathway": "Non-receptor kinases",
+          "mean_log2FC": 0.3289
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAG2",
+          "geneid": "ENSG00000101972",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.7033
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAT1",
+          "geneid": "ENSG00000115415",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.6282
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAT2",
+          "geneid": "ENSG00000170581",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.6466
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAT3",
+          "geneid": "ENSG00000168610",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.3459
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAT4",
+          "geneid": "ENSG00000138378",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.8968
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAT5A",
+          "geneid": "ENSG00000126561",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.8532
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAT5B",
+          "geneid": "ENSG00000173757",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.3582
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "STAT6",
+          "geneid": "ENSG00000166888",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.8414
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SUCLA2",
+          "geneid": "ENSG00000136143",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.3771
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SUCLG1",
+          "geneid": "ENSG00000163541",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.0978
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SUCLG2",
+          "geneid": "ENSG00000172340",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.2576
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SUFU",
+          "geneid": "ENSG00000107882",
+          "pathway": "Hedgehog Signaling",
+          "mean_log2FC": 0.9178
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TERT",
+          "geneid": "ENSG00000164362",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.7357
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TET2",
+          "geneid": "ENSG00000168769",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.0316
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TGFB1",
+          "geneid": "ENSG00000105329",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 0.0176
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TGFBR1",
+          "geneid": "ENSG00000106799",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 1.4297
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TGFBR2",
+          "geneid": "ENSG00000163513",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 0.2072
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TGFBR3",
+          "geneid": "ENSG00000069702",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": -0.4893
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TIGIT",
+          "geneid": "ENSG00000181847",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -0.6056
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TNFAIP3",
+          "geneid": "ENSG00000118503",
+          "pathway": "Immune Response",
+          "mean_log2FC": -0.2153
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TNFRSF18",
+          "geneid": "ENSG00000186891",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -0.14
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TNFRSF9",
+          "geneid": "ENSG00000049249",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 1.1206
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TP53",
+          "geneid": "ENSG00000141510",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.3401
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TSC1",
+          "geneid": "ENSG00000165699",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 1.366
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TSC2",
+          "geneid": "ENSG00000103197",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.608
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TSHR",
+          "geneid": "ENSG00000165409",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -0.101
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "VEGFA",
+          "geneid": "ENSG00000112715",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -2.7255
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "VEGFB",
+          "geneid": "ENSG00000173511",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.3816
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "VEGFC",
+          "geneid": "ENSG00000150630",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.0533
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "WISP3",
+          "geneid": "ENSG00000112761",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.6702
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "WNT1",
+          "geneid": "ENSG00000125084",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.3995
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "WT1",
+          "geneid": "ENSG00000184937",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.7463
+        }
+      ]
     },
     "MR1507": {
       "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
@@ -107,7 +1893,1769 @@
       "log2fc_smaller1_btn": false,
       "pval_btn": false,
       "padj_btn": false,
-      "selected_genes": []
+      "selected_genes": [
+        {
+          "sample": "MR1507",
+          "feature_name": "ABL1",
+          "geneid": "ENSG00000097007",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 2.2513
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ACO1",
+          "geneid": "ENSG00000122729",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.0171
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ACO2",
+          "geneid": "ENSG00000100412",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.7645
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "AKT1",
+          "geneid": "ENSG00000142208",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 1.5906
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "AKT2",
+          "geneid": "ENSG00000105221",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.8438
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "AKT3",
+          "geneid": "ENSG00000117020",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": -0.808
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ALK",
+          "geneid": "ENSG00000171094",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.3738
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "APAF1",
+          "geneid": "ENSG00000120868",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 1.3009
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "APC",
+          "geneid": "ENSG00000134982",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.7361
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "AR",
+          "geneid": "ENSG00000169083",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -2.0213
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ARAF",
+          "geneid": "ENSG00000078061",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.7616
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ASNS",
+          "geneid": "ENSG00000070669",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -3.5222
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ASXL1",
+          "geneid": "ENSG00000171456",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.4632
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ATM",
+          "geneid": "ENSG00000149311",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.0091
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ATR",
+          "geneid": "ENSG00000175054",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.6658
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ATRX",
+          "geneid": "ENSG00000085224",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.1913
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "AURKA",
+          "geneid": "ENSG00000087586",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.7416
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "AURKB",
+          "geneid": "ENSG00000178999",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 4.4846
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "AXIN1",
+          "geneid": "ENSG00000103126",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.4031
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BAK1",
+          "geneid": "ENSG00000030110",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 2.3921
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BAX",
+          "geneid": "ENSG00000087088",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 2.0398
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BCL2",
+          "geneid": "ENSG00000171791",
+          "pathway": "Apoptosis",
+          "mean_log2FC": -0.9744
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BID",
+          "geneid": "ENSG00000015475",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 3.0588
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BRAF",
+          "geneid": "ENSG00000157764",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.9641
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BRCA1",
+          "geneid": "ENSG00000012048",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.1724
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BRCA2",
+          "geneid": "ENSG00000139618",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.1181
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BRIP1",
+          "geneid": "ENSG00000136492",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.3082
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BTK",
+          "geneid": "ENSG00000010671",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.4635
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "BTRC",
+          "geneid": "ENSG00000166167",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.1524
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CASP3",
+          "geneid": "ENSG00000164305",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 3.2263
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CASP8",
+          "geneid": "ENSG00000064012",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 3.1969
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CASP9",
+          "geneid": "ENSG00000132906",
+          "pathway": "Apoptosis",
+          "mean_log2FC": -0.1158
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CBL",
+          "geneid": "ENSG00000110395",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 1.8976
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCNA1",
+          "geneid": "ENSG00000133101",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -1.9228
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCNA2",
+          "geneid": "ENSG00000145386",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.4317
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCNB1",
+          "geneid": "ENSG00000134057",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.8969
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCNB2",
+          "geneid": "ENSG00000157456",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.6993
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCNB3",
+          "geneid": "ENSG00000147082",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.344
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCND1",
+          "geneid": "ENSG00000110092",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.7804
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCND2",
+          "geneid": "ENSG00000118971",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 4.8379
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCND3",
+          "geneid": "ENSG00000112576",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.2451
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCNE1",
+          "geneid": "ENSG00000105173",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.0538
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CCNE2",
+          "geneid": "ENSG00000175305",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.7096
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CD274",
+          "geneid": "ENSG00000120217",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 0.9845
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CD79A",
+          "geneid": "ENSG00000105369",
+          "pathway": "Immune Response",
+          "mean_log2FC": -0.4289
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CD79B",
+          "geneid": "ENSG00000007312",
+          "pathway": "Immune Response",
+          "mean_log2FC": 3.3827
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDK1",
+          "geneid": "ENSG00000170312",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.9204
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDK12",
+          "geneid": "ENSG00000167258",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.3298
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDK2",
+          "geneid": "ENSG00000123374",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.6145
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDK3",
+          "geneid": "ENSG00000250506",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -2.9348
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDK4",
+          "geneid": "ENSG00000135446",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.8434
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDK6",
+          "geneid": "ENSG00000105810",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -0.3631
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDK8",
+          "geneid": "ENSG00000132964",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.6674
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDKN1B",
+          "geneid": "ENSG00000111276",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.2441
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDKN2A",
+          "geneid": "ENSG00000147889",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.3421
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDKN2B",
+          "geneid": "ENSG00000147883",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": -1.3376
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CDKN2C",
+          "geneid": "ENSG00000123080",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.802
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CHEK1",
+          "geneid": "ENSG00000149554",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.6542
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CHEK2",
+          "geneid": "ENSG00000183765",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.8748
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CRKL",
+          "geneid": "ENSG00000099942",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 1.3905
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CRLF2",
+          "geneid": "ENSG00000205755",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 2.4904
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CS",
+          "geneid": "ENSG00000062485",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.3309
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CSF1R",
+          "geneid": "ENSG00000182578",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 2.6903
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CSNK1A1",
+          "geneid": "ENSG00000113712",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.8046
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CTLA4",
+          "geneid": "ENSG00000163599",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -1.0979
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CTNNA1",
+          "geneid": "ENSG00000044115",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -1.3175
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "CTNNB1",
+          "geneid": "ENSG00000168036",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.1223
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "DDR2",
+          "geneid": "ENSG00000162733",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.6943
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "DNMT3A",
+          "geneid": "ENSG00000119772",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 2.5563
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "DOT1L",
+          "geneid": "ENSG00000104885",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.4431
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "DRD2",
+          "geneid": "ENSG00000149295",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.9668
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "DVL1",
+          "geneid": "ENSG00000107404",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.7589
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "E2F1",
+          "geneid": "ENSG00000101412",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 3.9935
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "EGFR",
+          "geneid": "ENSG00000146648",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.3323
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "EMSY",
+          "geneid": "ENSG00000158636",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.5594
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "EPHA3",
+          "geneid": "ENSG00000044524",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.6368
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "EPHA5",
+          "geneid": "ENSG00000145242",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.2022
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "EPHB1",
+          "geneid": "ENSG00000154928",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.6179
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ERBB2",
+          "geneid": "ENSG00000141736",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.3783
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ERBB3",
+          "geneid": "ENSG00000065361",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -2.1759
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ERBB4",
+          "geneid": "ENSG00000178568",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.5978
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ESR1",
+          "geneid": "ENSG00000091831",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -1.5523
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "EZH2",
+          "geneid": "ENSG00000106462",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 3.043
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FAM46C",
+          "geneid": "ENSG00000183508",
+          "pathway": "Immune Response",
+          "mean_log2FC": -1.2656
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FANCA",
+          "geneid": "ENSG00000187741",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.0916
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FANCC",
+          "geneid": "ENSG00000158169",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.2737
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FANCD2",
+          "geneid": "ENSG00000144554",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.3772
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FANCE",
+          "geneid": "ENSG00000112039",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.4822
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FANCF",
+          "geneid": "ENSG00000183161",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.1747
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FANCG",
+          "geneid": "ENSG00000221829",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.0919
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FANCL",
+          "geneid": "ENSG00000115392",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.0324
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FAS",
+          "geneid": "ENSG00000026103",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 0.0484
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FASLG",
+          "geneid": "ENSG00000117560",
+          "pathway": "Apoptosis",
+          "mean_log2FC": 5.8691
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGF10",
+          "geneid": "ENSG00000070193",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.3785
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGF14",
+          "geneid": "ENSG00000102466",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.7881
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGF19",
+          "geneid": "ENSG00000162344",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.0892
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGF23",
+          "geneid": "ENSG00000118972",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.2482
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGF3",
+          "geneid": "ENSG00000186895",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.0037
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGF4",
+          "geneid": "ENSG00000075388",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.1552
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGF6",
+          "geneid": "ENSG00000111241",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.0092
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGFR1",
+          "geneid": "ENSG00000077782",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.5035
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGFR2",
+          "geneid": "ENSG00000066468",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.2036
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGFR3",
+          "geneid": "ENSG00000068078",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.5761
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FGFR4",
+          "geneid": "ENSG00000160867",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -2.3445
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FH",
+          "geneid": "ENSG00000091483",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.7392
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FLT1",
+          "geneid": "ENSG00000102755",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.1424
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FLT3",
+          "geneid": "ENSG00000122025",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 1.7405
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FLT4",
+          "geneid": "ENSG00000037280",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.7515
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "FZD1",
+          "geneid": "ENSG00000157240",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.9827
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "GSK3B",
+          "geneid": "ENSG00000082701",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 2.104
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "HAVCR2",
+          "geneid": "ENSG00000135077",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 2.3383
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "HGF",
+          "geneid": "ENSG00000019991",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -2.1345
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "HRAS",
+          "geneid": "ENSG00000174775",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 1.6481
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IDH1",
+          "geneid": "ENSG00000138413",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.42
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IDH2",
+          "geneid": "ENSG00000182054",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 2.7708
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IDO1",
+          "geneid": "ENSG00000131203",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 2.8868
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IGF1R",
+          "geneid": "ENSG00000140443",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -2.12
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IKZF1",
+          "geneid": "ENSG00000185811",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 5.732
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IL13RA1",
+          "geneid": "ENSG00000131724",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.1496
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IL13RA2",
+          "geneid": "ENSG00000123496",
+          "pathway": "Immune Response",
+          "mean_log2FC": -2.0676
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IL4R",
+          "geneid": "ENSG00000077238",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.4102
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IL7R",
+          "geneid": "ENSG00000168685",
+          "pathway": "Immune Response",
+          "mean_log2FC": 7.0933
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "INHBA",
+          "geneid": "ENSG00000122641",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": -0.6237
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IRF4",
+          "geneid": "ENSG00000137265",
+          "pathway": "Immune Response",
+          "mean_log2FC": 1.5339
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "IRS2",
+          "geneid": "ENSG00000185950",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": -1.8302
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "JAK1",
+          "geneid": "ENSG00000162434",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 3.1627
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "JAK2",
+          "geneid": "ENSG00000096968",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.8261
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "JAK3",
+          "geneid": "ENSG00000105639",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 5.0809
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KAT6A",
+          "geneid": "ENSG00000083168",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.6095
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KDM5A",
+          "geneid": "ENSG00000073614",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.9526
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KDM5C",
+          "geneid": "ENSG00000126012",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.363
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KDM6A",
+          "geneid": "ENSG00000147050",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.0311
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KDR",
+          "geneid": "ENSG00000128052",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.0671
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KIT",
+          "geneid": "ENSG00000157404",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.6624
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KLHL6",
+          "geneid": "ENSG00000172578",
+          "pathway": "Immune Response",
+          "mean_log2FC": 3.782
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KMT2D",
+          "geneid": "ENSG00000167548",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.0603
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "KRAS",
+          "geneid": "ENSG00000133703",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 1.4822
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "LAG3",
+          "geneid": "ENSG00000089692",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -1.164
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "LDHA",
+          "geneid": "ENSG00000134333",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.4308
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "LDHB",
+          "geneid": "ENSG00000111716",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 2.15
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "LRP1B",
+          "geneid": "ENSG00000168702",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -0.397
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "LRP5",
+          "geneid": "ENSG00000162337",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.6126
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "LRP6",
+          "geneid": "ENSG00000070018",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 1.6279
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MAP2K1",
+          "geneid": "ENSG00000169032",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 2.4377
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MAP2K2",
+          "geneid": "ENSG00000126934",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.8557
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MAP2K4",
+          "geneid": "ENSG00000065559",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.811
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MAP3K1",
+          "geneid": "ENSG00000095015",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": -0.0699
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MAPK1",
+          "geneid": "ENSG00000100030",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 1.3632
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MDH2",
+          "geneid": "ENSG00000146701",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.3078
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MDM2",
+          "geneid": "ENSG00000135679",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 1.306
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MDM4",
+          "geneid": "ENSG00000198625",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.3722
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MET",
+          "geneid": "ENSG00000105976",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.1086
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MLH1",
+          "geneid": "ENSG00000076242",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.73
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MPI",
+          "geneid": "ENSG00000178802",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.055
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MPL",
+          "geneid": "ENSG00000117400",
+          "pathway": "Immune Response",
+          "mean_log2FC": -0.4659
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MSH2",
+          "geneid": "ENSG00000095002",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.5871
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MSH6",
+          "geneid": "ENSG00000116062",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.8497
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MTOR",
+          "geneid": "ENSG00000198793",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 1.6079
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MUTYH",
+          "geneid": "ENSG00000132781",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.759
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MYC",
+          "geneid": "ENSG00000136997",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.9809
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "MYD88",
+          "geneid": "ENSG00000172936",
+          "pathway": "Immune Response",
+          "mean_log2FC": 2.9387
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "NF1",
+          "geneid": "ENSG00000196712",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": -0.5601
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "NFKBIA",
+          "geneid": "ENSG00000100906",
+          "pathway": "Immune Response",
+          "mean_log2FC": 0.6166
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "NPM1",
+          "geneid": "ENSG00000181163",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.5944
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "NRAS",
+          "geneid": "ENSG00000213281",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 2.6921
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "NTRK1",
+          "geneid": "ENSG00000198400",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.3453
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "NTRK2",
+          "geneid": "ENSG00000148053",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.6331
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "NTRK3",
+          "geneid": "ENSG00000140538",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.7349
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "OGDH",
+          "geneid": "ENSG00000105953",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.5983
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PALB2",
+          "geneid": "ENSG00000083093",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 1.3622
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PBRM1",
+          "geneid": "ENSG00000163939",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 2.8519
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PC",
+          "geneid": "ENSG00000173599",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.6209
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PDCD1",
+          "geneid": "ENSG00000188389",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 2.7935
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PDGFRA",
+          "geneid": "ENSG00000134853",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -1.8483
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PDGFRB",
+          "geneid": "ENSG00000113721",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.8878
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PDHA1",
+          "geneid": "ENSG00000131828",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 1.0562
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PDHB",
+          "geneid": "ENSG00000168291",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.5905
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PGR",
+          "geneid": "ENSG00000082175",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -1.6221
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PIK3CA",
+          "geneid": "ENSG00000121879",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.9533
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PIK3CG",
+          "geneid": "ENSG00000105851",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 2.996
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PIK3R1",
+          "geneid": "ENSG00000145675",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 2.0421
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PIK3R2",
+          "geneid": "ENSG00000105647",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": -3.8077
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PKM",
+          "geneid": "ENSG00000067225",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": -0.0126
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PPP2R1A",
+          "geneid": "ENSG00000105568",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 0.9562
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PTCH1",
+          "geneid": "ENSG00000185920",
+          "pathway": "Hedgehog Signaling",
+          "mean_log2FC": 1.6002
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PTEN",
+          "geneid": "ENSG00000171862",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.3755
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PTK2",
+          "geneid": "ENSG00000169398",
+          "pathway": "Non-receptor kinases",
+          "mean_log2FC": 0.0548
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "PTPN11",
+          "geneid": "ENSG00000179295",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 1.6801
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RAD23B",
+          "geneid": "ENSG00000119318",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.0416
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RAD50",
+          "geneid": "ENSG00000113522",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": -2.2732
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RAD51",
+          "geneid": "ENSG00000051180",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.5356
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RAF1",
+          "geneid": "ENSG00000132155",
+          "pathway": "MAPK Signaling",
+          "mean_log2FC": 0.0353
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RB1",
+          "geneid": "ENSG00000139687",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 0.3668
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RET",
+          "geneid": "ENSG00000165731",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": 0.0641
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RICTOR",
+          "geneid": "ENSG00000164327",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 2.045
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RNF43",
+          "geneid": "ENSG00000108375",
+          "pathway": "WNT signaling",
+          "mean_log2FC": 0.9275
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "ROS1",
+          "geneid": "ENSG00000047936",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.1942
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "RPTOR",
+          "geneid": "ENSG00000141564",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 2.0808
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SETD2",
+          "geneid": "ENSG00000181555",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 1.5153
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SMAD2",
+          "geneid": "ENSG00000175387",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 1.2909
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SMAD3",
+          "geneid": "ENSG00000166949",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 1.2174
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SMAD4",
+          "geneid": "ENSG00000141646",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 0.5795
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SMO",
+          "geneid": "ENSG00000128602",
+          "pathway": "Hedgehog Signaling",
+          "mean_log2FC": -1.9915
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SOCS1",
+          "geneid": "ENSG00000185338",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 5.7783
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SRC",
+          "geneid": "ENSG00000197122",
+          "pathway": "Non-receptor kinases",
+          "mean_log2FC": -0.0563
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAG2",
+          "geneid": "ENSG00000101972",
+          "pathway": "DNA damage/repair",
+          "mean_log2FC": 2.8209
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAT1",
+          "geneid": "ENSG00000115415",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 1.6859
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAT2",
+          "geneid": "ENSG00000170581",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 0.8848
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAT3",
+          "geneid": "ENSG00000168610",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 1.6384
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAT4",
+          "geneid": "ENSG00000138378",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 3.3382
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAT5A",
+          "geneid": "ENSG00000126561",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 2.0572
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAT5B",
+          "geneid": "ENSG00000173757",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 1.3393
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "STAT6",
+          "geneid": "ENSG00000166888",
+          "pathway": "JAK/STAT Signaling",
+          "mean_log2FC": 1.776
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SUCLA2",
+          "geneid": "ENSG00000136143",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.515
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SUCLG1",
+          "geneid": "ENSG00000163541",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.5934
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SUCLG2",
+          "geneid": "ENSG00000172340",
+          "pathway": "Metabolic Signaling",
+          "mean_log2FC": 0.8926
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SUFU",
+          "geneid": "ENSG00000107882",
+          "pathway": "Hedgehog Signaling",
+          "mean_log2FC": 1.3808
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TERT",
+          "geneid": "ENSG00000164362",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 2.8206
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TET2",
+          "geneid": "ENSG00000168769",
+          "pathway": "Epigenetics",
+          "mean_log2FC": 0.7391
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TGFB1",
+          "geneid": "ENSG00000105329",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 1.2958
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TGFBR1",
+          "geneid": "ENSG00000106799",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 3.3102
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TGFBR2",
+          "geneid": "ENSG00000163513",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": 2.3621
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TGFBR3",
+          "geneid": "ENSG00000069702",
+          "pathway": "TGF-B Signaling",
+          "mean_log2FC": -1.4893
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TIGIT",
+          "geneid": "ENSG00000181847",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": -0.6056
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TNFAIP3",
+          "geneid": "ENSG00000118503",
+          "pathway": "Immune Response",
+          "mean_log2FC": 1.6237
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TNFRSF18",
+          "geneid": "ENSG00000186891",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 0.36
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TNFRSF9",
+          "geneid": "ENSG00000049249",
+          "pathway": "Immune Checkpoints",
+          "mean_log2FC": 2.5243
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TP53",
+          "geneid": "ENSG00000141510",
+          "pathway": "Cell cycle control",
+          "mean_log2FC": 2.9189
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TSC1",
+          "geneid": "ENSG00000165699",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 1.2345
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TSC2",
+          "geneid": "ENSG00000103197",
+          "pathway": "PI3K/AKT/mTOR Signaling",
+          "mean_log2FC": 0.4004
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TSHR",
+          "geneid": "ENSG00000165409",
+          "pathway": "Hormone Signaling",
+          "mean_log2FC": -0.101
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "VEGFA",
+          "geneid": "ENSG00000112715",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -3.2833
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "VEGFB",
+          "geneid": "ENSG00000173511",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.2437
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "VEGFC",
+          "geneid": "ENSG00000150630",
+          "pathway": "RTK Signaling",
+          "mean_log2FC": -0.0533
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "WISP3",
+          "geneid": "ENSG00000112761",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.6702
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "WNT1",
+          "geneid": "ENSG00000125084",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -0.3995
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "WT1",
+          "geneid": "ENSG00000184937",
+          "pathway": "WNT signaling",
+          "mean_log2FC": -1.6509
+        }
+      ]
+    }
+  },
+  "expression_all": {
+    "DZ1601": {
+      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
+      "selected_pathway": ["2-Oxocarboxylic acid metabolism", "ABC transporters", "Acute myeloid leukemia", "Adherens junction", "Adipocytokine signaling pathway", "Adrenergic signaling in cardiomyocytes", "African trypanosomiasis", "AGE-RAGE signaling pathway in diabetic complications", "Alanine, aspartate and glutamate metabolism", "Alcoholic liver disease", "Alcoholism", "Aldosterone synthesis and secretion", "Aldosterone-regulated sodium reabsorption", "Allograft rejection", "alpha-Linolenic acid metabolism", "Alzheimer disease", "Amino sugar and nucleotide sugar metabolism", "Aminoacyl-tRNA biosynthesis", "Amoebiasis", "Amphetamine addiction", "AMPK signaling pathway", "Amyotrophic lateral sclerosis", "Antifolate resistance", "Antigen processing and presentation", "Apelin signaling pathway", "Apoptosis", "Apoptosis - multiple species", "Arachidonic acid metabolism", "Arginine and proline metabolism", "Arginine biosynthesis", "Arrhythmogenic right ventricular cardiomyopathy", "Ascorbate and aldarate metabolism", "Asthma", "ATP-dependent chromatin remodeling", "Autoimmune thyroid disease", "Autophagy - animal", "Autophagy - other", "Axon guidance", "B cell receptor signaling pathway", "Bacterial invasion of epithelial cells", "Basal cell carcinoma", "Basal transcription factors", "Base excision repair", "beta-Alanine metabolism", "Bile secretion", "Biosynthesis of amino acids", "Biosynthesis of cofactors", "Biosynthesis of nucleotide sugars", "Biosynthesis of unsaturated fatty acids", "Biotin metabolism", "Bladder cancer", "Breast cancer", "Butanoate metabolism", "C-type lectin receptor signaling pathway", "Caffeine metabolism", "Calcium signaling pathway", "cAMP signaling pathway", "Carbohydrate digestion and absorption", "Carbon metabolism", "Cardiac muscle contraction", "Cell adhesion molecules", "Cell cycle", "Cellular senescence", "Central carbon metabolism in cancer", "cGMP-PKG signaling pathway", "Chagas disease", "Chemical carcinogenesis - DNA adducts", "Chemical carcinogenesis - reactive oxygen species", "Chemical carcinogenesis - receptor activation", "Chemokine signaling pathway", "Cholesterol metabolism", "Choline metabolism in cancer", "Cholinergic synapse", "Chronic myeloid leukemia", "Circadian entrainment", "Circadian rhythm", "Citrate cycle (TCA cycle)", "Cocaine addiction", "Collecting duct acid secretion", "Colorectal cancer", "Complement and coagulation cascades", "Coronavirus disease - COVID-19", "Cortisol synthesis and secretion", "Cushing syndrome", "Cysteine and methionine metabolism", "Cytokine-cytokine receptor interaction", "Cytosolic DNA-sensing pathway", "D-Amino acid metabolism", "Diabetic cardiomyopathy", "Dilated cardiomyopathy", "DNA replication", "Dopaminergic synapse", "Drug metabolism - cytochrome P450", "Drug metabolism - other enzymes", "ECM-receptor interaction", "EGFR tyrosine kinase inhibitor resistance", "Endocrine and other factor-regulated calcium reabsorption", "Endocrine resistance", "Endocytosis", "Endometrial cancer", "Epithelial cell signaling in Helicobacter pylori infection", "Epstein-Barr virus infection", "ErbB signaling pathway", "Estrogen signaling pathway", "Ether lipid metabolism", "Fanconi anemia pathway", "Fat digestion and absorption", "Fatty acid biosynthesis", "Fatty acid degradation", "Fatty acid elongation", "Fatty acid metabolism", "Fc epsilon RI signaling pathway", "Fc gamma R-mediated phagocytosis", "Ferroptosis", "Fluid shear stress and atherosclerosis", "Focal adhesion", "Folate biosynthesis", "FoxO signaling pathway", "Fructose and mannose metabolism", "GABAergic synapse", "Galactose metabolism", "Gap junction", "Gastric acid secretion", "Gastric cancer", "Glioma", "Glucagon signaling pathway", "Glutamatergic synapse", "Glutathione metabolism", "Glycerolipid metabolism", "Glycerophospholipid metabolism", "Glycine, serine and threonine metabolism", "Glycolysis / Gluconeogenesis", "Glycosaminoglycan biosynthesis - chondroitin sulfate / dermatan sulfate", "Glycosaminoglycan biosynthesis - heparan sulfate / heparin", "Glycosaminoglycan biosynthesis - keratan sulfate", "Glycosaminoglycan degradation", "Glycosphingolipid biosynthesis - ganglio series", "Glycosphingolipid biosynthesis - globo and isoglobo series", "Glycosphingolipid biosynthesis - lacto and neolacto series", "Glycosylphosphatidylinositol (GPI)-anchor biosynthesis", "Glyoxylate and dicarboxylate metabolism", "GnRH secretion", "GnRH signaling pathway", "Graft-versus-host disease", "Growth hormone synthesis, secretion and action", "Hedgehog signaling pathway", "Hematopoietic cell lineage", "Hepatitis B", "Hepatitis C", "Hepatocellular carcinoma", "Herpes simplex virus 1 infection", "HIF-1 signaling pathway", "Hippo signaling pathway", "Hippo signaling pathway - multiple species", "Histidine metabolism", "Homologous recombination", "Human cytomegalovirus infection", "Human immunodeficiency virus 1 infection", "Human papillomavirus infection", "Human T-cell leukemia virus 1 infection", "Huntington disease", "Hypertrophic cardiomyopathy", "IL-17 signaling pathway", "Inflammatory bowel disease", "Inflammatory mediator regulation of TRP channels", "Influenza A", "Inositol phosphate metabolism", "Insulin resistance", "Insulin secretion", "Insulin signaling pathway", "Intestinal immune network for IgA production", "JAK-STAT signaling pathway", "Kaposi sarcoma-associated herpesvirus infection", "Legionellosis", "Leishmaniasis", "Leukocyte transendothelial migration", "Linoleic acid metabolism", "Lipid and atherosclerosis", "Lipoic acid metabolism", "Long-term depression", "Long-term potentiation", "Longevity regulating pathway", "Longevity regulating pathway - multiple species", "Lysine degradation", "Lysosome", "Malaria", "Mannose type O-glycan biosynthesis", "MAPK signaling pathway", "Maturity onset diabetes of the young", "Measles", "Melanogenesis", "Melanoma", "Metabolic pathways", "Metabolism of xenobiotics by cytochrome P450", "MicroRNAs in cancer", "Mineral absorption", "Mismatch repair", "Mitophagy - animal", "Morphine addiction", "Motor proteins", "mRNA surveillance pathway", "mTOR signaling pathway", "Mucin type O-glycan biosynthesis", "N-Glycan biosynthesis", "Natural killer cell mediated cytotoxicity", "Necroptosis", "Neomycin, kanamycin and gentamicin biosynthesis", "Neuroactive ligand-receptor interaction", "Neurotrophin signaling pathway", "Neutrophil extracellular trap formation", "NF-kappa B signaling pathway", "Nicotinate and nicotinamide metabolism", "Nicotine addiction", "Nitrogen metabolism", "NOD-like receptor signaling pathway", "Non-alcoholic fatty liver disease", "Non-homologous end-joining", "Non-small cell lung cancer", "Notch signaling pathway", "Nucleocytoplasmic transport", "Nucleotide excision repair", "Nucleotide metabolism", "Olfactory transduction", "One carbon pool by folate", "Oocyte meiosis", "Osteoclast differentiation", "Other glycan degradation", "Other types of O-glycan biosynthesis", "Ovarian steroidogenesis", "Oxidative phosphorylation", "Oxytocin signaling pathway", "p53 signaling pathway", "Pancreatic cancer", "Pancreatic secretion", "Pantothenate and CoA biosynthesis", "Parathyroid hormone synthesis, secretion and action", "Parkinson disease", "Pathogenic Escherichia coli infection", "Pathways in cancer", "Pathways of neurodegeneration - multiple diseases", "PD-L1 expression and PD-1 checkpoint pathway in cancer", "Pentose and glucuronate interconversions", "Pentose phosphate pathway", "Peroxisome", "Pertussis", "Phagosome", "Phenylalanine metabolism", "Phenylalanine, tyrosine and tryptophan biosynthesis", "Phosphatidylinositol signaling system", "Phospholipase D signaling pathway", "Phosphonate and phosphinate metabolism", "Phototransduction", "PI3K-Akt signaling pathway", "Platelet activation", "Platinum drug resistance", "Polycomb repressive complex", "Porphyrin metabolism", "PPAR signaling pathway", "Primary bile acid biosynthesis", "Primary immunodeficiency", "Prion disease", "Progesterone-mediated oocyte maturation", "Prolactin signaling pathway", "Propanoate metabolism", "Prostate cancer", "Proteasome", "Protein digestion and absorption", "Protein export", "Protein processing in endoplasmic reticulum", "Proteoglycans in cancer", "Proximal tubule bicarbonate reclamation", "Purine metabolism", "Pyrimidine metabolism", "Pyruvate metabolism", "Rap1 signaling pathway", "Ras signaling pathway", "Regulation of actin cytoskeleton", "Regulation of lipolysis in adipocytes", "Relaxin signaling pathway", "Renal cell carcinoma", "Renin secretion", "Renin-angiotensin system", "Retinol metabolism", "Retrograde endocannabinoid signaling", "Rheumatoid arthritis", "Riboflavin metabolism", "Ribosome", "Ribosome biogenesis in eukaryotes", "RIG-I-like receptor signaling pathway", "RNA degradation", "RNA polymerase", "Salivary secretion", "Salmonella infection", "Selenocompound metabolism", "Serotonergic synapse", "Shigellosis", "Signaling pathways regulating pluripotency of stem cells", "Small cell lung cancer", "SNARE interactions in vesicular transport", "Sphingolipid metabolism", "Sphingolipid signaling pathway", "Spinocerebellar ataxia", "Spliceosome", "Staphylococcus aureus infection", "Starch and sucrose metabolism", "Steroid biosynthesis", "Steroid hormone biosynthesis", "Sulfur metabolism", "Sulfur relay system", "Synaptic vesicle cycle", "Systemic lupus erythematosus", "T cell receptor signaling pathway", "Taste transduction", "Taurine and hypotaurine metabolism", "Terpenoid backbone biosynthesis", "TGF-beta signaling pathway", "Th1 and Th2 cell differentiation", "Th17 cell differentiation", "Thermogenesis", "Thiamine metabolism", "Thyroid cancer", "Thyroid hormone signaling pathway", "Thyroid hormone synthesis", "Tight junction", "TNF signaling pathway", "Toll-like receptor signaling pathway", "Toxoplasmosis", "Transcriptional misregulation in cancer", "Tryptophan metabolism", "Tuberculosis", "Type I diabetes mellitus", "Type II diabetes mellitus", "Tyrosine metabolism", "Ubiquinone and other terpenoid-quinone biosynthesis", "Ubiquitin mediated proteolysis", "Valine, leucine and isoleucine biosynthesis", "Valine, leucine and isoleucine degradation", "Various types of N-glycan biosynthesis", "Vascular smooth muscle contraction", "Vasopressin-regulated water reabsorption", "VEGF signaling pathway", "Vibrio cholerae infection", "Viral carcinogenesis", "Viral life cycle - HIV-1", "Viral myocarditis", "Viral protein interaction with cytokine and cytokine receptor", "Virion - Adenovirus", "Virion - Flavivirus", "Virion - Herpesvirus", "Virion - Human immunodeficiency virus", "Virion - Lyssavirus", "Vitamin B6 metabolism", "Vitamin digestion and absorption", "Wnt signaling pathway", "Yersinia infection"],
+      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
+      "log2fc_bigger1_tissue": {},
+      "log2fc_smaller1_tissue": {},
+      "pval_tissue": {},
+      "padj_tissue": {},
+      "log2fc_bigger1_btn": false,
+      "log2fc_smaller1_btn": false,
+      "pval_btn": false,
+      "padj_btn": false,
+      "selected_genes": [
+        {
+          "sample": "DZ1601",
+          "feature_name": "C1orf112",
+          "geneid": "ENSG00000000460",
+          "pathway": null,
+          "mean_log2FC": 1.6816
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "DPM1",
+          "geneid": "ENSG00000000419",
+          "pathway": "N-Glycan biosynthesis, Metabolic pathways",
+          "mean_log2FC": 1.6966
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "SCYL3",
+          "geneid": "ENSG00000000457",
+          "pathway": null,
+          "mean_log2FC": 0.9779
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TNMD",
+          "geneid": "ENSG00000000005",
+          "pathway": null,
+          "mean_log2FC": -0.1337
+        },
+        {
+          "sample": "DZ1601",
+          "feature_name": "TSPAN6",
+          "geneid": "ENSG00000000003",
+          "pathway": null,
+          "mean_log2FC": -0.7706
+        }
+      ]
+    },
+    "MR1507": {
+      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
+      "selected_pathway": ["2-Oxocarboxylic acid metabolism", "ABC transporters", "Acute myeloid leukemia", "Adherens junction", "Adipocytokine signaling pathway", "Adrenergic signaling in cardiomyocytes", "African trypanosomiasis", "AGE-RAGE signaling pathway in diabetic complications", "Alanine, aspartate and glutamate metabolism", "Alcoholic liver disease", "Alcoholism", "Aldosterone synthesis and secretion", "Aldosterone-regulated sodium reabsorption", "Allograft rejection", "alpha-Linolenic acid metabolism", "Alzheimer disease", "Amino sugar and nucleotide sugar metabolism", "Aminoacyl-tRNA biosynthesis", "Amoebiasis", "Amphetamine addiction", "AMPK signaling pathway", "Amyotrophic lateral sclerosis", "Antifolate resistance", "Antigen processing and presentation", "Apelin signaling pathway", "Apoptosis", "Apoptosis - multiple species", "Arachidonic acid metabolism", "Arginine and proline metabolism", "Arginine biosynthesis", "Arrhythmogenic right ventricular cardiomyopathy", "Ascorbate and aldarate metabolism", "Asthma", "ATP-dependent chromatin remodeling", "Autoimmune thyroid disease", "Autophagy - animal", "Autophagy - other", "Axon guidance", "B cell receptor signaling pathway", "Bacterial invasion of epithelial cells", "Basal cell carcinoma", "Basal transcription factors", "Base excision repair", "beta-Alanine metabolism", "Bile secretion", "Biosynthesis of amino acids", "Biosynthesis of cofactors", "Biosynthesis of nucleotide sugars", "Biosynthesis of unsaturated fatty acids", "Biotin metabolism", "Bladder cancer", "Breast cancer", "Butanoate metabolism", "C-type lectin receptor signaling pathway", "Caffeine metabolism", "Calcium signaling pathway", "cAMP signaling pathway", "Carbohydrate digestion and absorption", "Carbon metabolism", "Cardiac muscle contraction", "Cell adhesion molecules", "Cell cycle", "Cellular senescence", "Central carbon metabolism in cancer", "cGMP-PKG signaling pathway", "Chagas disease", "Chemical carcinogenesis - DNA adducts", "Chemical carcinogenesis - reactive oxygen species", "Chemical carcinogenesis - receptor activation", "Chemokine signaling pathway", "Cholesterol metabolism", "Choline metabolism in cancer", "Cholinergic synapse", "Chronic myeloid leukemia", "Circadian entrainment", "Circadian rhythm", "Citrate cycle (TCA cycle)", "Cocaine addiction", "Collecting duct acid secretion", "Colorectal cancer", "Complement and coagulation cascades", "Coronavirus disease - COVID-19", "Cortisol synthesis and secretion", "Cushing syndrome", "Cysteine and methionine metabolism", "Cytokine-cytokine receptor interaction", "Cytosolic DNA-sensing pathway", "D-Amino acid metabolism", "Diabetic cardiomyopathy", "Dilated cardiomyopathy", "DNA replication", "Dopaminergic synapse", "Drug metabolism - cytochrome P450", "Drug metabolism - other enzymes", "ECM-receptor interaction", "EGFR tyrosine kinase inhibitor resistance", "Endocrine and other factor-regulated calcium reabsorption", "Endocrine resistance", "Endocytosis", "Endometrial cancer", "Epithelial cell signaling in Helicobacter pylori infection", "Epstein-Barr virus infection", "ErbB signaling pathway", "Estrogen signaling pathway", "Ether lipid metabolism", "Fanconi anemia pathway", "Fat digestion and absorption", "Fatty acid biosynthesis", "Fatty acid degradation", "Fatty acid elongation", "Fatty acid metabolism", "Fc epsilon RI signaling pathway", "Fc gamma R-mediated phagocytosis", "Ferroptosis", "Fluid shear stress and atherosclerosis", "Focal adhesion", "Folate biosynthesis", "FoxO signaling pathway", "Fructose and mannose metabolism", "GABAergic synapse", "Galactose metabolism", "Gap junction", "Gastric acid secretion", "Gastric cancer", "Glioma", "Glucagon signaling pathway", "Glutamatergic synapse", "Glutathione metabolism", "Glycerolipid metabolism", "Glycerophospholipid metabolism", "Glycine, serine and threonine metabolism", "Glycolysis / Gluconeogenesis", "Glycosaminoglycan biosynthesis - chondroitin sulfate / dermatan sulfate", "Glycosaminoglycan biosynthesis - heparan sulfate / heparin", "Glycosaminoglycan biosynthesis - keratan sulfate", "Glycosaminoglycan degradation", "Glycosphingolipid biosynthesis - ganglio series", "Glycosphingolipid biosynthesis - globo and isoglobo series", "Glycosphingolipid biosynthesis - lacto and neolacto series", "Glycosylphosphatidylinositol (GPI)-anchor biosynthesis", "Glyoxylate and dicarboxylate metabolism", "GnRH secretion", "GnRH signaling pathway", "Graft-versus-host disease", "Growth hormone synthesis, secretion and action", "Hedgehog signaling pathway", "Hematopoietic cell lineage", "Hepatitis B", "Hepatitis C", "Hepatocellular carcinoma", "Herpes simplex virus 1 infection", "HIF-1 signaling pathway", "Hippo signaling pathway", "Hippo signaling pathway - multiple species", "Histidine metabolism", "Homologous recombination", "Human cytomegalovirus infection", "Human immunodeficiency virus 1 infection", "Human papillomavirus infection", "Human T-cell leukemia virus 1 infection", "Huntington disease", "Hypertrophic cardiomyopathy", "IL-17 signaling pathway", "Inflammatory bowel disease", "Inflammatory mediator regulation of TRP channels", "Influenza A", "Inositol phosphate metabolism", "Insulin resistance", "Insulin secretion", "Insulin signaling pathway", "Intestinal immune network for IgA production", "JAK-STAT signaling pathway", "Kaposi sarcoma-associated herpesvirus infection", "Legionellosis", "Leishmaniasis", "Leukocyte transendothelial migration", "Linoleic acid metabolism", "Lipid and atherosclerosis", "Lipoic acid metabolism", "Long-term depression", "Long-term potentiation", "Longevity regulating pathway", "Longevity regulating pathway - multiple species", "Lysine degradation", "Lysosome", "Malaria", "Mannose type O-glycan biosynthesis", "MAPK signaling pathway", "Maturity onset diabetes of the young", "Measles", "Melanogenesis", "Melanoma", "Metabolic pathways", "Metabolism of xenobiotics by cytochrome P450", "MicroRNAs in cancer", "Mineral absorption", "Mismatch repair", "Mitophagy - animal", "Morphine addiction", "Motor proteins", "mRNA surveillance pathway", "mTOR signaling pathway", "Mucin type O-glycan biosynthesis", "N-Glycan biosynthesis", "Natural killer cell mediated cytotoxicity", "Necroptosis", "Neomycin, kanamycin and gentamicin biosynthesis", "Neuroactive ligand-receptor interaction", "Neurotrophin signaling pathway", "Neutrophil extracellular trap formation", "NF-kappa B signaling pathway", "Nicotinate and nicotinamide metabolism", "Nicotine addiction", "Nitrogen metabolism", "NOD-like receptor signaling pathway", "Non-alcoholic fatty liver disease", "Non-homologous end-joining", "Non-small cell lung cancer", "Notch signaling pathway", "Nucleocytoplasmic transport", "Nucleotide excision repair", "Nucleotide metabolism", "Olfactory transduction", "One carbon pool by folate", "Oocyte meiosis", "Osteoclast differentiation", "Other glycan degradation", "Other types of O-glycan biosynthesis", "Ovarian steroidogenesis", "Oxidative phosphorylation", "Oxytocin signaling pathway", "p53 signaling pathway", "Pancreatic cancer", "Pancreatic secretion", "Pantothenate and CoA biosynthesis", "Parathyroid hormone synthesis, secretion and action", "Parkinson disease", "Pathogenic Escherichia coli infection", "Pathways in cancer", "Pathways of neurodegeneration - multiple diseases", "PD-L1 expression and PD-1 checkpoint pathway in cancer", "Pentose and glucuronate interconversions", "Pentose phosphate pathway", "Peroxisome", "Pertussis", "Phagosome", "Phenylalanine metabolism", "Phenylalanine, tyrosine and tryptophan biosynthesis", "Phosphatidylinositol signaling system", "Phospholipase D signaling pathway", "Phosphonate and phosphinate metabolism", "Phototransduction", "PI3K-Akt signaling pathway", "Platelet activation", "Platinum drug resistance", "Polycomb repressive complex", "Porphyrin metabolism", "PPAR signaling pathway", "Primary bile acid biosynthesis", "Primary immunodeficiency", "Prion disease", "Progesterone-mediated oocyte maturation", "Prolactin signaling pathway", "Propanoate metabolism", "Prostate cancer", "Proteasome", "Protein digestion and absorption", "Protein export", "Protein processing in endoplasmic reticulum", "Proteoglycans in cancer", "Proximal tubule bicarbonate reclamation", "Purine metabolism", "Pyrimidine metabolism", "Pyruvate metabolism", "Rap1 signaling pathway", "Ras signaling pathway", "Regulation of actin cytoskeleton", "Regulation of lipolysis in adipocytes", "Relaxin signaling pathway", "Renal cell carcinoma", "Renin secretion", "Renin-angiotensin system", "Retinol metabolism", "Retrograde endocannabinoid signaling", "Rheumatoid arthritis", "Riboflavin metabolism", "Ribosome", "Ribosome biogenesis in eukaryotes", "RIG-I-like receptor signaling pathway", "RNA degradation", "RNA polymerase", "Salivary secretion", "Salmonella infection", "Selenocompound metabolism", "Serotonergic synapse", "Shigellosis", "Signaling pathways regulating pluripotency of stem cells", "Small cell lung cancer", "SNARE interactions in vesicular transport", "Sphingolipid metabolism", "Sphingolipid signaling pathway", "Spinocerebellar ataxia", "Spliceosome", "Staphylococcus aureus infection", "Starch and sucrose metabolism", "Steroid biosynthesis", "Steroid hormone biosynthesis", "Sulfur metabolism", "Sulfur relay system", "Synaptic vesicle cycle", "Systemic lupus erythematosus", "T cell receptor signaling pathway", "Taste transduction", "Taurine and hypotaurine metabolism", "Terpenoid backbone biosynthesis", "TGF-beta signaling pathway", "Th1 and Th2 cell differentiation", "Th17 cell differentiation", "Thermogenesis", "Thiamine metabolism", "Thyroid cancer", "Thyroid hormone signaling pathway", "Thyroid hormone synthesis", "Tight junction", "TNF signaling pathway", "Toll-like receptor signaling pathway", "Toxoplasmosis", "Transcriptional misregulation in cancer", "Tryptophan metabolism", "Tuberculosis", "Type I diabetes mellitus", "Type II diabetes mellitus", "Tyrosine metabolism", "Ubiquinone and other terpenoid-quinone biosynthesis", "Ubiquitin mediated proteolysis", "Valine, leucine and isoleucine biosynthesis", "Valine, leucine and isoleucine degradation", "Various types of N-glycan biosynthesis", "Vascular smooth muscle contraction", "Vasopressin-regulated water reabsorption", "VEGF signaling pathway", "Vibrio cholerae infection", "Viral carcinogenesis", "Viral life cycle - HIV-1", "Viral myocarditis", "Viral protein interaction with cytokine and cytokine receptor", "Virion - Adenovirus", "Virion - Flavivirus", "Virion - Herpesvirus", "Virion - Human immunodeficiency virus", "Virion - Lyssavirus", "Vitamin B6 metabolism", "Vitamin digestion and absorption", "Wnt signaling pathway", "Yersinia infection"],
+      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
+      "log2fc_bigger1_tissue": {},
+      "log2fc_smaller1_tissue": {},
+      "pval_tissue": {},
+      "padj_tissue": {},
+      "log2fc_bigger1_btn": false,
+      "log2fc_smaller1_btn": false,
+      "pval_btn": false,
+      "padj_btn": false,
+      "selected_genes": [
+        {
+          "sample": "MR1507",
+          "feature_name": "C1orf112",
+          "geneid": "ENSG00000000460",
+          "pathway": null,
+          "mean_log2FC": 1.6816
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "DPM1",
+          "geneid": "ENSG00000000419",
+          "pathway": "N-Glycan biosynthesis, Metabolic pathways",
+          "mean_log2FC": 1.6966
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "SCYL3",
+          "geneid": "ENSG00000000457",
+          "pathway": null,
+          "mean_log2FC": 0.9779
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TNMD",
+          "geneid": "ENSG00000000005",
+          "pathway": null,
+          "mean_log2FC": -0.1337
+        },
+        {
+          "sample": "MR1507",
+          "feature_name": "TSPAN6",
+          "geneid": "ENSG00000000003",
+          "pathway": null,
+          "mean_log2FC": -0.7706
+        }
+      ]
     }
   }
 }

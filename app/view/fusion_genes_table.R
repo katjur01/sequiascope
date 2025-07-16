@@ -2,18 +2,16 @@
 
 box::use(
   shiny[moduleServer,NS,h3,tagList,div,textInput,renderPrint,reactive,observe,observeEvent,icon,mainPanel,titlePanel,isolate,
-        uiOutput,renderUI,HTML,req,reactiveVal,column,fluidRow,showModal,modalDialog,modalButton,selectInput,downloadButton,
+        uiOutput,renderUI,HTML,req,reactiveVal,column,fluidRow,showModal,modalDialog,modalButton,selectInput,downloadButton,invalidateLater,
         reactiveValues,textOutput,renderText,reactiveValuesToList],
   reactable,
   reactable[reactable,colDef,reactableOutput,renderReactable,JS,getReactableState],
   htmltools[tags, p,span,HTML],
   bs4Dash[actionButton,bs4Card,box],
   shinyjs[useShinyjs,runjs,hide,show],
-  reactablefmtr
-  [pill_buttons,icon_assign],
-  data.table[fifelse,setcolorder],
+  reactablefmtr[pill_buttons,icon_assign],
   shinyalert[shinyalert,useShinyalert],
-  data.table[data.table,uniqueN,as.data.table,copy],
+  data.table[data.table,uniqueN,as.data.table,copy,is.data.table,fifelse,setcolorder],
   shinyWidgets[pickerInput, dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
   stats[setNames],
   reactable.extras[reactable_extras_dependency],
@@ -23,7 +21,7 @@ box::use(
   app/logic/prepare_table[prepare_fusion_genes_table,prepare_arriba_images], 
   app/logic/waiters[use_spinner],
   app/logic/patients_list[sample_list_fuze],
-  app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter],
+  app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter,update_fusion_data],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
@@ -80,7 +78,7 @@ ui <- function(id) {
 }
 
 #' @export
-server <- function(id, selected_samples, shared_data) {
+server <- function(id, selected_samples, shared_data, load_session_btn) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     # prepare_arriba_images(selected_samples)
@@ -116,46 +114,25 @@ server <- function(id, selected_samples, shared_data) {
     
     
     ############
-    # selected_tumor_depth <- reactiveVal(NULL)
-    # selected_gnomAD_min  <- reactiveVal(NULL)
-    # selected_gene_region <- reactiveVal(NULL)
-    # selected_clinvar_sig <- reactiveVal(NULL)
-    # selected_consequence <- reactiveVal(NULL)
+    notes_state <- reactiveVal(data.frame(row = integer(), value = character()))
     selected_columns <- reactiveVal(colnames_list$default_columns)
     selected_fusions <- reactiveVal(data.frame(gene1 = character(), gene2 = character()))
-    
+    visual_check_state <- reactiveVal(data.frame(row = integer(), value = character()))
+    fusion_data_to_render <- reactiveVal(NULL)
+      
+      
   # Call generate_columnsDef to generate colDef setting for reactable
     column_defs <- reactive({
       req(data())
       req(selected_columns())
       generate_columnsDef(names(data()), selected_columns(), "fusion", map_list)
     })
-    
 
-    # filtered_data <- reactive({
-    #   req(data())
-    #   dt <- copy(data())
-    #   
-    #   if (!is.null(selected_tumor_depth())) {
-    #     dt <- dt[selected_tumor_depth() <= tumor_depth, ]
-    #   }
-    #   if (!is.null(selected_gnomAD_min())) {
-    #     dt <- dt[gnomAD_NFE <= selected_gnomAD_min()]
-    #   }
-    #   if (!is.null(selected_gene_region()) && length(selected_gene_region()) > 0) {
-    #     dt <- dt[gene_region %in% selected_gene_region(), ]
-    #   }
-    #   if (!is.null(selected_consequence()) && length(selected_consequence()) > 0) {
-    #     dt <- create_consequence_filter(dt, selected_consequence())
-    #   }
-    #   
-    #   return(dt)
-    # })
-    
-    
     output$fusion_genes_tab <- renderReactable({
+      req(fusion_data_to_render())
       pathogenic_fusions <- selected_fusions() # seznam fúzí, které byly označeny jako patogenní
-      dt <- data()
+      dt <- fusion_data_to_render()
+
       message("Rendering Reactable for fusion")
       reactable(as.data.frame(dt),
                           columns = column_defs(),
@@ -209,23 +186,52 @@ server <- function(id, selected_samples, shared_data) {
         )
   })
 
-
-    observeEvent(input[[paste0("visual_check", "_changed")]], {
-      
-      changed_data <- input[[paste0("visual_check", "_changed")]]
-      row_index <- changed_data$row + 1  # R používá 1-based indexing
+    ### Observe changes in the Notes input field (captured via JS onblur event)
+    ### When the user edits a note, update the notes_state() reactive value
+    ### If the note for the given row already exists → update it
+    ### If it's a new note → append it as a new entry
+    observeEvent(input[[paste0("notes_input", "_changed")]], {
+      changed_data <- input[[paste0("notes_input", "_changed")]]
+      row_index <- changed_data$row + 1  # JS 0-based → R 1-based
       new_value <- changed_data$value
       
-      message("changed_data: ",changed_data)
-      message("row_index: ",row_index)
-      message("new_value: ",new_value)
-      # Aktualizace vašich dat
-      # Například:
-      # your_data[row_index, "visual_check"] <- new_value
-      
-      print(paste("Řádek", row_index, "změněn na:", new_value))
+      current_notes <- notes_state()
+      if (row_index %in% current_notes$row) {
+        current_notes$value[current_notes$row == row_index] <- new_value
+      } else {
+        current_notes <- rbind(current_notes, data.frame(row = row_index, value = new_value))
+      }
+      notes_state(current_notes)
     })
     
+    ### Update the fusion data table whenever:
+    ### - the source data is loaded
+    ### - the user triggers session loading
+    ### - visual check states or notes change
+    observe({
+      req(data())
+      update_fusion_data(data(), visual_check_state(), notes_state(), fusion_data_to_render) })
+    observeEvent(load_session_btn(),   { 
+      update_fusion_data(data(), visual_check_state(), notes_state(), fusion_data_to_render) })
+    observeEvent(visual_check_state(), { 
+      update_fusion_data(data(), visual_check_state(), notes_state(), fusion_data_to_render) })
+
+    ### Observe changes in the Visual Check radio buttons (captured via JS change event)
+    ### Same logic as with Notes
+    observeEvent(input[[paste0("visual_check", "_changed")]], {
+      changed_data <- input[[paste0("visual_check", "_changed")]]
+      row_index <- changed_data$row + 1  # JS 0-based → R 1-based
+      new_value <- changed_data$value
+      
+      current_state <- visual_check_state()
+      if (row_index %in% current_state$row) {
+        current_state$value[current_state$row == row_index] <- new_value
+      } else {
+        current_state <- rbind(current_state, data.frame(row = row_index, value = new_value))
+      }
+      visual_check_state(current_state)
+    })
+
     
     # Akce po kliknutí na tlačítko pro přidání fúze
     observeEvent(input$selectFusion_button, {
@@ -244,8 +250,9 @@ server <- function(id, selected_samples, shared_data) {
       
       # Aktualizace globální proměnné shared_data$germline_data:
       global_data <- shared_data$fusion_var()
-      
-      if (is.null(global_data) || nrow(global_data) == 0 || !("sample" %in% names(global_data))) {
+
+      # Pokud je NULL nebo nemá správnou strukturu, inicializujeme
+      if (is.null(global_data) || !is.data.table(global_data) || !("sample" %in% names(global_data))) {
         global_data <- data.table(
           sample = character(),
           gene1 = character(),
@@ -258,9 +265,7 @@ server <- function(id, selected_samples, shared_data) {
           arriba.site2 = character()
         )
       }
-      message("## selected_fusions(): ", selected_fusions())
-      message("## global_data: ", global_data)
-      # Odstraníme data, která patří právě tomuto pacientovi
+      
       global_data <- global_data[sample != selected_samples]
       
       # Přidáme nově aktualizované lokální data daného pacienta
@@ -303,7 +308,6 @@ server <- function(id, selected_samples, shared_data) {
       session$sendCustomMessage("resetReactableSelection",selected_fusions())
       
       if (nrow(selected_fusions()) == 0) {
-        hide("confirm_btn")
         hide("delete_button")
       }
     })
@@ -316,7 +320,6 @@ server <- function(id, selected_samples, shared_data) {
       if (nrow(selected_fusions()) == 0) {
         # Pokud nejsou vybrány žádné řádky, zůstaň u původního stavu
         fusion_selected(FALSE)
-        hide("confirm_btn")
         hide("delete_button")
         
         shinyalert(
@@ -337,20 +340,23 @@ server <- function(id, selected_samples, shared_data) {
         fusion_selected(TRUE)
         
         # Zobraz tlačítka pomocí shinyjs
-        show("confirm_btn")
+
         show("delete_button")
       }
     })
     
-    hide("confirm_btn")
-    hide("delete_button")
+    observe({
+      variants <- selected_fusions()
+      
+      if (!is.null(variants) && nrow(variants) > 0) {
+        show("delete_button")
+      } else {
+        hide("delete_button")
+      }
+    })
 
     observeEvent(filter_state$confirm(), {
       message("🟢 Confirm button was clicked")
-      # selected_tumor_depth(filter_state$tumor_depth())
-      # selected_gnomAD_min(filter_state$gnomAD_min())
-      # selected_gene_region(filter_state$gene_region())
-      # selected_consequence(filter_state$consequence())
       selected_columns(filter_state$selected_columns())
     })
     
@@ -404,7 +410,9 @@ server <- function(id, selected_samples, shared_data) {
     session_handlers <- create_session_handlers(
       selected_inputs = list(
         selected_cols = selected_columns,
-        selected_vars = selected_fusions
+        selected_vars = selected_fusions,
+        visual_check_state = visual_check_state,
+        notes_state = notes_state
       ),
       filter_state = filter_state
     )

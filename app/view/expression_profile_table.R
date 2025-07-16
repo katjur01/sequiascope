@@ -19,7 +19,7 @@ box::use(
   magrittr[`%>%`],
   shinyalert[shinyalert,useShinyalert],
   shinyjs[useShinyjs,hide,show],
-  data.table[data.table,as.data.table]
+  data.table[data.table,as.data.table,is.data.table]
 )
 
 box::use(
@@ -239,8 +239,9 @@ server <- function(id,  patient, expr_tag, expression_var) {
       
       # Aktualizace globální proměnné shared_data$expression_var:
       global_data <- expression_var()
-      
-      if (is.null(global_data) || nrow(global_data) == 0 || !("sample" %in% names(global_data))) {
+
+      # Pokud je NULL nebo nemá správnou strukturu, inicializujeme
+      if (is.null(global_data) || !is.data.table(global_data) || !("sample" %in% names(global_data))) {
         global_data <- data.table(
           sample = character(),
           feature_name = character(),
@@ -249,7 +250,7 @@ server <- function(id,  patient, expr_tag, expression_var) {
           mean_log2FC = character()
         )
       }
-      # Odstraníme data, která patří právě tomuto pacientovi
+      
       global_data <- global_data[sample != patient]
       
       # Přidáme nově aktualizované lokální data daného pacienta
@@ -316,7 +317,15 @@ server <- function(id,  patient, expr_tag, expression_var) {
       }
     })
 
-    hide("delete_button")
+    observe({
+      genes <- selected_genes()
+      
+      if (!is.null(genes) && nrow(genes) > 0) {
+        show("delete_button")
+      } else {
+        hide("delete_button")
+      }
+    })
 
     
     # Obsluha tlačítka Confirm

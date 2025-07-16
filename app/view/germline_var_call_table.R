@@ -19,7 +19,7 @@ box::use(
   shinyWidgets[prettyCheckbox,prettyCheckboxGroup,updatePrettyCheckboxGroup,searchInput,pickerInput, dropdown,actionBttn,pickerOptions,dropdownButton],
   shinyalert[shinyalert,useShinyalert],
   shinyjs[useShinyjs,hide,show],
-  data.table[data.table,as.data.table,uniqueN,copy,rbindlist,fread],
+  data.table[data.table,as.data.table,uniqueN,copy,rbindlist,fread,is.data.table],
   stats[setNames],
   DT[renderDT,datatable,formatStyle,styleEqual,DTOutput],
   magrittr[`%>%`],
@@ -200,7 +200,7 @@ server <- function(id, selected_samples, shared_data) {
         outlined = TRUE,
         defaultColDef = colDef(align = "center", sortNALast = TRUE),
         defaultSorted = list("CGC_Germline" = "desc", "trusight_genes" = "desc", "fOne" = "desc"),
-        rowStyle = if (nrow(pathogenic_variants) > 0) {
+        rowStyle = if (!is.null(pathogenic_variants) && nrow(pathogenic_variants) > 0) {
             function(index) {
               gene_in_row <- filtered_data$Gene_symbol[index]
               var_in_row <- filtered_data$var_name[index]
@@ -249,8 +249,9 @@ server <- function(id, selected_samples, shared_data) {
       
       # Aktualizace globální proměnné shared_data$germline_var:
       global_data <- shared_data$germline_var()
-      
-      if (is.null(global_data) || nrow(global_data) == 0 || !("sample" %in% names(global_data))) {
+
+      # Pokud je NULL nebo nemá správnou strukturu, inicializujeme
+      if (is.null(global_data) || !is.data.table(global_data) || !("sample" %in% names(global_data))) {
         global_data <- data.table(
           sample = character(),
           var_name = character(),
@@ -266,9 +267,7 @@ server <- function(id, selected_samples, shared_data) {
           gnomAD_NFE = character()
         )
       }
-      message("## selected_variants(): ", selected_variants())
-      message("## global_data: ", global_data)
-      # Odstraníme data, která patří právě tomuto pacientovi
+
       global_data <- global_data[sample != selected_samples]
       
       # Přidáme nově aktualizované lokální data daného pacienta
@@ -305,7 +304,6 @@ server <- function(id, selected_samples, shared_data) {
       session$sendCustomMessage("resetReactableSelection",selected_variants())
       
       if (nrow(selected_variants()) == 0) {
-        hide("confirm_btn")
         hide("delete_button")
       }
     })
@@ -315,7 +313,6 @@ server <- function(id, selected_samples, shared_data) {
       if (nrow(selected_variants()) == 0) {
         # Pokud nejsou vybrány žádné řádky, zůstaň u původního stavu
         # variant_selected(FALSE)
-        hide("confirm_btn")
         hide("delete_button")
         
         shinyalert(
@@ -336,13 +333,19 @@ server <- function(id, selected_samples, shared_data) {
         # variant_selected(TRUE)
         
         # Zobraz tlačítka pomocí shinyjs
-        show("confirm_btn")
         show("delete_button")
       }
     })
     
-    hide("confirm_btn")
-    hide("delete_button")
+    observe({
+      variants <- selected_variants()
+      
+      if (!is.null(variants) && nrow(variants) > 0) {
+        show("delete_button")
+      } else {
+        hide("delete_button")
+      }
+    })
     
     
     

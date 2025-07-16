@@ -9,12 +9,11 @@ box::use(
   htmltools[tags, span,HTML],
   shinyWidgets[pickerInput, dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
   networkD3[sankeyNetwork,renderSankeyNetwork,sankeyNetworkOutput],
-  data.table[fread],
   billboarder[billboarderOutput],
   stats[setNames],
   shinyalert[shinyalert,useShinyalert],
   shinyjs[useShinyjs,hide,show],
-  data.table[data.table,as.data.table,copy],
+  data.table[fread,data.table,as.data.table,copy,is.data.table],
   DT[renderDT,datatable,formatStyle,styleEqual,DTOutput],
   magrittr[`%>%`],
 )
@@ -195,14 +194,16 @@ server <- function(id, selected_samples, shared_data) {
         outlined = TRUE,
         defaultColDef = colDef(align = "center", sortNALast = TRUE),
         defaultSorted = list("fOne" = "desc", "CGC_Somatic" = "desc"),
-        rowStyle = function(index) {
-          gene_in_row <- filtered_data$Gene_symbol[index]
-          var_in_row <- filtered_data$var_name[index]
-          if (var_in_row %in% pathogenic_variants$var_name &           # Pokud je aktuální řádek v seznamu patogenních variant, zvýrazníme ho
-              gene_in_row %in% pathogenic_variants$Gene_symbol) {
-            list(backgroundColor = "#B5E3B6",fontWeight = "bold")
-          } else {
-            NULL
+        rowStyle = if (!is.null(pathogenic_variants) && nrow(pathogenic_variants) > 0) {
+          function(index) {
+            gene_in_row <- filtered_data$Gene_symbol[index]
+            var_in_row <- filtered_data$var_name[index]
+            if (var_in_row %in% pathogenic_variants$var_name &           # Pokud je aktuální řádek v seznamu patogenních variant, zvýrazníme ho
+                gene_in_row %in% pathogenic_variants$Gene_symbol) {
+              list(backgroundColor = "#B5E3B6",fontWeight = "bold")
+            } else {
+              NULL
+            }
           }
         },
         selection = "multiple",
@@ -232,25 +233,28 @@ server <- function(id, selected_samples, shared_data) {
       
       # Aktualizace globální proměnné shared_data$somatic_var:
       global_data <- shared_data$somatic_var()
-      
-      if (is.null(global_data) || nrow(global_data) == 0 || !("sample" %in% names(global_data))) {
+
+      # Pokud je NULL nebo nemá správnou strukturu, inicializujeme
+      if (is.null(global_data) || !is.data.table(global_data) || !("sample" %in% names(global_data))) {
         global_data <- data.table(
           sample = character(),
           var_name = character(),
           Gene_symbol = character(),
-          tumor_variant_freq= character(),
-          tumor_depth = character(),
+          tumor_variant_freq = numeric(),
+          tumor_depth = integer(),
           Consequence = character(),
           HGVSc = character(),
           HGVSp = character(),
           variant_type = character(),
           Feature = character(),
-          gnomAD_NFE = character()
+          gnomAD_NFE = numeric()
         )
       }
-      # Odstraníme data, která patří právě tomuto pacientovi
+      
+      # VŽDY provedeme odstranění záznamů daného pacienta — bezpodmínečně!
       global_data <- global_data[sample != selected_samples]
       
+
       # Přidáme nově aktualizované lokální data daného pacienta
       updated_global_data <- rbind(global_data, selected_variants())
       shared_data$somatic_var(updated_global_data)
@@ -283,7 +287,6 @@ server <- function(id, selected_samples, shared_data) {
       session$sendCustomMessage("resetReactableSelection",selected_variants())
       
       if (nrow(selected_variants()) == 0) {
-        hide("confirm_btn")
         hide("delete_button")
       }
     })
@@ -293,7 +296,6 @@ server <- function(id, selected_samples, shared_data) {
       if (nrow(selected_variants()) == 0) {
         # Pokud nejsou vybrány žádné řádky, zůstaň u původního stavu
         # variant_selected(FALSE)
-        hide("confirm_btn")
         hide("delete_button")
         
         shinyalert(
@@ -314,14 +316,20 @@ server <- function(id, selected_samples, shared_data) {
         # variant_selected(TRUE)
         
         # Zobraz tlačítka pomocí shinyjs
-        show("confirm_btn")
         show("delete_button")
       }
     })
     
-    hide("confirm_btn")
-    hide("delete_button")
-    
+    observe({
+      variants <- selected_variants()
+      
+      if (!is.null(variants) && nrow(variants) > 0) {
+        show("delete_button")
+      } else {
+        hide("delete_button")
+      }
+    })
+
     
     
     observeEvent(filter_state$confirm(), {
@@ -414,24 +422,24 @@ server <- function(id, selected_samples, shared_data) {
     ###########################
     ## get / restore session ##
     ###########################
-
-    session_handlers <- create_session_handlers(
-      selected_inputs = list(
-        gnomAD_min = selected_gnomAD_min,
-        tumor_depth = selected_tumor_depth,
-        gene_regions = selected_gene_region,
-        consequence = selected_consequence,
-        selected_cols = selected_columns,
-        selected_vars = selected_variants
-      ),
-      filter_state = filter_state
-    )
-    
-    return(list(
-      get_session_data = session_handlers$get_session_data,
-      restore_session_data = session_handlers$restore_session_data,
-      filter_state = filter_state
-    ))
+# 
+#     session_handlers <- create_session_handlers(
+#       selected_inputs = list(
+#         gnomAD_min = selected_gnomAD_min,
+#         tumor_depth = selected_tumor_depth,
+#         gene_regions = selected_gene_region,
+#         consequence = selected_consequence,
+#         selected_cols = selected_columns,
+#         selected_vars = selected_variants
+#       ),
+#       filter_state = filter_state
+#     )
+#     
+#     return(list(
+#       get_session_data = session_handlers$get_session_data,
+#       restore_session_data = session_handlers$restore_session_data,
+#       filter_state = filter_state
+#     ))
     
   })
 }
@@ -455,21 +463,21 @@ filterTab_server <- function(id,colnames_list) {
       updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = colnames_list$default_columns)
     })
     
-    restore_ui_inputs <- function(data) {
-      if (!is.null(data$gnomAD_min)) updateNumericInput(session, "gnomAD_min", value = safe_extract(data$gnomAD_min))
-      if (!is.null(data$tumor_depth)) updateNumericInput(session, "tumor_depth", value = safe_extract(data$tumor_depth))
-      if (!is.null(data$gene_regions)) updatePrettyCheckboxGroup(session, "gene_regions", selected = safe_extract(data$gene_regions))
-      if (!is.null(data$consequence)) updatePrettyCheckboxGroup(session, "consequence", selected = safe_extract(data$consequence))
-      if (!is.null(data$selected_cols)) updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = safe_extract(data$selected_cols))
-    }
+    # restore_ui_inputs <- function(data) {
+    #   if (!is.null(data$gnomAD_min)) updateNumericInput(session, "gnomAD_min", value = safe_extract(data$gnomAD_min))
+    #   if (!is.null(data$tumor_depth)) updateNumericInput(session, "tumor_depth", value = safe_extract(data$tumor_depth))
+    #   if (!is.null(data$gene_regions)) updatePrettyCheckboxGroup(session, "gene_regions", selected = safe_extract(data$gene_regions))
+    #   if (!is.null(data$consequence)) updatePrettyCheckboxGroup(session, "consequence", selected = safe_extract(data$consequence))
+    #   if (!is.null(data$selected_cols)) updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = safe_extract(data$selected_cols))
+    # }
     return(list(
       confirm = reactive(input$confirm_btn),
       tumor_depth = reactive(input$tumor_depth),
       gnomAD_min = reactive(input$gnomAD_min),
       gene_regions = reactive(input$gene_regions),
       consequence = reactive(input$consequence),
-      selected_columns = reactive(input$colFilter_checkBox),
-      restore_ui_inputs = restore_ui_inputs
+      selected_columns = reactive(input$colFilter_checkBox)
+      # restore_ui_inputs = restore_ui_inputs
     ))
   })
 }

@@ -176,7 +176,10 @@ server <- function(id, patient, shared_data){
     })
 
 
-
+    
+    observe({
+      message("Shared_data somatic variants: ", paste(shared_data$somatic_var(),collapse = ", "))
+      })
     #################################################
     ### Selected variant or fusion data + buttons ###
     #################################################

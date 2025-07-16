@@ -39,31 +39,6 @@ create_session_handlers <- function(selected_inputs, filter_state) {
   ))
 }
 
-#' @export
-load_session <- function(file = "session_data.json", patient_modules_list) {
-  if (!file.exists(file)) {
-    showNotification("Session file not found.", type = "error")
-    return(NULL)
-  }
-  
-  session_data <- read_json(file, simplifyVector = TRUE)
-  
-  invisible(lapply(names(session_data), function(module_type) {
-    if (module_type %in% names(patient_modules_list)) {
-      module_group <- patient_modules_list[[module_type]]
-      module_data <- session_data[[module_type]]
-      
-      invisible(lapply(names(module_data), function(patient) {
-        if (!is.null(module_group[[patient]])) {
-          module_group[[patient]]$restore_session_data(module_data[[patient]])
-        }
-      }))
-    }
-  }))
-  
-  showNotification("Session loaded successfully.", type = "message")
-}
-
 
 #' @export
 save_session <- function(file = "session_data.json", patient_modules_list) {
@@ -74,3 +49,5 @@ save_session <- function(file = "session_data.json", patient_modules_list) {
   write_json(session_data, path = file, pretty = TRUE, auto_unbox = TRUE, na = "null")
   showNotification(paste("Session saved to", file), type = "message")
 }
+
+

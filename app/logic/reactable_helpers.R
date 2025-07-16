@@ -62,141 +62,6 @@ filterMinValue <- JS("(rows, columnId, filterValue) => {
 }")
 
 
-custom_colDef_setting <- function(tag, session = NULL, column_names = NULL,log2FC = NULL){
-  if (tag == "expression") {
-    
-    custom_colDef <- list(
-      # feature_name = colDef(minWidth = 150, filterable = TRUE),
-      # geneid = colDef(minWidth = 150, filterable = TRUE),
-      # all_kegg_paths_name = colDef(minWidth = 170, filterable = TRUE),
-      # pathway = colDef(minWidth = 180, filterable = TRUE),
-      # pathway = colDef(
-      #   minWidth = 180,
-      #   filterable = TRUE,
-      #   html = TRUE,  # Povolení HTML v Reactable
-      #   cell = function(value) {
-      #     if (is.null(value) || value == "") return("N/A")
-      #     
-      #     pathway_colors <- list(
-      #       "RTK Signaling" = "#98FB98",
-      #       "Metabolic Signaling" = "#00CED1",
-      #       "Epigenetics" = "#DA70D6",
-      #       "PI3K/AKT/mTOR Signaling" = "#008000",
-      #       "Apoptosis" = "#FF7F00",
-      #       "MAPK Signaling" = "#800000",
-      #       "WNT signaling" = "#6495ED",
-      #       "Hormone Signaling" = "#DC143C",
-      #       "DNA damage/repair" = "#87CEEB",
-      #       "Cell cycle control" = "#FB9A99",
-      #       "Immune Checkpoints" = "#A9A9A9",
-      #       "TGF-B Signaling" = "#FFD700",
-      #       "JAK/STAT Signaling" = "#BDB76B",
-      #       "Hedgehog Signaling" = "#8B008B",
-      #       "Non-receptor kinases" = "#6A5ACD",
-      #       "Kinase Fusions" = "#D2691E",
-      #       "Immune Response" = "#4682B4")
-      #     
-      #     pathways <- strsplit(value, ",")[[1]] # Rozdělení pathway hodnot do seznamu (některé mohou obsahovat více pathway)
-      #     pathways <- trimws(pathways)  # Odstranění mezer kolem názvů
-      #     
-      #     # Vytvoření pill elementů
-      #     pills <- lapply(pathways, function(pathway) {
-      #       color <- pathway_colors[[pathway]]
-      #       if (is.null(color)) color <- "#D3D3D3"  # Výchozí šedá pro neznámé pathways
-      #       div(style = sprintf("display: inline-block; padding: 5px 10px; margin: 2px; border-radius: 15px; background-color: %s; color: white; font-size: 12px; font-weight: bold;", color),
-      #           pathway)
-      #     })
-      #     as.character(tagList(pills)) # Použití `as.character()` k převedení HTML do stringu
-      #   }
-      # ),
-      # num_of_paths = colDef(maxWidth = 100),
-      # refseq_id = colDef(maxWidth = 140),
-      # type = colDef(maxWidth = 100),
-      # gene_definition = colDef(minWidth = 130),
-      # all_kegg_gene_names = colDef(minWidth = 150)
-    )
-    dynamic_columns <- list()
-    num_columns <- length(column_names)  # Celkový počet dynamických sloupců
-    log2fc_indices <- which(grepl("^log2FC_", column_names))  # Indexy log2FC sloupců
-    
-    for (i in seq_along(column_names)) {
-      col <- column_names[i]
-      border_style <- NULL
-      
-      # # Přidání sloupce mean_log2FC s datovými bary, pokud existuje
-      # if ("mean_log2FC" %in% column_names) {
-      #   dynamic_columns[["mean_log2FC"]] <- colDef(
-      #     cell = data_bars(data$mean_log2FC, 
-      #                      fill_color = c("lightblue", "orange"),
-      #                      number_fmt = scales::number_format(accuracy = 0.01),
-      #                      text_position = "outside-end")
-      #   )
-      # }
-      
-      if (grepl("^log2FC_", col)) {
-        # První log2FC dostane čáru na oddělení od statických sloupců
-        if (i == log2fc_indices[1]) {
-          border_style <- list(borderLeft = "2px solid black")
-        }
-      }
-      
-      if (grepl("^p_adj_", col)) {
-        # P_adj dostane oddělovací čáru jen pokud to není poslední trojice
-        if (i < num_columns) {
-          border_style <- list(borderRight = "1px dashed rgba(0, 0, 0, 0.3)")
-        }
-      }
-      
-      # Vytvoření sloupců s dynamickými vlastnostmi
-      # scientific formát, bohužel to trvá strašně dlouho. nejedná se totiž o přepočet ale pouze o zobrazení čísla 
-      # v daném zápisu, který reactable zatím nepodporuje: cell = function(value) formatC(value, format = "e", digits = 2)
-      if (grepl("^log2FC_", col)) {
-        dynamic_columns[[col]] <- colDef(
-          # maxWidth = 130,
-          style = JS("function(rowInfo, colInfo) {
-                        var value = rowInfo.values[colInfo.id];
-                        var borderStyle = colInfo.id.includes('p_adj') ? '1px dashed rgba(0, 0, 0, 0.3)' : '';
-                        var color = value > 1 ? '#FFE9E9' : (value < -1 ? '#E6F7FF' : '#FFFFFF');
-
-                        return {
-                          backgroundColor: color,
-                          borderRight: borderStyle
-                        };}"))
-      } else if (grepl("^p_value_", col)) {
-        dynamic_columns[[col]] <- colDef(
-          # maxWidth = 130,
-          style = JS("function(rowInfo, colInfo) {
-                        var value = rowInfo.values[colInfo.id];
-                        var borderStyle = colInfo.id.includes('p_adj') ? '1px dashed rgba(0, 0, 0, 0.3)' : '';
-                        var color = (value <= 0.05) ? '#FFEFDE' : '#FFFFFF';
-
-                        return {
-                          backgroundColor: color,
-                          borderRight: borderStyle
-                        };}"))
-      } else if (grepl("^p_adj_", col)) {
-        dynamic_columns[[col]] <- colDef(
-          # maxWidth = 130,
-          style = JS("function(rowInfo, colInfo) {
-                        var value = rowInfo.values[colInfo.id];
-                        var borderStyle = '1px dashed rgba(0, 0, 0, 0.3)';  // p-adj má border vždy
-                        var color = (value <= 0.05) ? '#E7FAEF' : '#FFFFFF';
-                  
-                        return {
-                          backgroundColor: color,
-                          borderRight: borderStyle
-                        };}"))
-      }
-    }
-
-    custom_colDef <- c(custom_colDef, dynamic_columns)
-    
-  } else {
-    print("NOT fusion, expression or germline")
-  }
-  return(custom_colDef)
-}
-
 #' @export
 custom_colGroup_setting <- function(tag, tissues = NULL) {
   if (tag == "expression") {
@@ -308,4 +173,25 @@ create_consequence_filter <- function(data, selected_consequences, include_missi
   filtered_data <- data[keep_rows]
   
   return(filtered_data)
+}
+
+
+#' @export
+update_fusion_data <- function(dt, check_state, notes_state_current, fusion_data_to_render) {
+  if (!is.null(dt)) {
+    dt$Visual_Check <- NA
+    dt$Notes <- NA
+    
+    if (!is.null(check_state) && nrow(check_state) > 0) {
+      valid_rows <- check_state$row[check_state$row <= nrow(dt)]
+      dt$Visual_Check[valid_rows] <- check_state$value[check_state$row <= nrow(dt)]
+    }
+    
+    if (!is.null(notes_state_current) && nrow(notes_state_current) > 0) {
+      valid_rows <- notes_state_current$row[notes_state_current$row <= nrow(dt)]
+      dt$Notes[valid_rows] <- notes_state_current$value[notes_state_current$row <= nrow(dt)]
+    }
+    
+    fusion_data_to_render(dt)
+  }
 }

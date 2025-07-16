@@ -125,22 +125,32 @@ colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL, session
       Visual_Check = colDef(width = 110,name="Visual check",html = TRUE,
                             cell = JS(paste0("function(cellInfo) {
                                                 const rowIndex = cellInfo.index;
-                                                const value = cellInfo.value || '';
-                                                const inputId = '", session$ns("visual_check"), "';
-                                                return `
-                                                  <div class='fusion-radio-group' data-row='${rowIndex}'>
-                                                    <label class='fusion-radio-label'>
-                                                      <input type='radio' name='${inputId}_${rowIndex}' value='yes' ${value === 'yes' ? 'checked' : ''}>
-                                                      <span class='fusion-radio-btn'><i class='fa fa-check'></i></span>
-                                                    </label>
-                                                    <label class='fusion-radio-label'>
-                                                      <input type='radio' name='${inputId}_${rowIndex}' value='no' ${value === 'no' ? 'checked' : ''}>
-                                                      <span class='fusion-radio-btn'><i class='fa fa-times'></i></span>
-                                                    </label>
-                                                  </div>
+                                                    const value = cellInfo.value || '';
+                                                    const inputId = '", session$ns("visual_check"), "';
+                                                    return `
+                                                      <div class='fusion-radio-group' data-row='${rowIndex}'>
+                                                        <label class='fusion-radio-label'>
+                                                          <input type='radio' name='${inputId}_${rowIndex}' value='yes' ${value === 'yes' ? 'checked' : ''} 
+                                                            onclick='Shiny.setInputValue(\"", session$ns("visual_check_changed"), "\", {row: ${rowIndex}, value: \"yes\"}, {priority: \"event\"})'>
+                                                          <span class='fusion-radio-btn'><i class='fa fa-check'></i></span>
+                                                        </label>
+                                                        <label class='fusion-radio-label'>
+                                                          <input type='radio' name='${inputId}_${rowIndex}' value='no' ${value === 'no' ? 'checked' : ''} 
+                                                            onclick='Shiny.setInputValue(\"", session$ns("visual_check_changed"), "\", {row: ${rowIndex}, value: \"no\"}, {priority: \"event\"})'>
+                                                          <span class='fusion-radio-btn'><i class='fa fa-times'></i></span>
+                                                        </label>
+                                                      </div>
                                                 `;}"))),
-      Notes = colDef(minWidth = 120,name="Notes",
-                     cell = text_extra(id = session$ns("rt_notes"))),
+      Notes = colDef(minWidth = 120,name="Notes", html = TRUE,
+                     cell = JS(paste0("
+                          function(cellInfo) {
+                            const rowIndex = cellInfo.index;
+                            const value = cellInfo.value || '';
+                            const inputId = '", session$ns("notes_input"), "';
+                            return `
+                              <input type='text' value='${value}' 
+                                     onblur='Shiny.setInputValue(\"", session$ns("notes_input_changed"),"\", {row: ${rowIndex}, value: this.value}, {priority: \"event\"})' 
+                                     style='width: 100%; box-sizing: border-box;' />`;}"))),
       position1 = colDef(minWidth = 150,name="Position 1"),
       position2 = colDef(minWidth = 150,name="Position 2"),
       strand1 = colDef(width = 100,name="Strand 1"),
