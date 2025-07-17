@@ -1,219 +1,55 @@
 {
   "somatic": {
     "DZ1601": {
-      "gnomAD_min": 0.01,
-      "tumor_depth": 10,
-      "gene_regions": ["exon", "intron"],
+      "gnomAD_min": 0.0001,
+      "tumor_depth": 1,
+      "gene_regions": ["exon", "downstream", "intron"],
       "consequence": ["downstream gene variant", "frameshift variant", "intron variant", "missense variant"],
-      "selected_cols": ["all_full_annot_name", "CGC_Somatic", "clinvar_DBN", "clinvar_sig", "Consequence", "COSMIC", "fOne", "gene_region", "Gene_symbol", "gnomAD_NFE", "HGMD", "HGVSc", "HGVSp", "in_library", "snpDB", "tumor_depth", "tumor_variant_freq", "var_name"],
-      "selected_vars": {}
-    },
-    "MR1507": {
-      "gnomAD_min": 0.01,
-      "tumor_depth": 10,
-      "gene_regions": ["intron", "exon"],
-      "consequence": ["3 prime UTR variant", "5 prime UTR variant", "downstream gene variant", "frameshift variant", "intron variant", "missense variant", "splice donor variant", "splice region variant", "stop gained", "synonymous variant", "upstream gene variant"],
-      "selected_cols": ["1000g_EUR_AF", "alarm", "all_full_annot_name", "Annotation source", "Called_by", "CGC_Somatic", "CGC_Tumour_Somatic", "clinvar_DBN", "clinvar_sig", "Consequence", "COSMIC", "EXON", "Feature", "Feature_type", "fOne", "full_annot_name", "Gene", "gene_region", "Gene_symbol", "gnomAD_NFE", "HGMD", "HGVSc", "HGVSp", "IMPACT", "in_library", "INTRON", "md-anderson", "NHLBI_ESP", "normal_depth", "normal_variant_freq", "PolyPhen", "SIFT", "snpDB", "trusight_genes", "tumor_depth", "tumor_variant_freq", "var_gen_coord", "var_name", "variant_type"],
+      "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name", "alarm", "full_annot_name", "var_gen_coord", "variant_type", "normal_variant_freq", "normal_depth", "Called_by", "1000g_EUR_AF", "NHLBI_ESP", "md-anderson", "trusight_genes", "CGC_Tumour_Somatic", "PolyPhen", "SIFT", "IMPACT", "SOMATIC", "PHENO", "GENE_PHENO", "EXON", "INTRON", "Feature", "Feature_type", "Annotation source", "Gene"],
       "selected_vars": [
         {
-          "var_name": "16_72959032_G/A",
-          "Gene_symbol": "ZFHX3",
-          "tumor_variant_freq": 0.557,
-          "tumor_depth": 79,
-          "Consequence": "stop gained",
-          "HGVSc": "c.1114C>T",
-          "HGVSp": "p.R372X",
+          "var_name": "9_116344626_G/A",
+          "Gene_symbol": "PAPPA",
+          "tumor_variant_freq": 0.16,
+          "tumor_depth": 125,
+          "Consequence": "missense variant",
+          "HGVSc": "c.3695G>A",
+          "HGVSp": "p.R1232H",
           "variant_type": "SNV",
-          "Feature": "NM_006885.4",
-          "gnomAD_NFE": 0,
-          "sample": "MR1507"
+          "Feature": "NM_002581.5",
+          "gnomAD_NFE": 0.0001,
+          "sample": "DZ1601"
         },
         {
-          "var_name": "5_35877233_C/T",
-          "Gene_symbol": "IL7R",
-          "tumor_variant_freq": 0.052,
-          "tumor_depth": 192,
-          "Consequence": "3 prime UTR variant",
-          "HGVSc": "c.*747C>T",
-          "HGVSp": null,
+          "var_name": "X_84145545_T/C",
+          "Gene_symbol": "RPS6KA6",
+          "tumor_variant_freq": 0.055,
+          "tumor_depth": 73,
+          "Consequence": "missense variant",
+          "HGVSc": "c.434A>G",
+          "HGVSp": "p.E145G",
           "variant_type": "SNV",
-          "Feature": "NM_002185.5",
+          "Feature": "NM_014496.5",
           "gnomAD_NFE": 0,
-          "sample": "MR1507"
-        },
-        {
-          "var_name": "5_68297595_G/A",
-          "Gene_symbol": "PIK3R1",
-          "tumor_variant_freq": 0.389,
-          "tumor_depth": 157,
-          "Consequence": "synonymous variant",
-          "HGVSc": "c.2169G>A",
-          "HGVSp": "p.=(p.R723R)",
-          "variant_type": "SNV",
-          "Feature": "NM_181523.3",
-          "gnomAD_NFE": 0,
-          "sample": "MR1507"
-        },
-        {
-          "var_name": "9_14305996_A/G",
-          "Gene_symbol": "NFIB",
-          "tumor_variant_freq": 0.374,
-          "tumor_depth": 107,
-          "Consequence": "synonymous variant",
-          "HGVSc": "c.585T>C",
-          "HGVSp": "p.=(p.N195N)",
-          "variant_type": "SNV",
-          "Feature": "NM_001369481.1",
-          "gnomAD_NFE": 0,
-          "sample": "MR1507"
+          "sample": "DZ1601"
         }
       ]
     },
-    "VH0452": {
-      "gnomAD_min": {},
-      "tumor_depth": {},
-      "gene_regions": {},
-      "consequence": {},
+    "MR1507": {
+      "gnomAD_min": 1,
+      "tumor_depth": 100,
+      "gene_regions": "exon",
+      "consequence": ["missense variant", "splice donor variant", "splice region variant", "stop gained", "upstream gene variant"],
       "selected_cols": ["var_name", "in_library", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "clinvar_DBN", "snpDB", "CGC_Somatic", "fOne", "COSMIC", "HGMD", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": {}
-    }
-  },
-  "germline": {
-    "DZ1601": {
-      "gnomAD_min": {},
-      "coverage_depth": {},
-      "gene_regions": {},
-      "clinvar_sig": {},
-      "consequence": {},
-      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
-      "selected_vars": []
-    },
-    "MR1507": {
-      "gnomAD_min": {},
-      "coverage_depth": {},
-      "gene_regions": {},
-      "clinvar_sig": {},
-      "consequence": {},
-      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
       "selected_vars": []
     },
     "VH0452": {
-      "gnomAD_min": {},
-      "coverage_depth": {},
-      "gene_regions": {},
-      "clinvar_sig": {},
-      "consequence": {},
-      "selected_cols": ["var_name", "variant_freq", "in_library", "Gene_symbol", "coverage_depth", "gene_region", "gnomAD_NFE", "clinvar_sig", "snpDB", "CGC_Germline", "trusight_genes", "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name"],
+      "gnomAD_min": 0.1,
+      "tumor_depth": 10,
+      "gene_regions": ["intron", "exon"],
+      "consequence": "synonymous variant",
+      "selected_cols": ["alarm", "full_annot_name", "var_gen_coord", "PolyPhen", "SIFT", "IMPACT", "SOMATIC", "PHENO", "GENE_PHENO", "EXON", "INTRON", "Feature", "Feature_type", "Annotation source", "Gene"],
       "selected_vars": []
-    }
-  },
-  "fusion": {
-    "DZ1601": {
-      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": [
-        {
-          "gene1": "ATXN10",
-          "gene2": "DDR2",
-          "overall_support": 2,
-          "position1": "chr22:45843056",
-          "position2": "chr1:162754667",
-          "arriba.confidence": "low",
-          "arriba.site1": "CDS",
-          "arriba.site2": "CDS",
-          "sample": "DZ1601fuze"
-        },
-        {
-          "gene1": "KMT2A",
-          "gene2": "MLLT3",
-          "overall_support": 35,
-          "position1": "chr11:118482495",
-          "position2": "chr9:20365744",
-          "arriba.confidence": "high",
-          "arriba.site1": "CDS/splice-site",
-          "arriba.site2": "CDS/splice-site",
-          "sample": "DZ1601fuze"
-        }
-      ],
-      "visual_check_state": {},
-      "notes_state": {}
-    },
-    "LK0302": {
-      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": {},
-      "visual_check_state": {},
-      "notes_state": {}
-    },
-    "MR1507": {
-      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": {},
-      "visual_check_state": {},
-      "notes_state": {}
-    },
-    "VH0452": {
-      "selected_cols": ["gene1", "gene2", "arriba.called", "starfus.called", "arriba.confidence", "overall_support", "Visual_Check", "Notes", "position1", "strand1", "position2", "strand2", "arriba.site1", "arriba.site2", "starfus.splice_type", "DB_count", "DB_list"],
-      "selected_vars": {},
-      "visual_check_state": {},
-      "notes_state": {}
-    }
-  },
-  "expression_goi": {
-    "DZ1601": {
-      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
-      "selected_pathway": ["Apoptosis", "Cell cycle control", "DNA damage/repair", "Epigenetics", "Hedgehog Signaling", "Hormone Signaling", "Immune Checkpoints", "Immune Response", "JAK/STAT Signaling", "MAPK Signaling", "Metabolic Signaling", "Non-receptor kinases", "PI3K/AKT/mTOR Signaling", "RTK Signaling", "TGF-B Signaling", "WNT signaling"],
-      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
-      "log2fc_bigger1_tissue": {},
-      "log2fc_smaller1_tissue": {},
-      "pval_tissue": {},
-      "padj_tissue": {},
-      "log2fc_bigger1_btn": false,
-      "log2fc_smaller1_btn": false,
-      "pval_btn": false,
-      "padj_btn": false,
-      "selected_genes": []
-    },
-    "MR1507": {
-      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
-      "selected_pathway": ["Apoptosis", "Cell cycle control", "DNA damage/repair", "Epigenetics", "Hedgehog Signaling", "Hormone Signaling", "Immune Checkpoints", "Immune Response", "JAK/STAT Signaling", "MAPK Signaling", "Metabolic Signaling", "Non-receptor kinases", "PI3K/AKT/mTOR Signaling", "RTK Signaling", "TGF-B Signaling", "WNT signaling"],
-      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
-      "log2fc_bigger1_tissue": {},
-      "log2fc_smaller1_tissue": {},
-      "pval_tissue": {},
-      "padj_tissue": {},
-      "log2fc_bigger1_btn": false,
-      "log2fc_smaller1_btn": false,
-      "pval_btn": false,
-      "padj_btn": false,
-      "selected_genes": []
-    }
-  },
-  "expression_all": {
-    "DZ1601": {
-      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
-      "selected_pathway": ["2-Oxocarboxylic acid metabolism", "ABC transporters", "Acute myeloid leukemia", "Adherens junction", "Adipocytokine signaling pathway", "Adrenergic signaling in cardiomyocytes", "African trypanosomiasis", "AGE-RAGE signaling pathway in diabetic complications", "Alanine, aspartate and glutamate metabolism", "Alcoholic liver disease", "Alcoholism", "Aldosterone synthesis and secretion", "Aldosterone-regulated sodium reabsorption", "Allograft rejection", "alpha-Linolenic acid metabolism", "Alzheimer disease", "Amino sugar and nucleotide sugar metabolism", "Aminoacyl-tRNA biosynthesis", "Amoebiasis", "Amphetamine addiction", "AMPK signaling pathway", "Amyotrophic lateral sclerosis", "Antifolate resistance", "Antigen processing and presentation", "Apelin signaling pathway", "Apoptosis", "Apoptosis - multiple species", "Arachidonic acid metabolism", "Arginine and proline metabolism", "Arginine biosynthesis", "Arrhythmogenic right ventricular cardiomyopathy", "Ascorbate and aldarate metabolism", "Asthma", "ATP-dependent chromatin remodeling", "Autoimmune thyroid disease", "Autophagy - animal", "Autophagy - other", "Axon guidance", "B cell receptor signaling pathway", "Bacterial invasion of epithelial cells", "Basal cell carcinoma", "Basal transcription factors", "Base excision repair", "beta-Alanine metabolism", "Bile secretion", "Biosynthesis of amino acids", "Biosynthesis of cofactors", "Biosynthesis of nucleotide sugars", "Biosynthesis of unsaturated fatty acids", "Biotin metabolism", "Bladder cancer", "Breast cancer", "Butanoate metabolism", "C-type lectin receptor signaling pathway", "Caffeine metabolism", "Calcium signaling pathway", "cAMP signaling pathway", "Carbohydrate digestion and absorption", "Carbon metabolism", "Cardiac muscle contraction", "Cell adhesion molecules", "Cell cycle", "Cellular senescence", "Central carbon metabolism in cancer", "cGMP-PKG signaling pathway", "Chagas disease", "Chemical carcinogenesis - DNA adducts", "Chemical carcinogenesis - reactive oxygen species", "Chemical carcinogenesis - receptor activation", "Chemokine signaling pathway", "Cholesterol metabolism", "Choline metabolism in cancer", "Cholinergic synapse", "Chronic myeloid leukemia", "Circadian entrainment", "Circadian rhythm", "Citrate cycle (TCA cycle)", "Cocaine addiction", "Collecting duct acid secretion", "Colorectal cancer", "Complement and coagulation cascades", "Coronavirus disease - COVID-19", "Cortisol synthesis and secretion", "Cushing syndrome", "Cysteine and methionine metabolism", "Cytokine-cytokine receptor interaction", "Cytosolic DNA-sensing pathway", "D-Amino acid metabolism", "Diabetic cardiomyopathy", "Dilated cardiomyopathy", "DNA replication", "Dopaminergic synapse", "Drug metabolism - cytochrome P450", "Drug metabolism - other enzymes", "ECM-receptor interaction", "EGFR tyrosine kinase inhibitor resistance", "Endocrine and other factor-regulated calcium reabsorption", "Endocrine resistance", "Endocytosis", "Endometrial cancer", "Epithelial cell signaling in Helicobacter pylori infection", "Epstein-Barr virus infection", "ErbB signaling pathway", "Estrogen signaling pathway", "Ether lipid metabolism", "Fanconi anemia pathway", "Fat digestion and absorption", "Fatty acid biosynthesis", "Fatty acid degradation", "Fatty acid elongation", "Fatty acid metabolism", "Fc epsilon RI signaling pathway", "Fc gamma R-mediated phagocytosis", "Ferroptosis", "Fluid shear stress and atherosclerosis", "Focal adhesion", "Folate biosynthesis", "FoxO signaling pathway", "Fructose and mannose metabolism", "GABAergic synapse", "Galactose metabolism", "Gap junction", "Gastric acid secretion", "Gastric cancer", "Glioma", "Glucagon signaling pathway", "Glutamatergic synapse", "Glutathione metabolism", "Glycerolipid metabolism", "Glycerophospholipid metabolism", "Glycine, serine and threonine metabolism", "Glycolysis / Gluconeogenesis", "Glycosaminoglycan biosynthesis - chondroitin sulfate / dermatan sulfate", "Glycosaminoglycan biosynthesis - heparan sulfate / heparin", "Glycosaminoglycan biosynthesis - keratan sulfate", "Glycosaminoglycan degradation", "Glycosphingolipid biosynthesis - ganglio series", "Glycosphingolipid biosynthesis - globo and isoglobo series", "Glycosphingolipid biosynthesis - lacto and neolacto series", "Glycosylphosphatidylinositol (GPI)-anchor biosynthesis", "Glyoxylate and dicarboxylate metabolism", "GnRH secretion", "GnRH signaling pathway", "Graft-versus-host disease", "Growth hormone synthesis, secretion and action", "Hedgehog signaling pathway", "Hematopoietic cell lineage", "Hepatitis B", "Hepatitis C", "Hepatocellular carcinoma", "Herpes simplex virus 1 infection", "HIF-1 signaling pathway", "Hippo signaling pathway", "Hippo signaling pathway - multiple species", "Histidine metabolism", "Homologous recombination", "Human cytomegalovirus infection", "Human immunodeficiency virus 1 infection", "Human papillomavirus infection", "Human T-cell leukemia virus 1 infection", "Huntington disease", "Hypertrophic cardiomyopathy", "IL-17 signaling pathway", "Inflammatory bowel disease", "Inflammatory mediator regulation of TRP channels", "Influenza A", "Inositol phosphate metabolism", "Insulin resistance", "Insulin secretion", "Insulin signaling pathway", "Intestinal immune network for IgA production", "JAK-STAT signaling pathway", "Kaposi sarcoma-associated herpesvirus infection", "Legionellosis", "Leishmaniasis", "Leukocyte transendothelial migration", "Linoleic acid metabolism", "Lipid and atherosclerosis", "Lipoic acid metabolism", "Long-term depression", "Long-term potentiation", "Longevity regulating pathway", "Longevity regulating pathway - multiple species", "Lysine degradation", "Lysosome", "Malaria", "Mannose type O-glycan biosynthesis", "MAPK signaling pathway", "Maturity onset diabetes of the young", "Measles", "Melanogenesis", "Melanoma", "Metabolic pathways", "Metabolism of xenobiotics by cytochrome P450", "MicroRNAs in cancer", "Mineral absorption", "Mismatch repair", "Mitophagy - animal", "Morphine addiction", "Motor proteins", "mRNA surveillance pathway", "mTOR signaling pathway", "Mucin type O-glycan biosynthesis", "N-Glycan biosynthesis", "Natural killer cell mediated cytotoxicity", "Necroptosis", "Neomycin, kanamycin and gentamicin biosynthesis", "Neuroactive ligand-receptor interaction", "Neurotrophin signaling pathway", "Neutrophil extracellular trap formation", "NF-kappa B signaling pathway", "Nicotinate and nicotinamide metabolism", "Nicotine addiction", "Nitrogen metabolism", "NOD-like receptor signaling pathway", "Non-alcoholic fatty liver disease", "Non-homologous end-joining", "Non-small cell lung cancer", "Notch signaling pathway", "Nucleocytoplasmic transport", "Nucleotide excision repair", "Nucleotide metabolism", "Olfactory transduction", "One carbon pool by folate", "Oocyte meiosis", "Osteoclast differentiation", "Other glycan degradation", "Other types of O-glycan biosynthesis", "Ovarian steroidogenesis", "Oxidative phosphorylation", "Oxytocin signaling pathway", "p53 signaling pathway", "Pancreatic cancer", "Pancreatic secretion", "Pantothenate and CoA biosynthesis", "Parathyroid hormone synthesis, secretion and action", "Parkinson disease", "Pathogenic Escherichia coli infection", "Pathways in cancer", "Pathways of neurodegeneration - multiple diseases", "PD-L1 expression and PD-1 checkpoint pathway in cancer", "Pentose and glucuronate interconversions", "Pentose phosphate pathway", "Peroxisome", "Pertussis", "Phagosome", "Phenylalanine metabolism", "Phenylalanine, tyrosine and tryptophan biosynthesis", "Phosphatidylinositol signaling system", "Phospholipase D signaling pathway", "Phosphonate and phosphinate metabolism", "Phototransduction", "PI3K-Akt signaling pathway", "Platelet activation", "Platinum drug resistance", "Polycomb repressive complex", "Porphyrin metabolism", "PPAR signaling pathway", "Primary bile acid biosynthesis", "Primary immunodeficiency", "Prion disease", "Progesterone-mediated oocyte maturation", "Prolactin signaling pathway", "Propanoate metabolism", "Prostate cancer", "Proteasome", "Protein digestion and absorption", "Protein export", "Protein processing in endoplasmic reticulum", "Proteoglycans in cancer", "Proximal tubule bicarbonate reclamation", "Purine metabolism", "Pyrimidine metabolism", "Pyruvate metabolism", "Rap1 signaling pathway", "Ras signaling pathway", "Regulation of actin cytoskeleton", "Regulation of lipolysis in adipocytes", "Relaxin signaling pathway", "Renal cell carcinoma", "Renin secretion", "Renin-angiotensin system", "Retinol metabolism", "Retrograde endocannabinoid signaling", "Rheumatoid arthritis", "Riboflavin metabolism", "Ribosome", "Ribosome biogenesis in eukaryotes", "RIG-I-like receptor signaling pathway", "RNA degradation", "RNA polymerase", "Salivary secretion", "Salmonella infection", "Selenocompound metabolism", "Serotonergic synapse", "Shigellosis", "Signaling pathways regulating pluripotency of stem cells", "Small cell lung cancer", "SNARE interactions in vesicular transport", "Sphingolipid metabolism", "Sphingolipid signaling pathway", "Spinocerebellar ataxia", "Spliceosome", "Staphylococcus aureus infection", "Starch and sucrose metabolism", "Steroid biosynthesis", "Steroid hormone biosynthesis", "Sulfur metabolism", "Sulfur relay system", "Synaptic vesicle cycle", "Systemic lupus erythematosus", "T cell receptor signaling pathway", "Taste transduction", "Taurine and hypotaurine metabolism", "Terpenoid backbone biosynthesis", "TGF-beta signaling pathway", "Th1 and Th2 cell differentiation", "Th17 cell differentiation", "Thermogenesis", "Thiamine metabolism", "Thyroid cancer", "Thyroid hormone signaling pathway", "Thyroid hormone synthesis", "Tight junction", "TNF signaling pathway", "Toll-like receptor signaling pathway", "Toxoplasmosis", "Transcriptional misregulation in cancer", "Tryptophan metabolism", "Tuberculosis", "Type I diabetes mellitus", "Type II diabetes mellitus", "Tyrosine metabolism", "Ubiquinone and other terpenoid-quinone biosynthesis", "Ubiquitin mediated proteolysis", "Valine, leucine and isoleucine biosynthesis", "Valine, leucine and isoleucine degradation", "Various types of N-glycan biosynthesis", "Vascular smooth muscle contraction", "Vasopressin-regulated water reabsorption", "VEGF signaling pathway", "Vibrio cholerae infection", "Viral carcinogenesis", "Viral life cycle - HIV-1", "Viral myocarditis", "Viral protein interaction with cytokine and cytokine receptor", "Virion - Adenovirus", "Virion - Flavivirus", "Virion - Herpesvirus", "Virion - Human immunodeficiency virus", "Virion - Lyssavirus", "Vitamin B6 metabolism", "Vitamin digestion and absorption", "Wnt signaling pathway", "Yersinia infection"],
-      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
-      "log2fc_bigger1_tissue": {},
-      "log2fc_smaller1_tissue": {},
-      "pval_tissue": {},
-      "padj_tissue": {},
-      "log2fc_bigger1_btn": false,
-      "log2fc_smaller1_btn": false,
-      "pval_btn": false,
-      "padj_btn": false,
-      "selected_genes": []
-    },
-    "MR1507": {
-      "selected_tissue": ["Blood", "Blood_Vessel", "Breast", "Kidney", "Retina", "Testis"],
-      "selected_pathway": ["2-Oxocarboxylic acid metabolism", "ABC transporters", "Acute myeloid leukemia", "Adherens junction", "Adipocytokine signaling pathway", "Adrenergic signaling in cardiomyocytes", "African trypanosomiasis", "AGE-RAGE signaling pathway in diabetic complications", "Alanine, aspartate and glutamate metabolism", "Alcoholic liver disease", "Alcoholism", "Aldosterone synthesis and secretion", "Aldosterone-regulated sodium reabsorption", "Allograft rejection", "alpha-Linolenic acid metabolism", "Alzheimer disease", "Amino sugar and nucleotide sugar metabolism", "Aminoacyl-tRNA biosynthesis", "Amoebiasis", "Amphetamine addiction", "AMPK signaling pathway", "Amyotrophic lateral sclerosis", "Antifolate resistance", "Antigen processing and presentation", "Apelin signaling pathway", "Apoptosis", "Apoptosis - multiple species", "Arachidonic acid metabolism", "Arginine and proline metabolism", "Arginine biosynthesis", "Arrhythmogenic right ventricular cardiomyopathy", "Ascorbate and aldarate metabolism", "Asthma", "ATP-dependent chromatin remodeling", "Autoimmune thyroid disease", "Autophagy - animal", "Autophagy - other", "Axon guidance", "B cell receptor signaling pathway", "Bacterial invasion of epithelial cells", "Basal cell carcinoma", "Basal transcription factors", "Base excision repair", "beta-Alanine metabolism", "Bile secretion", "Biosynthesis of amino acids", "Biosynthesis of cofactors", "Biosynthesis of nucleotide sugars", "Biosynthesis of unsaturated fatty acids", "Biotin metabolism", "Bladder cancer", "Breast cancer", "Butanoate metabolism", "C-type lectin receptor signaling pathway", "Caffeine metabolism", "Calcium signaling pathway", "cAMP signaling pathway", "Carbohydrate digestion and absorption", "Carbon metabolism", "Cardiac muscle contraction", "Cell adhesion molecules", "Cell cycle", "Cellular senescence", "Central carbon metabolism in cancer", "cGMP-PKG signaling pathway", "Chagas disease", "Chemical carcinogenesis - DNA adducts", "Chemical carcinogenesis - reactive oxygen species", "Chemical carcinogenesis - receptor activation", "Chemokine signaling pathway", "Cholesterol metabolism", "Choline metabolism in cancer", "Cholinergic synapse", "Chronic myeloid leukemia", "Circadian entrainment", "Circadian rhythm", "Citrate cycle (TCA cycle)", "Cocaine addiction", "Collecting duct acid secretion", "Colorectal cancer", "Complement and coagulation cascades", "Coronavirus disease - COVID-19", "Cortisol synthesis and secretion", "Cushing syndrome", "Cysteine and methionine metabolism", "Cytokine-cytokine receptor interaction", "Cytosolic DNA-sensing pathway", "D-Amino acid metabolism", "Diabetic cardiomyopathy", "Dilated cardiomyopathy", "DNA replication", "Dopaminergic synapse", "Drug metabolism - cytochrome P450", "Drug metabolism - other enzymes", "ECM-receptor interaction", "EGFR tyrosine kinase inhibitor resistance", "Endocrine and other factor-regulated calcium reabsorption", "Endocrine resistance", "Endocytosis", "Endometrial cancer", "Epithelial cell signaling in Helicobacter pylori infection", "Epstein-Barr virus infection", "ErbB signaling pathway", "Estrogen signaling pathway", "Ether lipid metabolism", "Fanconi anemia pathway", "Fat digestion and absorption", "Fatty acid biosynthesis", "Fatty acid degradation", "Fatty acid elongation", "Fatty acid metabolism", "Fc epsilon RI signaling pathway", "Fc gamma R-mediated phagocytosis", "Ferroptosis", "Fluid shear stress and atherosclerosis", "Focal adhesion", "Folate biosynthesis", "FoxO signaling pathway", "Fructose and mannose metabolism", "GABAergic synapse", "Galactose metabolism", "Gap junction", "Gastric acid secretion", "Gastric cancer", "Glioma", "Glucagon signaling pathway", "Glutamatergic synapse", "Glutathione metabolism", "Glycerolipid metabolism", "Glycerophospholipid metabolism", "Glycine, serine and threonine metabolism", "Glycolysis / Gluconeogenesis", "Glycosaminoglycan biosynthesis - chondroitin sulfate / dermatan sulfate", "Glycosaminoglycan biosynthesis - heparan sulfate / heparin", "Glycosaminoglycan biosynthesis - keratan sulfate", "Glycosaminoglycan degradation", "Glycosphingolipid biosynthesis - ganglio series", "Glycosphingolipid biosynthesis - globo and isoglobo series", "Glycosphingolipid biosynthesis - lacto and neolacto series", "Glycosylphosphatidylinositol (GPI)-anchor biosynthesis", "Glyoxylate and dicarboxylate metabolism", "GnRH secretion", "GnRH signaling pathway", "Graft-versus-host disease", "Growth hormone synthesis, secretion and action", "Hedgehog signaling pathway", "Hematopoietic cell lineage", "Hepatitis B", "Hepatitis C", "Hepatocellular carcinoma", "Herpes simplex virus 1 infection", "HIF-1 signaling pathway", "Hippo signaling pathway", "Hippo signaling pathway - multiple species", "Histidine metabolism", "Homologous recombination", "Human cytomegalovirus infection", "Human immunodeficiency virus 1 infection", "Human papillomavirus infection", "Human T-cell leukemia virus 1 infection", "Huntington disease", "Hypertrophic cardiomyopathy", "IL-17 signaling pathway", "Inflammatory bowel disease", "Inflammatory mediator regulation of TRP channels", "Influenza A", "Inositol phosphate metabolism", "Insulin resistance", "Insulin secretion", "Insulin signaling pathway", "Intestinal immune network for IgA production", "JAK-STAT signaling pathway", "Kaposi sarcoma-associated herpesvirus infection", "Legionellosis", "Leishmaniasis", "Leukocyte transendothelial migration", "Linoleic acid metabolism", "Lipid and atherosclerosis", "Lipoic acid metabolism", "Long-term depression", "Long-term potentiation", "Longevity regulating pathway", "Longevity regulating pathway - multiple species", "Lysine degradation", "Lysosome", "Malaria", "Mannose type O-glycan biosynthesis", "MAPK signaling pathway", "Maturity onset diabetes of the young", "Measles", "Melanogenesis", "Melanoma", "Metabolic pathways", "Metabolism of xenobiotics by cytochrome P450", "MicroRNAs in cancer", "Mineral absorption", "Mismatch repair", "Mitophagy - animal", "Morphine addiction", "Motor proteins", "mRNA surveillance pathway", "mTOR signaling pathway", "Mucin type O-glycan biosynthesis", "N-Glycan biosynthesis", "Natural killer cell mediated cytotoxicity", "Necroptosis", "Neomycin, kanamycin and gentamicin biosynthesis", "Neuroactive ligand-receptor interaction", "Neurotrophin signaling pathway", "Neutrophil extracellular trap formation", "NF-kappa B signaling pathway", "Nicotinate and nicotinamide metabolism", "Nicotine addiction", "Nitrogen metabolism", "NOD-like receptor signaling pathway", "Non-alcoholic fatty liver disease", "Non-homologous end-joining", "Non-small cell lung cancer", "Notch signaling pathway", "Nucleocytoplasmic transport", "Nucleotide excision repair", "Nucleotide metabolism", "Olfactory transduction", "One carbon pool by folate", "Oocyte meiosis", "Osteoclast differentiation", "Other glycan degradation", "Other types of O-glycan biosynthesis", "Ovarian steroidogenesis", "Oxidative phosphorylation", "Oxytocin signaling pathway", "p53 signaling pathway", "Pancreatic cancer", "Pancreatic secretion", "Pantothenate and CoA biosynthesis", "Parathyroid hormone synthesis, secretion and action", "Parkinson disease", "Pathogenic Escherichia coli infection", "Pathways in cancer", "Pathways of neurodegeneration - multiple diseases", "PD-L1 expression and PD-1 checkpoint pathway in cancer", "Pentose and glucuronate interconversions", "Pentose phosphate pathway", "Peroxisome", "Pertussis", "Phagosome", "Phenylalanine metabolism", "Phenylalanine, tyrosine and tryptophan biosynthesis", "Phosphatidylinositol signaling system", "Phospholipase D signaling pathway", "Phosphonate and phosphinate metabolism", "Phototransduction", "PI3K-Akt signaling pathway", "Platelet activation", "Platinum drug resistance", "Polycomb repressive complex", "Porphyrin metabolism", "PPAR signaling pathway", "Primary bile acid biosynthesis", "Primary immunodeficiency", "Prion disease", "Progesterone-mediated oocyte maturation", "Prolactin signaling pathway", "Propanoate metabolism", "Prostate cancer", "Proteasome", "Protein digestion and absorption", "Protein export", "Protein processing in endoplasmic reticulum", "Proteoglycans in cancer", "Proximal tubule bicarbonate reclamation", "Purine metabolism", "Pyrimidine metabolism", "Pyruvate metabolism", "Rap1 signaling pathway", "Ras signaling pathway", "Regulation of actin cytoskeleton", "Regulation of lipolysis in adipocytes", "Relaxin signaling pathway", "Renal cell carcinoma", "Renin secretion", "Renin-angiotensin system", "Retinol metabolism", "Retrograde endocannabinoid signaling", "Rheumatoid arthritis", "Riboflavin metabolism", "Ribosome", "Ribosome biogenesis in eukaryotes", "RIG-I-like receptor signaling pathway", "RNA degradation", "RNA polymerase", "Salivary secretion", "Salmonella infection", "Selenocompound metabolism", "Serotonergic synapse", "Shigellosis", "Signaling pathways regulating pluripotency of stem cells", "Small cell lung cancer", "SNARE interactions in vesicular transport", "Sphingolipid metabolism", "Sphingolipid signaling pathway", "Spinocerebellar ataxia", "Spliceosome", "Staphylococcus aureus infection", "Starch and sucrose metabolism", "Steroid biosynthesis", "Steroid hormone biosynthesis", "Sulfur metabolism", "Sulfur relay system", "Synaptic vesicle cycle", "Systemic lupus erythematosus", "T cell receptor signaling pathway", "Taste transduction", "Taurine and hypotaurine metabolism", "Terpenoid backbone biosynthesis", "TGF-beta signaling pathway", "Th1 and Th2 cell differentiation", "Th17 cell differentiation", "Thermogenesis", "Thiamine metabolism", "Thyroid cancer", "Thyroid hormone signaling pathway", "Thyroid hormone synthesis", "Tight junction", "TNF signaling pathway", "Toll-like receptor signaling pathway", "Toxoplasmosis", "Transcriptional misregulation in cancer", "Tryptophan metabolism", "Tuberculosis", "Type I diabetes mellitus", "Type II diabetes mellitus", "Tyrosine metabolism", "Ubiquinone and other terpenoid-quinone biosynthesis", "Ubiquitin mediated proteolysis", "Valine, leucine and isoleucine biosynthesis", "Valine, leucine and isoleucine degradation", "Various types of N-glycan biosynthesis", "Vascular smooth muscle contraction", "Vasopressin-regulated water reabsorption", "VEGF signaling pathway", "Vibrio cholerae infection", "Viral carcinogenesis", "Viral life cycle - HIV-1", "Viral myocarditis", "Viral protein interaction with cytokine and cytokine receptor", "Virion - Adenovirus", "Virion - Flavivirus", "Virion - Herpesvirus", "Virion - Human immunodeficiency virus", "Virion - Lyssavirus", "Vitamin B6 metabolism", "Vitamin digestion and absorption", "Wnt signaling pathway", "Yersinia infection"],
-      "selected_columns": ["sample", "feature_name", "geneid", "pathway", "mean_log2FC", "log2FC_Blood", "p_value_Blood", "p_adj_Blood", "log2FC_Blood_Vessel", "p_value_Blood_Vessel", "p_adj_Blood_Vessel", "log2FC_Breast", "p_value_Breast", "p_adj_Breast", "log2FC_Kidney", "p_value_Kidney", "p_adj_Kidney", "log2FC_Retina", "p_value_Retina", "p_adj_Retina", "log2FC_Testis", "p_value_Testis", "p_adj_Testis"],
-      "log2fc_bigger1_tissue": {},
-      "log2fc_smaller1_tissue": {},
-      "pval_tissue": {},
-      "padj_tissue": {},
-      "log2fc_bigger1_btn": false,
-      "log2fc_smaller1_btn": false,
-      "pval_btn": false,
-      "padj_btn": false,
-      "selected_genes": []
     }
   }
 }

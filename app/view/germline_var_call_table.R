@@ -542,7 +542,7 @@ filterTab_ui <- function(id,data, default_columns, mapped_checkbox_names){
                                                       choices = setNames(clinvar_list, clinvar_list)))),
                             div(class = "two-col-checkbox-group",
                                 prettyCheckboxGroup(ns("consequence"),label = tags$strong("Consequence"),icon = icon("check"),status = "primary",outline = FALSE,
-                                                    selected = setdiff(consequence_list, "synonymous_variant"),
+                                                    selected = setdiff(consequence_list, "synonymous variant"),
                                                     choices = setNames(consequence_list, consequence_list)))
                       ))
                ),
