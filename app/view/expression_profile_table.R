@@ -485,7 +485,7 @@ filterTab_ui <- function(id){
   
   
   tagList(
-    tags$head(tags$style(HTML(".sw-dropdown .action-button {background-color: transparent; border: none; margin-top: -1px;}
+    tags$head(tags$style(HTML(".sw-dropdown .action-button .my-filter-btn {background-color: transparent; border: none; margin-top: -1px;}
                                .dropdown-toggle::after {display: none !important;}
                                .dropdown {position: relative; z-index: 2000;}
                                .bttn-material-circle {box-shadow: 0 0 0 0;}"))),

@@ -10,7 +10,7 @@ box::use(
   shiny[moduleServer,NS,h2,h3,tagList,div,tabsetPanel,tabPanel,observeEvent,fluidPage,fluidRow, reactive,icon,textInput,isTruthy,verbatimTextOutput,
         sliderInput,showModal,modalDialog,modalButton,column,uiOutput,renderUI,textOutput,renderText,reactiveVal,req,observe,outputOptions,checkboxInput,
         renderPrint,getDefaultReactiveDomain,selectInput,downloadButton,numericInput,updateNumericInput],
-  bs4Dash[actionButton, box,popover,addPopover],
+  bs4Dash[actionButton, box,popover,addPopover,updateNavbarTabs],
   reactable,
   reactable[reactable,reactableOutput,renderReactable,colDef,colGroup,JS,getReactableState],
   # reactable.extras[reactable_extras_ui,reactable_extras_server],
@@ -74,7 +74,7 @@ ui <- function(id) {
         fluidRow(
           column(3,actionButton(ns("delete_button"), "Delete variants", icon = icon("trash-can"))))
       ),
-      dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md",#width = 230, 
+      dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
                pickerInput(ns("idpick"), "Select patients for IGV:", choices = sample_list_germ(), options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
                div(style = "display: flex; justify-content: center; margin-top: 10px;",
                    actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
@@ -405,7 +405,7 @@ server <- function(id, selected_samples, shared_data) {
         shared_data$germline_bam(bam_list)
         message("✔ Assigned germline_bam: ",paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
         
-        updateNavbarTabs(session$userData$parent_session, "navbarMenu", "app-hidden_igv")
+        updateNavbarTabs(session = session$userData$parent_session, inputId = "navbarMenu", selected = session$userData$parent_session$ns("hidden_igv"))
       }
     })
     

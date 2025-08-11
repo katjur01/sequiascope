@@ -33,7 +33,7 @@ step1_ui <- function(id) {
                div(style = "display: flex; align-items: center; justify-content: space-between; gap: 10px;",
                    tags$label(h4("Patients"), style = "margin-bottom: 0;"),
                    dropdown(label = NULL,icon = HTML('<i class="fa-solid fa-plus download-button"></i>'),width = "300px",size = "sm",
-                                  textAreaInput(inputId = ns("new_patients"), label = "Enter patients:", placeholder = "e.g. P001, P002\nor\nP001\nP002"),
+                                  textAreaInput(inputId = ns("new_patients"), label = "Enter patients:", placeholder = "e.g. P001, P002\nor\nP001\nP002",height= "110px"),
                                   actionBttn(ns("confirm_add"), "Add new patients", size = "sm", style = "stretch", color = "success")
                    )), # search = TRUE
                    virtualSelectInput(ns("patient_list"), NULL, choices = character(0),hideClearButton = TRUE,keepAlwaysOpen = TRUE,multiple = TRUE,dropboxWrapper = "body")),

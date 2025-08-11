@@ -3,6 +3,7 @@ box::use(
   htmltools[tags,HTML,div,span,h2,h4,h5,br],
   stringr[str_detect,regex,str_replace,str_remove],
   reactable[reactable,colDef],
+  data.table[rbindlist]
 )
 
 get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
@@ -245,7 +246,17 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
   }
   cols <- c("icon", setdiff(colnames(patient_data), "icon"))
   patient_data <- patient_data[, cols]
-  return(patient_data)
+  
+  # Prepare output object with both table and raw data
+  output_data <- list(
+    patient_tab  = patient_data,      # data.frame for display in UI
+    raw_results  = patient_results,   # list: per-patient, per-file_type info
+    dataset_type = dataset_type,      # e.g. "somatic", "germline"
+    root_path    = path               # absolute base path
+  )
+  
+  return(output_data)
+  # return(patient_data)
 }
 
 
@@ -262,7 +273,7 @@ validate_datasets_status <- function(datasets_data) {
   )
   
   for (dataset in names(datasets_data)) {
-    data <- datasets_data[[dataset]]
+    data <- datasets_data[[dataset]]$patient_tab
     
     if (is.null(data)) next
  
@@ -274,10 +285,7 @@ validate_datasets_status <- function(datasets_data) {
       
       if (grepl("#dc3545", icon_html)) {  # Červená barva
         validation_results$has_red_status <- TRUE
-        validation_results$red_patients_list[[patient]] <- c(
-          validation_results$red_patients_list[[patient]],
-          dataset
-        )
+        validation_results$red_patients_list[[patient]] <- c(validation_results$red_patients_list[[patient]], dataset)
       }
       
       # Oranžové stavy
@@ -521,4 +529,56 @@ create_reactable <- function(data, dataset_type) {
     borderless = FALSE,
     compact = TRUE
   )
+}
+
+#' @export
+build_confirmed_paths <- function(dataset_objects) {
+  result_rows <- list()
+  
+  for (dataset_name in names(dataset_objects)) {
+    dataset_object      <- dataset_objects[[dataset_name]]
+    patient_tab         <- dataset_object$patient_tab
+    raw_results_list    <- dataset_object$raw_results
+    dataset_root_path   <- dataset_object$root_path
+    
+    if (is.null(patient_tab) || nrow(patient_tab) == 0) next
+    if (is.null(raw_results_list) || length(raw_results_list) != nrow(patient_tab)) next
+    
+    # Iterate patients (row-wise mapping into raw_results_list)
+    for (row_index in seq_len(nrow(patient_tab))) {
+      patient_id     <- patient_tab$patient[row_index]
+      file_type_map  <- raw_results_list[[row_index]]  # e.g., list(variant=list(...), tumor=list(...), ...)
+      
+      if (is.null(file_type_map)) next
+      for (file_type_name in names(file_type_map)) {
+        file_paths <- file_type_map[[file_type_name]]$files
+        if (length(file_paths) == 0) next
+        
+        # Normalize to absolute paths; works even if file_paths are already absolute
+        absolute_paths <- ifelse(
+          grepl("^/|^[A-Za-z]:", file_paths),
+          file_paths,
+          file.path(dataset_root_path, sub("^/+", "", file_paths))
+        )
+        
+        result_rows[[length(result_rows) + 1]] <- data.frame(
+          dataset   = dataset_name,
+          patient   = patient_id,
+          file_type = file_type_name,
+          path      = absolute_paths,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+  
+  if (length(result_rows) == 0) {
+    data.frame(
+      dataset = character(), patient = character(),
+      file_type = character(), path = character(),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    combined_paths <- as.data.frame(rbindlist(result_rows, use.names = TRUE, fill = FALSE))
+  }
 }

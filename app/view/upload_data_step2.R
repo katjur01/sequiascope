@@ -12,7 +12,7 @@ box::use(
 )
 
 box::use(
-  app/logic/helper_upload_data[create_dataset_data,create_reactable,validate_datasets_status]
+  app/logic/helper_upload_data[create_dataset_data,create_reactable,validate_datasets_status,build_confirmed_paths]
 )
 
 # DZ1601,MR1507,P001
@@ -42,6 +42,7 @@ step2_ui <- function(id) {
 
       all_files <- reactiveVal()
       goi_files <- reactiveVal()
+      confirmed_paths_state <- reactiveVal(NULL)
       
       observe({
         req(path(), patients())
@@ -75,15 +76,17 @@ step2_ui <- function(id) {
         
         data <- datasets_data()
         
-        lapply(datasets(), function(dataset) {
-          div( class = paste0("upload-",dataset,"-box"),
-            bs4Card(
-              title = h5(paste(dataset, "dataset")),
-              solidHeader = TRUE,
-              width = 12,
-              collapsible = TRUE,
-              create_reactable(data[[dataset]], dataset)
-            )
+        lapply(datasets(), function(dataset_name) {
+          patient_tab   <- data[[dataset_name]]$patient_tab
+          
+          div(class = paste0("upload-", dataset_name, "-box"),
+              bs4Card(
+                title       = h5(paste(dataset_name, "dataset")),
+                solidHeader = TRUE,
+                width       = 12,
+                collapsible = TRUE,
+                create_reactable(patient_tab, dataset_name)
+              )
           )
         })
       })
@@ -111,6 +114,7 @@ step2_ui <- function(id) {
 
         # Pokud jsou červené stavy - blokovat postup
         if (validation$has_red_status) {
+          confirmed_paths_state(NULL)
           # Připrav HTML seznam
           red_html_lines <- vapply(
             names(validation$red_patients_list),
@@ -191,27 +195,24 @@ step2_ui <- function(id) {
             confirmButtonText = "Continue Anyway",
             cancelButtonText = "Cancel",
             html = TRUE,
-            callbackR = function(x) {
-              if (x) {
-                showModal(modalDialog(
-                  "Your selection has been confirmed!",
-                  easyClose = TRUE
-                ))
-              }
-            }
-          )
+            callbackR = function(user_confirmed) {
+              if (isTRUE(user_confirmed)) { # Build and store confirmed paths (allowed under ORANGE after user consent)
+                confirmed_paths_state(build_confirmed_paths(data))
+                showModal(modalDialog("Your selection has been confirmed!", easyClose = TRUE))
+              } else { # User cancelled: do not pass anything
+                confirmed_paths_state(NULL) 
+              }})
+          
           return()
         }
         
-        
-        
-        showModal(modalDialog(
-          "Your selection has been confirmed! All files are ready for analysis.",
-          easyClose = TRUE
-        ))
+
+        confirmed_paths_state(build_confirmed_paths(data))  # NO RED, NO ORANGE: pass data directly
+        # showModal(modalDialog("Your selection has been confirmed! All files are ready for analysis.", easyClose = TRUE))
         
       })
 
-      return(list(prev2 = reactive(input$prev2)))
+      return(list(prev2 = reactive(input$prev2),
+                  confirmed_paths = reactive(confirmed_paths_state())))  # dataset | patient | file_type | path
     })
   }

@@ -130,7 +130,7 @@ get_pathway_list <- function(expr_tag){
   } else if (expr_tag == "genes_of_interest"){
     # input_files <- get_inputs("goi_file")
     # dt <- fread(input_files$goi.expression)
-    dt <- fread("input_files/genes_of_interest.tsv")
+    dt <- fread("input_files/MOII_e117/RNAseq21_NEW/genes_of_interest.tsv")
     return(sort(unique(dt$pathway)))
   } else {
     message("Invalid expr_tag. Please use 'all_genes' or 'genes_of_interest'.")

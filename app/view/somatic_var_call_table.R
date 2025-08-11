@@ -75,7 +75,7 @@ ui <- function(id) {
 
        # div(
          # style = "height: 38px;font-size: 16px;",
-         dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md",#width = 230, 
+         dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
            pickerInput(ns("idpick"), "Select patients for IGV:", choices = sample_list_som(), options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
            div(style = "display: flex; justify-content: center; margin-top: 10px;",
                actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
@@ -429,7 +429,7 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
         shared_data$somatic_bam(bam_list)
         message("✔ Assigned somatic_bam: ", paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
         
-        updateNavbarTabs(session$userData$parent_session, "navbarMenu", "app-hidden_igv")
+        updateNavbarTabs(session = session$userData$parent_session, inputId = "navbarMenu", selected = session$userData$parent_session$ns("hidden_igv"))
       }
     })
     

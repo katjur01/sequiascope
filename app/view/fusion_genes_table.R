@@ -7,7 +7,7 @@ box::use(
   reactable,
   reactable[reactable,colDef,reactableOutput,renderReactable,JS,getReactableState],
   htmltools[tags, p,span,HTML],
-  bs4Dash[actionButton,bs4Card,box],
+  bs4Dash[actionButton,bs4Card,box,updateNavbarTabs],
   shinyjs[useShinyjs,runjs,hide,show],
   reactablefmtr[pill_buttons,icon_assign],
   shinyalert[shinyalert,useShinyalert],
@@ -66,7 +66,7 @@ ui <- function(id) {
         fluidRow(
           column(3,actionButton(ns("delete_button"),"Delete genes", icon = icon("trash-can"))))
       ),
-      dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md",#width = 230, 
+      dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
                pickerInput(ns("idpick"), "Select patients for IGV:", choices = sample_list_fuze(), options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
                div(style = "display: flex; justify-content: center; margin-top: 10px;",
                    actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
@@ -379,6 +379,9 @@ server <- function(id, selected_samples, shared_data, load_session_btn) {
     #############
     
     observeEvent(input$go2igv_button, {
+      message("selected_fusions(): ", selected_fusions())
+
+      
       selected_empty <- is.null(selected_fusions()) || nrow(selected_fusions()) == 0
       bam_empty <- is.null(shared_data$fusion_bam) || length(shared_data$fusion_bam) == 0
       
@@ -393,27 +396,75 @@ server <- function(id, selected_samples, shared_data, load_session_btn) {
       } else {
         shared_data$navigation_context("fusion")   # odkud otevíráme IGV
         bam_path  <- get_inputs("bam_file")
+        message("bam_path names: ", paste(names(bam_path), collapse=", "))
         
-        bam_list <- unlist(
-          lapply(input$idpick, function(id_val) {
-            ## 1) RNA-tumor BAM
-            tumor_path <- grep(paste0(id_val, ".*\\.bam$"), bam_path$rna.tumor_bam, value = TRUE)
-            tumor_track <- list(name = paste0(id_val, " RNA"), file = sub(bam_path$path_to_folder, ".", tumor_path, fixed = TRUE))
-            
-            ## 2) Chimeric BAM
-            chim_path <- grep(paste0(id_val, ".*Chimeric\\.out\\.bam$"), bam_path$rna.chimeric_bam, value = TRUE)
-            chim_track <- list(name = paste0(id_val, " Chimeric"), file = sub(bam_path$path_to_folder, ".", chim_path, fixed = TRUE))
-            
-            message("#####.  list(tumor_track, chim_track) ###### : ",list(tumor_track, chim_track))
-            list(tumor_track, chim_track)    # pořadí: tumor -> chimeric
-          }), recursive = FALSE              # nerozbalujeme úplně, zůstane list tracků
-        )
-      
+        
+        # 1) Vemte ID ze zvolených fúzí (ne z input$idpick)
+        ids <- unique(selected_fusions()$sample)
+        message("IDs from selected_fusions(): ", paste(ids, collapse = ", "))
+        
+        # 2) Postavte seznam tracků bezpečně
+        track_lists <- lapply(ids, function(id_val) {
+          # pokud máte zvlášť vektory pro fuze a chimeric, použijte je
+          # upravte názvy slotů podle toho, co vrací get_inputs("bam_file")
+          fuze_vec <- bam_path$rna.fuze_bam %||% bam_path$rna.tumor_bam   # fallback, když slot neexistuje
+          chim_vec <- bam_path$rna.chimeric_bam
+          
+          tumor_path <- grep(paste0(id_val, "\\.bam$"), fuze_vec, value = TRUE)
+          chim_path  <- grep(paste0(id_val, ".*Chimeric\\.out\\.bam$"), chim_vec, value = TRUE)
+          
+          tracks <- list()
+          if (length(tumor_path)) {
+            tracks <- c(tracks, list(list(
+              name = paste0(id_val, " RNA"),
+              file = sub(bam_path$path_to_folder, ".", tumor_path, fixed = TRUE)
+            )))
+          }
+          if (length(chim_path)) {
+            tracks <- c(tracks, list(list(
+              name = paste0(id_val, " Chimeric"),
+              file = sub(bam_path$path_to_folder, ".", chim_path, fixed = TRUE)
+            )))
+          }
+          tracks
+        })
+        
+        bam_list <- do.call(c, track_lists)   # žádné unlist(..., recursive=FALSE)
+        
+        # Logy, které fakt něco ukážou
+        if (length(bam_list)) {
+          files <- vapply(bam_list, function(x) x$file, character(1L))
+          message("✔ Assigned fusion_bam (", length(bam_list), " tracks): ", paste(files, collapse = ", "))
+        } else {
+          message("✖ No tracks assembled for IDs: ", paste(ids, collapse = ", "))
+        }
+        
         shared_data$fusion_bam(bam_list)
-        message("✔ Assigned fusion_bam: ", paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
         
-        updateNavbarTabs(session$userData$parent_session, "navbarMenu", "app-hidden_igv")
+        updateNavbarTabs(session = session$userData$parent_session, inputId = "navbarMenu", selected = session$userData$parent_session$ns("hidden_igv"))
       }
+
+      #   bam_list <- unlist(
+      #     lapply(input$idpick, function(id_val) {
+      #       ## 1) RNA-tumor BAM
+      #       tumor_path <- grep(paste0(id_val, ".*\\.bam$"), bam_path$rna.tumor_bam, value = TRUE)
+      #       tumor_track <- list(name = paste0(id_val, " RNA"), file = sub(bam_path$path_to_folder, ".", tumor_path, fixed = TRUE))
+      #       
+      #       ## 2) Chimeric BAM
+      #       chim_path <- grep(paste0(id_val, ".*Chimeric\\.out\\.bam$"), bam_path$rna.chimeric_bam, value = TRUE)
+      #       chim_track <- list(name = paste0(id_val, " Chimeric"), file = sub(bam_path$path_to_folder, ".", chim_path, fixed = TRUE))
+      #       
+      #       message("#####.  list(tumor_track, chim_track) ###### : ",list(tumor_track, chim_track))
+      #       list(tumor_track, chim_track)    # pořadí: tumor -> chimeric
+      #     }), recursive = FALSE              # nerozbalujeme úplně, zůstane list tracků
+      #   )
+      # 
+      #   shared_data$fusion_bam(bam_list)
+      #   message("✔ Assigned fusion_bam: ", paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
+      #   
+      #   # 
+      #   updateNavbarTabs(session$userData$parent_session, "navbarMenu", "app-hidden_igv")
+      # }
     })
 
     ###########################
@@ -501,107 +552,3 @@ filterTab_ui <- function(id){
     )
   )
 }
-
-# 
-# filterTab_server <- function(id,colnames_list) {
-#   moduleServer(id, function(input, output, session) {
-#     
-#     # observe({
-#     #   if(isTruthy(is.na(input$tumor_depth))) updateNumericInput(session, "tumor_depth", value = 10)
-#     # })
-#     # observe({
-#     #   if(isTruthy(is.na(input$gnomAD_min))) updateNumericInput(session, "gnomAD_min", value = 0.01)
-#     # })
-#     
-#     observeEvent(input$show_all, {
-#       updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = colnames_list$all_columns)
-#     })
-#     
-#     observeEvent(input$show_default, {
-#       updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = colnames_list$default_columns)
-#     })
-#     
-#     restore_ui_inputs <- function(data) {
-#       if (!is.null(data$selected_cols)) updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = safe_extract(data$selected_cols))
-#     }
-#     
-#     return(list(
-#       confirm = reactive(input$confirm_btn),
-#       # tumor_depth = reactive(input$tumor_depth),
-#       # gnomAD_min = reactive(input$gnomAD_min),
-#       # gene_regions = reactive(input$gene_regions),
-#       # consequence = reactive(input$consequence),
-#       selected_columns = reactive(input$colFilter_checkBox),
-#       restore_ui_inputs = restore_ui_inputs
-#     ))
-#   })
-# }
-# 
-# 
-# 
-# filterTab_ui <- function(id, data, default_columns, mapped_checkbox_names){
-#   ns <- NS(id)
-#   filenames <- get_inputs("per_sample_file")
-#   file_paths <- filenames$fusions[1]
-#   patient_names <- substr(basename(file_paths), 1, 6)
-#   
-#   tagList(
-#     tags$head(tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"),
-#               tags$style(HTML(".dropdown-toggle {border-radius: 0; padding: 0; background-color: transparent; border: none; float: right;margin-top -1px;}
-#                     .checkbox label {font-weight: normal !important;}
-#                     .checkbox-group .checkbox {margin-bottom: 0px !important;}
-#                     .my-blue-btn {background-color: #007bff;color: white;border: none;}
-#                     .dropdown-menu .bootstrap-select .dropdown-toggle {border: 1px solid #ced4da !important; background-color: #fff !important;
-#                       color: #495057 !important; height: 38px !important; font-size: 16px !important; border-radius: 4px !important;
-#                       box-shadow: none !important;}
-#                     .sw-dropdown-content {border: 1px solid #ced4da !important; border-radius: 4px !important; box-shadow: none !important;
-#                       background-color: white !important;}
-#                     .glyphicon-triangle-bottom {font-size: 12px !important; line-height: 12px !important; vertical-align: middle;}
-#                     .glyphicon-triangle-bottom {display: none !important; width: 0 !important; margin: 0 !important; padding: 0 !important;}
-#                     #app-fusion_genes_tab-igv_dropdownButton {width: 230px !important; height: 38px !important; font-size: 16px !important;}
-#                     "))
-#     ),
-#     dropdownButton(
-#       label = NULL,
-#       right = TRUE,
-#       # width = "480px",
-#       icon = HTML('<i class="fa-solid fa-filter download-button"></i>'),
-#       fluidRow(style = "display: flex; align-items: stretch;",
-#                column(12,
-#                       box(width = 12,title = tags$div(style = "padding-top: 8px;","Select columns:"),closable = FALSE,collapsible = FALSE,height = "100%",
-#                           div(class = "two-col-checkbox-group",
-#                               prettyCheckboxGroup(
-#                                 inputId = ns("colFilter_checkBox"),
-#                                 label = NULL,
-#                                 choices = mapped_checkbox_names[order(mapped_checkbox_names)],
-#                                 selected = default_columns,
-#                                 icon = icon("check"),
-#                                 status = "primary",
-#                                 outline = FALSE
-#                               )
-#                           ),
-#                           div(style = "display: flex; gap: 10px; width: 100%;",
-#                               actionButton(ns("show_all"), label = "Show All", style = "flex-grow: 1; width: 0;"),
-#                               actionButton(ns("show_default"), label = "Show Default", style = "flex-grow: 1; width: 0;"))
-#                       )
-#                )
-#       ),
-#       tags$br(),
-#       div(style = "display: flex; justify-content: center; margin-top: 10px;",
-#           actionBttn(ns("confirm_btn"),"Apply changes",style = "stretch",color = "success",size = "md",individual = TRUE,value = 0))
-#     )
-#   )
-# }
-###### build_igv_tracks selected_bams ######: list(name = "DZ1601tumor", file = character(0))list(name = "DZ1601normal", file = "./230426_MOII_e117_krve/mapped/DZ1601krev.bam")list(name = "MR1507tumor", file = character(0))list(name = "MR1507normal", file = "./230426_MOII_e117_krve/mapped/MR1507krev.bam")
-#
-# fusionGenes_Ui <- fluidPage(
-#   piechart_input("plots")
-#   # table_ui("geneFusion_tab")
-# )
-#
-# fusionGenes_Server <- function(input, output, session){
-#   piechart_server("plots")
-#   # table_server("geneFusion_tab")
-# }
-#
-# shinyApp(ui = fusionGenes_Ui, server = fusionGenes_Server)

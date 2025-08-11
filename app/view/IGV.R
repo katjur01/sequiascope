@@ -1,12 +1,12 @@
 box::use(
   shiny[br, NS,h3, tagList, div, observe, observeEvent, mainPanel, titlePanel, uiOutput, renderUI, HTML, fluidPage,fluidRow, moduleServer,
-        reactiveValues, column, req, reactive, reactiveVal,showModal,modalDialog],
+        reactiveValues, column, req, reactive, reactiveVal,showModal,modalDialog,modalButton],
   htmltools[tags],
   bs4Dash[actionButton,box],
   shinyjs[useShinyjs, runjs],
   reactable,
   reactable[reactableOutput,renderReactable,reactable,JS],
-  processx[process,]
+  # processx[process]
 )
 box::use(
   app/logic/igv_helper[build_igv_tracks,start_static_server,stop_static_server]
@@ -155,7 +155,7 @@ igv_server <- function(id,shared_data) {
       if (selected_empty || bam_empty) {
         showModal(modalDialog(
           title = "Missing input",
-          "You have not selected variants or patients for visualization. Please return to the Somatic variant calling tab and define them.",
+          paste0("You have not selected variants or patients for visualization. Please return to the ",shared_data$navigation_context()," tab and define them."),
           easyClose = TRUE,
           footer = modalButton("OK")
         ))
