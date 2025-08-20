@@ -24,3 +24,35 @@
    margin-bottom: 0; 
    padding-bottom: 0;
 }
+
+
+.patient-tabs .nav.nav-tabs {
+    display: flex;
+    gap: 12px; 
+    flex-wrap: wrap;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 4px;
+  }
+.patient-tabs .nav.nav-tabs > li { margin: 0; }
+
+.patient-tabs .nav.nav-tabs > li > a {
+    color: #495057 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: .25rem .25rem 0 0;
+    text-decoration: none !important;
+    padding: .35rem .75rem;
+}
+.patient-tabs .nav.nav-tabs > li > a:hover {
+    color: #343a40 !important;
+}
+
+.patient-tabs .nav.nav-tabs > li > a.active {
+  color: #007bff !important;
+  background: #fff !important;
+  border: 1px solid #dee2e6 !important;
+  border-bottom-color: transparent !important;
+  margin-bottom: -1px;  
+}
+
+.patient-tabs .tab-content { padding-top: .5rem; }

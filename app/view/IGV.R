@@ -9,7 +9,7 @@ box::use(
   # processx[process]
 )
 box::use(
-  app/logic/igv_helper[build_igv_tracks,start_static_server,stop_static_server]
+  app/logic/helper_igv[build_igv_tracks,start_static_server,stop_static_server]
 )
 
 #' @export

@@ -183,9 +183,9 @@ server <- function(id, patient, shared_data){ #,active_tab
 
     # observe({
     #   req(active_tab() == "app-summary" || shared_data$session_loaded())
-    # observeEvent(shared_data$somatic_var(), {
+    # observeEvent(shared_data$somatic.variants(), {
       output$somatic_boxes <- renderUI({
-        som_vars <- as.data.table(shared_data$somatic_var())
+        som_vars <- as.data.table(shared_data$somatic.variants())
   
         if (is.null(som_vars) || nrow(som_vars) == 0) {
           tags$div("No somatic variants selected")

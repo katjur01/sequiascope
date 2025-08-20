@@ -55,7 +55,7 @@ ui <- function(id) {
                  div(style = "width: 75%;",
                    div(style = "display: flex; flex-direction: column; width: 100%; align-items: flex-start;", 
                      tags$label("Pathway:", style = "margin-bottom: 5px; align-self: flex-start;"),
-                     pickerInput(ns("selected_pathway"), NULL, selected = "EGFR tyrosine kinase inhibitor resistance",choices = get_pathway_list("all_genes"), options = list(`live-search` = TRUE), width = "100%")),
+                     pickerInput(inputId=ns("selected_pathway"), NULL, selected = "EGFR tyrosine kinase inhibitor resistance",choices = get_pathway_list("all_genes"), options = list(`live-search` = TRUE), width = "100%")),
                    div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 10px;", 
                      tags$label("Choose layout:", style = "align-self: flex-start;"),
                      tags$div(id = ns("helpPopover_layout"),tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
@@ -89,7 +89,7 @@ ui <- function(id) {
                       div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 75%;",
                         tags$label("Remove genes:"),  
                         div(style = "display: flex; flex-direction: column; width: 100%;",
-                          pickerInput(ns("remove_genes"), NULL, 
+                          pickerInput(inputId=ns("remove_genes"), NULL, 
                                       choices = NULL, multiple = TRUE, 
                                       options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select gene name",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-times")), 
                           actionButton(ns("confirm_remove_genes_btn"), label = "Remove genes", icon = icon("trash-can"), width = "100%", style = "margin-top: 10px;"))))
@@ -113,7 +113,7 @@ ui <- function(id) {
     ),
    fluidRow(
      column(6,div(class = "networkGraph-tissue-wrapper",
-        radioGroupButtons(ns("selected_tissue"),"Choose a tissue :",choices = get_tissue_list(),justified = TRUE)))
+        radioGroupButtons(inputId=ns("selected_tissue"),"Choose a tissue :",choices = get_tissue_list(),justified = TRUE)))
    ),
    networkGraph_tables$tab_UI(ns("tab"))
   )

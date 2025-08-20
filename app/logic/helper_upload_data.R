@@ -17,9 +17,13 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
     ),
     
     # Zelené stavy  
-    "complete_pair" = list(
-      simple = "Paired files OK",
+    "complete_pair_bam_bai" = list(
+      simple   = "Paired files OK",
       detailed = "BAM and BAI files are complete"
+    ),
+    "complete_pair_pdf_tsv" = list(
+      simple   = "Paired files OK",
+      detailed = "Arriba PDF and TSV are complete"
     ),
     "single_file_ok" = list(
       simple = "File found",
@@ -27,13 +31,17 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
     ),
     "files_ok"  = list(
       simple = "Files found",
-      detailed = "Required files is available"
+      detailed = "Required files are available"
     ),
     
     # Oranžové stavy
-    "missing_pair" = list(
-      simple = "Missing BAM or BAI file", 
-      detailed = "Missing paired file"
+    "missing_pair_bam_bai" = list(
+      simple   = "Missing BAM or BAI",
+      detailed = "BAM/BAI pair is incomplete"
+    ),
+    "missing_pair_pdf_tsv" = list(
+      simple   = "Missing PDF or TSV",
+      detailed = "Arriba PDF/TSV pair is incomplete"
     ),
     "multiple_files" = list(
       simple = "Multiple files found. Only one file expected",
@@ -52,6 +60,12 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
       detailed = "Unknown status"
     )
   )
+
+  if (identical(reason, ""))                reason <- "files_ok"
+  if (identical(reason, "complete_pair"))   reason <- "complete_pair_bam_bai"
+  if (identical(reason, "missing_pair"))    reason <- "missing_pair_bam_bai"
+  
+  
   
   # Získej zprávu podle reason
   message_type <- if (simple) "simple" else "detailed"
@@ -109,7 +123,8 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
       list(
         fusion = evaluate_file_status(files, patient, "fusion", "fusion"),
         tumor = evaluate_file_status(files, patient, "tumor", "fusion", tumor_pattern$fusion),
-        chimeric = evaluate_file_status(files, patient, "chimeric", "fusion", tumor_pattern$chimeric)
+        chimeric = evaluate_file_status(files, patient, "chimeric", "fusion", tumor_pattern$chimeric),
+        arriba = evaluate_file_status(files, patient, "arriba", "fusion", tumor_pattern$arriba)
       )
     } else if (dataset_type == "expression") {
       list(
@@ -148,7 +163,7 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
       } else if (all(all_statuses == "gray")) {
         get_status_icon("gray", simple = FALSE, reason = "optional_missing")
       } else {
-        get_status_icon("green", simple = FALSE, reason = "complete_pair")
+        get_status_icon("green", simple = FALSE, reason = "files_ok")
       }
     })
     
@@ -178,7 +193,7 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
       } else if (all(all_statuses == "gray")) {
         get_status_icon("gray", simple = FALSE, reason = "optional_missing")
       } else {
-        get_status_icon("green", simple = FALSE, reason = "complete_pair")
+        get_status_icon("green", simple = FALSE, reason = "files_ok")
       }
     })
     
@@ -191,10 +206,11 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
     patient_data$fusion <- sapply(patient_results, function(x) get_status_icon(x$fusion$status, simple = TRUE, reason = x$fusion$reason))
     patient_data$tumor <- sapply(patient_results, function(x) get_status_icon(x$tumor$status, simple = TRUE, reason = x$tumor$reason))
     patient_data$chimeric <- sapply(patient_results, function(x) get_status_icon(x$chimeric$status, simple = TRUE, reason = x$chimeric$reason))
+    patient_data$arriba <- sapply(patient_results, function(x) get_status_icon(x$arriba$status, simple = TRUE, reason = x$arriba$reason))
     
     patient_data$icon <- sapply(patient_results, function(x) {
-      all_statuses <- c(x$fusion$status, x$tumor$status, x$chimeric$status)
-      all_reasons <- c(x$fusion$reason, x$tumor$reason, x$chimeric$reason)
+      all_statuses <- c(x$fusion$status, x$tumor$status, x$chimeric$status, x$arriba$status)
+      all_reasons <- c(x$fusion$reason, x$tumor$reason, x$chimeric$reason, x$arriba$reason)
       
       has_multiple_files <- x$fusion$reason == "multiple_files"
       
@@ -209,12 +225,12 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
       } else if (all(all_statuses == "gray")) {
         get_status_icon("gray", simple = FALSE, reason = "optional_missing")
       } else {
-        get_status_icon("green", simple = FALSE, reason = "complete_pair")
+        get_status_icon("green", simple = FALSE, reason = "files_ok")
       }
     })
     
     patient_data$files <- sapply(patient_results, function(x) {
-      all_files <- unique(c(x$fusion$files, x$tumor$files, x$chimeric$files))
+      all_files <- unique(c(x$fusion$files, x$tumor$files, x$chimeric$files, x$arriba$files))
       if (length(all_files) == 0) "" else paste(str_replace(all_files,path,""), collapse = ",\n")
     })
     
@@ -235,7 +251,7 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
       } else if (all(all_statuses == "gray")) {
         get_status_icon("gray", simple = FALSE, reason = "optional_missing")
       } else {
-        get_status_icon("green", simple = FALSE, reason = "single_file_ok")
+        get_status_icon("green", simple = FALSE, reason = "files_ok")
       }
     })
     
@@ -262,100 +278,127 @@ create_dataset_data <- function(dataset_type, files, goi_files, patients, path, 
 
 #' @export
 validate_datasets_status <- function(datasets_data) {
-  
   validation_results <- list(
     has_red_status = FALSE,
     has_orange_status = FALSE,
-    red_patients_list <- list(),
-    orange_patients_list <- list(),
-    igv_issues = c(),
+    red_patients_list = list(),
+    orange_patients_list = list(),   # nechávám, pokud to ještě někde používáš
+    igv_issues = character(),        # <-- NOVĚ: pacienti s chybějícím BAM/BAI
+    arriba_issues = character(),     # <-- NOVĚ: pacienti s chybějícím PDF/TSV
     goi_issues = c()
   )
   
   for (dataset in names(datasets_data)) {
     data <- datasets_data[[dataset]]$patient_tab
-    
     if (is.null(data)) next
- 
+    
     for (i in 1:nrow(data)) {
       patient <- data$patient[i]
-      
-      # Kontrola hlavní ikony (celkového stavu)
       icon_html <- data$icon[i]
       
-      if (grepl("#dc3545", icon_html)) {  # Červená barva
+      if (grepl("#dc3545", icon_html)) {
         validation_results$has_red_status <- TRUE
         validation_results$red_patients_list[[patient]] <- c(validation_results$red_patients_list[[patient]], dataset)
       }
       
-      # Oranžové stavy
       if (grepl("#fd7e14", icon_html)) {
         validation_results$has_orange_status <- TRUE
         
-        # IGV-related
+        # IGV/Arriba sloupce — rozlišíme podle tooltip textu v buňce
         if (dataset %in% c("somatic", "germline", "fusion")) {
-          columns_to_check <- switch(dataset, "somatic" = c("tumor", "normal"),
-                                              "germline" = c("normal"),
-                                              "fusion" = c("tumor", "chimeric"))
+          columns_to_check <- switch(dataset,
+                                     "somatic" = c("tumor", "normal"),
+                                     "germline" = c("normal"),
+                                     "fusion" = c("tumor", "chimeric", "arriba")
+          )
           
           for (col in columns_to_check) {
-            if (col %in% colnames(data) && grepl("#fd7e14", data[[col]][i])) {
-              validation_results$orange_patients_list[[patient]] <- c(validation_results$orange_patients_list[[patient]], dataset)
+            if (!col %in% colnames(data)) next
+            cell_html <- data[[col]][i]
+            if (!grepl("#fd7e14", cell_html)) next  # jen oranžové
+            
+            # Podle textu v tooltipu rozlišíme příčinu
+            if (grepl("Missing BAM or BAI", cell_html, fixed = TRUE)) {
+              validation_results$igv_issues <- c(validation_results$igv_issues, patient)
+            } else if (grepl("Missing PDF or TSV", cell_html, fixed = TRUE)) {
+              validation_results$arriba_issues <- c(validation_results$arriba_issues, patient)
             }
+            
+            # (volitelně) udrž i původní mapování datasetu
+            validation_results$orange_patients_list[[patient]] <- c(validation_results$orange_patients_list[[patient]], dataset)
           }
         }
         
-        # GOI-related
+        # GOI (beze změny)
         if (dataset == "expression" && "goi" %in% colnames(data) && grepl("#fd7e14", data$goi[i])) {
           validation_results$goi_issues <- c(validation_results$goi_issues, patient)
         }
       }
-      
     }
   }
   
+  # Odstraň duplicity
+  validation_results$igv_issues <- unique(validation_results$igv_issues)
+  validation_results$arriba_issues <- unique(validation_results$arriba_issues)
   return(validation_results)
 }
 
 
-# Vylepšená funkce pro kontrolu BAM/BAI párů
-check_bam_bai_pair <- function(files, patient) {
-  bam_files <- files[str_detect(files, "\\.bam$") & str_detect(files, patient)]
-  bai_files <- files[str_detect(files, "\\.bai$") & str_detect(files, patient)]
+
+# Funkce pro kontrolu BAM/BAI mebo PDG/TSV párů
+check_pair <- function(files, patient, pair = c("bam_bai","pdf_tsv")) {
+  pair <- match.arg(pair)
   
-  if (length(bam_files) == 0) return("none")
-  
-  # Kontrola, zda každý BAM má odpovídající BAI
-  # robustnější:
-  bam_bases <- str_remove(bam_files, "\\.bam$")
-  bai_bases <- str_remove(bai_files, "\\.bam\\.bai$|\\.bai$")
-  
-  
-  missing_bai <- setdiff(bam_bases, bai_bases)
-  
-  if (length(missing_bai) > 0) {
-    return("incomplete") # máme BAM ale chybí BAI
-  } else if (length(bam_files) > 0) {
-    return("complete") # máme BAM i BAI
-  } else {
-    return("none")
+  if (pair == "pdf_tsv") { # check_arriba_pair
+    pdf_files <- files[str_detect(files, patient) & str_detect(files, "\\.pdf$")]
+    tsv_files <- files[str_detect(files, patient) & str_detect(files, "\\.tsv$")]
+    
+    if (length(pdf_files) == 0 && length(tsv_files) == 0) {
+      return("none")
+    } else if (length(pdf_files) > 0 && length(tsv_files) > 0) {
+      return("complete")
+    } else {
+      return("incomplete")
+    }
+  } else { # pair == "bam_bai"
+    bam_files <- files[str_detect(files, "\\.bam$") & str_detect(files, patient)]
+    bai_files <- files[str_detect(files, "\\.bai$") & str_detect(files, patient)]
+    
+    if (length(bam_files) == 0) return("none")
+    
+    # Kontrola, zda každý BAM má odpovídající BAI
+    bam_bases <- str_remove(bam_files, "\\.bam$")
+    bai_bases <- str_remove(bai_files, "\\.bam\\.bai$|\\.bai$")
+    
+    missing_bai <- setdiff(bam_bases, bai_bases)
+    
+    if (length(missing_bai) > 0) {
+      return("incomplete") # máme BAM ale chybí BAI
+    } else if (length(bam_files) > 0) {
+      return("complete") # máme BAM i BAI
+    } else {
+      return("none")
+    }
   }
+
 }
+
 
 evaluate_file_status <- function(files, patient, file_type, dataset_type, patterns = NULL) {
   # patient_files <- goi_files[str_detect(goi_files, patient)]
   
   file_configs <- list(
     variant_somatic = list(extensions = "\\.(vcf|tsv)$", keywords = "somatic", required = TRUE),
-    tumor_somatic   = list(extensions = "\\.(bam|bai)$", keywords = "somatic", required = FALSE, check_pair = TRUE),
-    normal_somatic  = list(extensions = "\\.(bam|bai)$", keywords = "somatic", required = FALSE, check_pair = TRUE),
+    tumor_somatic   = list(extensions = "\\.(bam|bai)$", keywords = "somatic", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    normal_somatic  = list(extensions = "\\.(bam|bai)$", keywords = "somatic", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
     
     variant_germline = list(extensions = "\\.(vcf|tsv)$", keywords = "germline", required = TRUE),
-    normal_germline  = list(extensions = "\\.(bam|bai)$", keywords = "germline", required = FALSE, check_pair = TRUE),
+    normal_germline  = list(extensions = "\\.(bam|bai)$", keywords = "germline", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
     
-    fusion_fusion    = list(extensions = "\\.(tsv|xlsx)$", keywords = "fusion", exclude = "arriba|STAR", required = TRUE),
-    tumor_fusion     = list(extensions = "\\.(bam|bai)$", keywords = "fusion", exclude = "Chimeric|transcriptome", required = FALSE, check_pair = TRUE),
-    chimeric_fusion  = list(extensions = "\\.(bam|bai)$", keywords = "fusion", required = FALSE, check_pair = TRUE),
+    fusion_fusion    = list(extensions = "\\.(tsv|xlsx)$",keywords = "fusion", exclude = "arriba|STAR", required = TRUE),
+    tumor_fusion     = list(extensions = "\\.(bam|bai)$", keywords = "fusion", exclude = "Chimeric|transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    chimeric_fusion  = list(extensions = "\\.(bam|bai)$", keywords = "fusion", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    arriba_fusion    = list(extensions = "\\.(pdf|tsv)$", keywords = "fusion", exclude = "discarded|STAR", required = FALSE, check_pair = TRUE, pair = "pdf_tsv"),
     
     expression_expression = list(extensions = "\\.(tsv|xlsx)$", keywords = "expression|RNAseq", exclude = "report", required = TRUE),
     goi_expression        = list(extensions = "genes_of_interest\\.(tsv|xlsx)$", keywords = "expression|RNAseq", exclude = "report", required = FALSE)
@@ -398,13 +441,15 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
       status <- if (config$required) "red" else "gray"
       reason <- if (config$required) "required_missing" else "optional_missing"
     } else {
-      pair_status <- check_bam_bai_pair(matched, patient)
+      pair_type <- if (!is.null(config$pair)) config$pair else "bam_bai"
+      pair_status <- check_pair(matched, patient, pair = pair_type)
+      
       if (pair_status == "incomplete") {
         status <- "orange"
-        reason <- "missing_pair"
+        reason <- if (pair_type == "pdf_tsv") "missing_pair_pdf_tsv" else "missing_pair_bam_bai"
       } else if (pair_status == "complete") {
-        status <- "green" 
-        reason <- "complete_pair"
+        status <- "green"
+        reason <- if (pair_type == "pdf_tsv") "complete_pair_pdf_tsv" else "complete_pair_bam_bai"
       } else {
         status <- if (config$required) "red" else "gray"
         reason <- if (config$required) "required_missing" else "optional_missing"
@@ -453,9 +498,10 @@ get_dataset_columns <- function(dataset_type) {
     fusion = list(
       icon = list(name = "Status", width = 80),
       patient = list(name = "Patient", width = 120),
-      fusion = list(name = "Fusion file", width =80),
+      fusion = list(name = "Fusion file", width = 80),
       tumor = list(name = "Tumor BAM file", width = 90),
       chimeric = list(name = "Chimeric BAM file", width = 90),
+      arriba = list(name = "Arriba files", width = 80),
       files = list(name = "Detected files", minWidth = 300)
     ),
     expression = list(
@@ -483,7 +529,7 @@ create_reactable <- function(data, dataset_type) {
   for (col_name in names(columns_config)) {
     config <- columns_config[[col_name]]
     
-    if (col_name == "icon" || col_name %in% c("variant", "tumor", "normal", "fusion", "chimeric", "expression", "goi")) {
+    if (col_name == "icon" || col_name %in% c("variant", "tumor", "normal", "fusion", "chimeric", "arriba","expression", "goi")) {
       # Sloupce s ikonami
       columns_def[[col_name]] <- colDef(
         name = config$name,

@@ -11,28 +11,17 @@ box::use(
   shinyjs[useShinyjs,runjs,hide,show],
   reactablefmtr[pill_buttons,icon_assign],
   shinyalert[shinyalert,useShinyalert],
-  data.table[data.table,uniqueN,as.data.table,copy,is.data.table,fifelse,setcolorder],
-  shinyWidgets[pickerInput, dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
-  stats[setNames],
-  reactable.extras[reactable_extras_dependency],
+  data.table[data.table,uniqueN,as.data.table,copy,is.data.table,fifelse,setcolorder,fread,setnames],
+  shinyWidgets[pickerInput,updatePickerInput,dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
 )
 box::use(
   app/logic/load_data[get_inputs,load_data],
   app/logic/prepare_table[prepare_fusion_genes_table,prepare_arriba_images], 
   app/logic/waiters[use_spinner],
-  app/logic/patients_list[sample_list_fuze],
   app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter,update_fusion_data],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
-
-# Load and process data table
-input_data <- function(sample){
-  filenames <- get_inputs("per_sample_file")
-  # message("Loading data for fusion: ", filenames$fusions)
-  data <- prepare_fusion_genes_table(load_data(filenames$fusions,"fusion",sample),sample)
-  return(data)
-}
 
 ##############  pozn  #####################
 #ploty budu dělat pomocí balíku 
@@ -45,7 +34,6 @@ ui <- function(id) {
   ns <- NS(id)
   useShinyjs()
   tagList(
-    reactable_extras_dependency(),
     fluidRow(
       div(style = "width: 100%; text-align: right;",
           dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
@@ -67,7 +55,7 @@ ui <- function(id) {
           column(3,actionButton(ns("delete_button"),"Delete genes", icon = icon("trash-can"))))
       ),
       dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
-               pickerInput(ns("idpick"), "Select patients for IGV:", choices = sample_list_fuze(), options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
+               pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
                div(style = "display: flex; justify-content: center; margin-top: 10px;",
                    actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
                )
@@ -77,16 +65,75 @@ ui <- function(id) {
 
 }
 
+read_fusion_manifest <- function(sample, www_dir = "www") {
+  man_path <- file.path(www_dir, "manifests", "fusion", paste0(sample, ".tsv"))
+  if (!file.exists(man_path)) return(NULL)
+  man_dt <- fread(man_path, na.strings = "NA")
+  
+  # cesty musí být relativní k www (bez ./)
+  man_dt[, `:=`(svg_path = sub("^\\./", "", svg_path), png_path = sub("^\\./", "", png_path))]
+  return(man_dt)
+}
+
 #' @export
-server <- function(id, selected_samples, shared_data, load_session_btn) {
+server <- function(id, selected_samples, shared_data, file, load_session_btn) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     # prepare_arriba_images(selected_samples)
     
-  # Call loading function to load data
+  # # Call loading function to load data
+  #   data <- reactive({
+  #     message("Loading input data for fusion: ",file$fusion)
+  #     data <- load_data(file$fusion,"fusion",selected_samples)
+  #     prepare_fusion_genes_table(data, selected_samples)
+  #   })
+
+   
+    prerun_ready <- reactive({
+      status <- shared_data$fusion_prerun_status()
+      status %in% c("completed", "not_started")
+    })
+    
+    # loading UI během prerunu (zachován tvůj vzhled)
+    output$prerun_loading <- renderUI({
+      if (!prerun_ready()) {
+        status <- shared_data$fusion_prerun_status()
+        progress <- shared_data$fusion_prerun_progress()
+        div(style = "display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:400px;",
+          div(style = "text-align:center; padding:20px;",
+              h3("Preparing Fusion Data...", style = "margin-bottom: 20px;"),
+              div(style = "width:300px; background-color:#f8f9fa; border-radius:10px; padding:10px; margin:20px 0;",
+                  div(style = paste0("width:", progress, "%; height:20px; background-color:#007bff; border-radius:5px; transition:width 0.3s ease;"))),
+              p(paste0("Processing IGV snapshots and Arriba images... ", progress, "%"), style = "color:#6c757d; margin-top:10px;"),
+              p("You can use other modules while this processes in the background.", style = "color:#6c757d; font-size:0.9em; margin-top:15px;")))
+      } else NULL
+    })
+    
+
     data <- reactive({
-      message("Loading input data for fusion")
-      input_data(selected_samples) 
+      req(prerun_ready())
+      
+      message("[fusion] Loading input data for: ", file$fusion)
+      data <- load_data(file$fusion, "fusion", selected_samples)
+      manifest_dt <- read_fusion_manifest(selected_samples, www_dir = "www")
+      patient_dt <- prepare_fusion_genes_table(selected_samples, as.data.table(data), manifest_dt)
+
+      message(sprintf("[fusion] Rows: %d | has_svg: %d | has_png: %d",
+                      nrow(patient_dt), sum(patient_dt$has_svg, na.rm = TRUE), sum(patient_dt$has_png, na.rm = TRUE)))
+      
+      # diagnostika prvního nenamapovaného řádku (pomáhá při ladění)
+      if (any(is.na(patient_dt$png_path))) {
+        bad <- patient_dt[is.na(png_path)][1]
+        message("[fusion] example mismatch: ",
+                paste(c(bad$sample, bad$gene1, bad$gene2, bad$chr1, bad$pos1, bad$chr2, bad$pos2), collapse=" | "))
+      }
+      
+      patient_dt
+    })
+    
+    fusion_data_to_render <- reactiveVal(NULL)
+    observeEvent(data(), ignoreInit = FALSE, {
+      fusion_data_to_render(data())
     })
 
     
@@ -94,8 +141,8 @@ server <- function(id, selected_samples, shared_data, load_session_btn) {
       req(data())
       dt <- data()
       overview_dt <- data.table(
-        high_confidence = uniqueN(dt[arriba.confidence %in% "high"]),
-        potencially_fused = uniqueN(dt[arriba.confidence %in% c("medium", "low", NA)]))
+          high_confidence = uniqueN(dt[arriba.confidence %in% "high"]),
+          potencially_fused = uniqueN(dt[arriba.confidence %in% c("medium", "low", NA)]))
       shared_data$fusion_overview[[ selected_samples ]] <- overview_dt
     })
 
@@ -143,22 +190,32 @@ server <- function(id, selected_samples, shared_data, load_session_btn) {
                           ),
                           defaultSorted = list("arriba.confidence" = "asc","arriba.called" = "desc","starfus.called" = "desc"),
                           details = function(index) {
-                            # row <- data[index, ]
                             svg_file <- dt$svg_path[index]
                             png_file <- dt$png_path[index]
+                            # kontrola existence na disku bránila prázdnému <img src="">
+                            svg_ok <- !is.na(svg_file) && nzchar(svg_file) && file.exists(file.path("www", svg_file))
+                            png_ok <- !is.na(png_file) && nzchar(png_file) && file.exists(file.path("www", png_file))
+                            
                             tags$div(
-                              style = "display: flex; align-items: center;",
-                              if (file.exists(paste0("www/",svg_file))) {
-                                tags$img(src = svg_file, style = "width:50%; height:auto; display:inline-block; vertical-align:top;")
-                              } else {
-                                tags$strong("Starfusion doesn't provide this picture.", style = "width:10%; height:auto; display:inline-block; vertical-align:middle; margin-left: 20px; font-weight: bold; text-align: center; margin-top:40px; margin-bottom:40px;")
-                              },
-                              if (file.exists(paste0("www/",png_file))) {
-                                tags$img(src = png_file, style = "width:50%; height:auto; display:inline-block; vertical-align:top; margin-bottom:40px;")
-                              } else {
-                                tags$strong("IGV didn't snapshot this position.", style = "width:10%; height:auto; display:inline-block; vertical-align:middle; margin-left: 20px; font-weight: bold; text-align: center; margin-top:40px; margin-bottom:40px;")
-                              }
+                              style = "display:flex; align-items:flex-start; gap:16px;",
+                              if (svg_ok) tags$img(src = svg_file, style = "width:50%; height:auto;")
+                              else tags$strong("Arriba image not available.",  style = "width:50%; text-align:center; margin:40px 0;"),
+                              if (png_ok) tags$img(src = png_file, style = "width:50%; height:auto;")
+                              else tags$strong("IGV snapshot not available.", style = "width:50%; text-align:center; margin:40px 0;")
                             )
+                            # tags$div(
+                            #   style = "display: flex; align-items: center;",
+                            #   if (file.exists(paste0("www/",svg_file))) {
+                            #     tags$img(src = svg_file, style = "width:50%; height:auto; display:inline-block; vertical-align:top;")
+                            #   } else {
+                            #     tags$strong("Starfusion doesn't provide this picture.", style = "width:10%; height:auto; display:inline-block; vertical-align:middle; margin-left: 20px; font-weight: bold; text-align: center; margin-top:40px; margin-bottom:40px;")
+                            #   },
+                            #   if (file.exists(paste0("www/",png_file))) {
+                            #     tags$img(src = png_file, style = "width:50%; height:auto; display:inline-block; vertical-align:top; margin-bottom:40px;")
+                            #   } else {
+                            #     tags$strong("IGV didn't snapshot this position.", style = "width:10%; height:auto; display:inline-block; vertical-align:middle; margin-left: 20px; font-weight: bold; text-align: center; margin-top:40px; margin-bottom:40px;")
+                            #   }
+                            # )
                           },
                           rowStyle = function(index) {
                             gene1_in_row <- dt$gene1[index]
@@ -378,12 +435,24 @@ server <- function(id, selected_samples, shared_data, load_session_btn) {
     ## run IGV ##
     #############
     
+    ## update IGV button choices
+    observeEvent(shared_data$fusion.patients(), {
+      patient_list <- shared_data$fusion.patients()
+      if (is.null(patient_list)) patient_list <- character(0)
+      prev <- input$idpick; if (is.null(prev)) prev <- character(0)
+      sel  <- intersect(prev, patient_list)
+      if (!length(sel) && length(patient_list) && !is.null(selected_samples)) {
+        sel <- intersect(selected_samples, patient_list)
+      }
+      updatePickerInput(session, "idpick", choices = patient_list, selected = sel)
+    }, ignoreInit = FALSE)
+    
     observeEvent(input$go2igv_button, {
       message("selected_fusions(): ", selected_fusions())
 
       
       selected_empty <- is.null(selected_fusions()) || nrow(selected_fusions()) == 0
-      bam_empty <- is.null(shared_data$fusion_bam) || length(shared_data$fusion_bam) == 0
+      bam_empty <- is.null(shared_data$fusion.bam) || length(shared_data$fusion.bam) == 0
       
       if (selected_empty || bam_empty) {
         shinyalert(
@@ -439,7 +508,7 @@ server <- function(id, selected_samples, shared_data, load_session_btn) {
           message("✖ No tracks assembled for IDs: ", paste(ids, collapse = ", "))
         }
         
-        shared_data$fusion_bam(bam_list)
+        shared_data$fusion.bam(bam_list)
         
         updateNavbarTabs(session = session$userData$parent_session, inputId = "navbarMenu", selected = session$userData$parent_session$ns("hidden_igv"))
       }
@@ -459,7 +528,7 @@ server <- function(id, selected_samples, shared_data, load_session_btn) {
       #     }), recursive = FALSE              # nerozbalujeme úplně, zůstane list tracků
       #   )
       # 
-      #   shared_data$fusion_bam(bam_list)
+      #   shared_data$fusion.bam(bam_list)
       #   message("✔ Assigned fusion_bam: ", paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
       #   
       #   # 

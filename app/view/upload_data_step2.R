@@ -145,45 +145,46 @@ step2_ui <- function(id) {
         
         
         # Pokud jsou oranžové stavy - zobrazit warning a zeptat se
+        # Pokud jsou oranžové stavy - zobrazit warning a zeptat se
         if (validation$has_orange_status) {
           warning_parts <- c()
           
-          # IGV část
-          if (length(validation$orange_patients_list) > 0) {
-            igv_lines <- vapply(
-              names(validation$orange_patients_list),
-              function(p) {
-                datasets <- paste(sort(unique(validation$orange_patients_list[[p]])), collapse = ", ")
-                sprintf("<li style='text-align: left'><b>%s</b> – %s</li>", p, datasets)
-              },
-              character(1)
-            )
-            
+          # IGV nepoběží (chybí BAM/BAI)
+          if (length(validation$igv_issues) > 0) {
+            igv_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$igv_issues), collapse = "")
             igv_html <- paste0(
-              "<div style='text-align: center;'><strong>IGV tool will not be available for following patients:</strong></div><br>",
+              "<div style='text-align: center;'><strong>IGV snapshots will NOT be available (missing BAM/BAI) for:</strong></div><br>",
               "<ul style='text-align: left; margin-left: 2em;'>",
-              paste(igv_lines, collapse = ""),
+              igv_lines,
               "</ul>"
             )
-            
             warning_parts <- c(warning_parts, igv_html)
           }
           
-          # GOI část
+          # Arriba report nebude (chybí PDF/TSV)
+          if (length(validation$arriba_issues) > 0) {
+            arr_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$arriba_issues), collapse = "")
+            arr_html <- paste0(
+              "<div style='text-align: center;'><strong>Arriba report will NOT be shown (missing PDF/TSV) for:</strong></div><br>",
+              "<ul style='text-align: left; margin-left: 2em;'>",
+              arr_lines,
+              "</ul>"
+            )
+            warning_parts <- c(warning_parts, arr_html)
+          }
+          
+          # GOI část (ponecháno)
           if (length(validation$goi_issues) > 0) {
             goi_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$goi_issues), collapse = "")
-            
             goi_html <- paste0(
-              "<div style='text-align: center;'><strong>Gene-of-interest analysis may be limited for following patients:</strong></div><br>",
+              "<div style='text-align: center;'><strong>Gene-of-interest analysis may be limited for:</strong></div><br>",
               "<ul style='text-align: left; margin-left: 2em;'>",
               goi_lines,
               "</ul>"
             )
-            
             warning_parts <- c(warning_parts, goi_html)
           }
           
-          # Finální alert
           warning_message <- paste0(paste(warning_parts, collapse = "<br>"), "<br>Do you want to continue anyway?")
           
           shinyalert(
@@ -196,15 +197,17 @@ step2_ui <- function(id) {
             cancelButtonText = "Cancel",
             html = TRUE,
             callbackR = function(user_confirmed) {
-              if (isTRUE(user_confirmed)) { # Build and store confirmed paths (allowed under ORANGE after user consent)
+              if (isTRUE(user_confirmed)) {
                 confirmed_paths_state(build_confirmed_paths(data))
                 showModal(modalDialog("Your selection has been confirmed!", easyClose = TRUE))
-              } else { # User cancelled: do not pass anything
-                confirmed_paths_state(NULL) 
-              }})
-          
+              } else {
+                confirmed_paths_state(NULL)
+              }
+            }
+          )
           return()
         }
+        
         
 
         confirmed_paths_state(build_confirmed_paths(data))  # NO RED, NO ORANGE: pass data directly

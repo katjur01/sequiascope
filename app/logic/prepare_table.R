@@ -1,7 +1,7 @@
 # app/logic/prepare_table.R
 
 box::use(
-  data.table[fread,tstrsplit,setcolorder,setnames,uniqueN,dcast,fifelse,is.data.table],
+  data.table[fread,tstrsplit,setcolorder,setnames,uniqueN,dcast,fifelse,is.data.table,as.data.table,setorderv],
   shiny[observe],
   openxlsx[read.xlsx],
   scales[scientific_format],
@@ -57,16 +57,6 @@ replace_dot_with_na <- function(dt) {
   return(dt)
 }
 
-split_genes <- function(dt) {
-  dt_gene1 <- dt[, .(gene1 = unlist(strsplit(gene1, ",", fixed = TRUE)),
-                     gene2, chrom1, pos1, chrom2, pos2, path), by = .(.I)]
-  dt_gene2 <- dt_gene1[, .(gene1, gene2 = unlist(strsplit(gene2, ",", fixed = TRUE)),
-                           chrom1, pos1, chrom2, pos2, path), by = .(.I)]
-  dt_gene2[,I := NULL]
-  
-  return(dt_gene2)
-}
-
 clean_consequence <- function(x) {
   if (is.na(x) || trimws(x) == "") {
     return("missing value")
@@ -108,37 +98,29 @@ fast_lookup_column <- function(dt, input_col, output_col, clean_fun) {
 }
 
 
-prepare_igv_snapshot_paths <- function(data,sample){   # sample = "DZ1601fuze"
-  
-  input_xlsx <- data[,.(gene1 = paste(unique(gene1),collapse = ","),gene2 = paste(unique(gene2),collapse = ",")),by = .(chrom1,pos1,chrom2,pos2)]
-  input_xlsx[, path := sprintf(paste0("./igv_snapshot/",sample,"/",sample,"_%03d.png"), .I)]
-  xlsx_dt <- split_genes(input_xlsx)
-  setnames(xlsx_dt, "path", "png_path")
-  
-  return(xlsx_dt)
-}
 
-prepare_arriba_image_paths <- function(sample){
-
-  filenames <- get_inputs("per_sample_file")
-  arriba_res_folder <- filenames$arriba_res
-  input_tsv <- fread(paste0(paste(arriba_res_folder,sample,"arriba/",sep="/"),sample,".arriba_fusion.tsv"))
-  input_tsv[, path := sprintf(paste0("./arriba_viz/",sample,"/",sample,"_%03d.svg"), .I)]
-  
-  input_tsv[, gene1 := gsub("\\(.*?\\)", "", `#gene1`)]
-  input_tsv[, gene2 := gsub("\\(.*?\\)", "", gene2)]
-  input_tsv[, c("chrom1", "pos1") := tstrsplit(breakpoint1, ":", fixed = TRUE)]
-  input_tsv[, c("chrom2", "pos2") := tstrsplit(breakpoint2, ":", fixed = TRUE)]
-  input_tsv[, chrom1 := paste0("chr", chrom1)]
-  input_tsv[, chrom2 := paste0("chr", chrom2)]
-  input_tsv[, pos1 := as.numeric(pos1)]
-  input_tsv[, pos2 := as.numeric(pos2)]
-  
-  tsv_dt <- split_genes(input_tsv)
-  setnames(tsv_dt, "path", "svg_path")
-
-  return(tsv_dt)
-}
+# 
+# prepare_arriba_image_paths <- function(sample, arriba_svg_dir, arriba_dir){
+# 
+#   tsv_file <- list.files(file.path(arriba_dir, sample),pattern = "\\.tsv$", full.names = TRUE, recursive = TRUE)[1]
+# 
+#   input_tsv <- fread(tsv_file)
+#   input_tsv[, path := sprintf(file.path(arriba_svg_dir, sample, paste0(sample, "_%03d.svg")), .I)]
+#   
+#   input_tsv[, gene1 := gsub("\\(.*?\\)", "", `#gene1`)]
+#   input_tsv[, gene2 := gsub("\\(.*?\\)", "", gene2)]
+#   input_tsv[, c("chrom1", "pos1") := tstrsplit(breakpoint1, ":", fixed = TRUE)]
+#   input_tsv[, c("chrom2", "pos2") := tstrsplit(breakpoint2, ":", fixed = TRUE)]
+#   input_tsv[, chrom1 := paste0("chr", chrom1)]
+#   input_tsv[, chrom2 := paste0("chr", chrom2)]
+#   input_tsv[, pos1 := as.numeric(pos1)]
+#   input_tsv[, pos2 := as.numeric(pos2)]
+#   
+#   tsv_dt <- split_genes(input_tsv)
+#   setnames(tsv_dt, "path", "svg_path")
+# 
+#   return(tsv_dt)
+# }
 
 #' @export
 prepare_arriba_images <- function(sample){
@@ -148,7 +130,7 @@ prepare_arriba_images <- function(sample){
 #   input_pdf <- paste0(paste(arriba_images_folder,sample,"arriba/",sep="/"),sample,".arriba_fusion_viz.pdf")
 # 
 #   print(getwd())
-#   folder_path <- paste0("./www/arriba_viz/",sample)
+#   folder_path <- paste0("./www/arriba_reports/",sample)
 #   output_svg <- paste0(folder_path,"/",sample,"_%03d.svg")
 #   print(output_svg)
 #   pdf2png(input_pdf,folder_path,output_svg)
@@ -156,24 +138,88 @@ prepare_arriba_images <- function(sample){
 
 # selected_samples = "DZ1601fuze"
 
-#' @export
-prepare_fusion_genes_table <- function(data,selected_samples){
-  
-  xlsx_dt <- prepare_igv_snapshot_paths(data,selected_samples)
-  tsv_dt <- prepare_arriba_image_paths(selected_samples)
-  paths_dt <- merge(xlsx_dt, tsv_dt, by = c("gene1", "gene2","chrom1", "pos1", "chrom2", "pos2"), all.x = TRUE)
+# prepare_igv_snapshot_paths <- function(data, sample, igv_png_dir){   # sample = "DZ1601fuze"
+#   
+#   input_xlsx <- data[,.(gene1 = paste(unique(gene1),collapse = ","),gene2 = paste(unique(gene2),collapse = ",")),by = .(chrom1,pos1,chrom2,pos2)]
+#   input_xlsx[, path := sprintf(file.path(igv_png_dir, sample, paste0(sample, "_%03d.png")), .I)]
+#   xlsx_dt <- split_genes(input_xlsx)
+#   setnames(xlsx_dt, "path", "png_path")
+#   
+#   return(xlsx_dt)
+# }
 
-  dt <- merge(data, paths_dt, by = c("gene1", "gene2","chrom1", "pos1", "chrom2", "pos2"), all.x = TRUE)
-  dt[,position1 := paste0(chrom1,":",pos1)]
-  dt[,position2 := paste0(chrom2,":",pos2)]
-  dt[,c("chrom1","pos1","chrom2","pos2") := NULL]
-  default_columns <- colFilter("fusion")$default_columns
+#' @export
+prepare_fusion_genes_table <- function(sample, data, manifest_dt){
   
-  dt[, `:=`(Visual_Check = "", Notes = "")]
-  setcolorder(dt, default_columns)
-  message(paste0("Fusion genes, pacient ",unique(dt$sample)," (prepare_table script)"))
-  return(dt)
+  normalize_keys <- function(dt) {
+    dt <- as.data.table(dt)
+    if ("chrom1" %in% names(dt)) setnames(dt, c("chrom1","chrom2"), c("chr1","chr2"))
+    if ("pos1" %in% names(dt) && !is.numeric(dt$pos1)) dt[, pos1 := as.numeric(pos1)]
+    if ("pos2" %in% names(dt) && !is.numeric(dt$pos2)) dt[, pos2 := as.numeric(pos2)]
+    dt
+  }
+  
+  data <- normalize_keys(data)
+  
+  if (is.null(manifest_dt)) {
+    message(sprintf("[fusion] Manifest not found: www/manifests/fusion/%s.tsv", sample))
+    data[, position1 := paste0(chr1, ":", pos1)]
+    data[, position2 := paste0(chr2, ":", pos2)]
+    data[,c("chr1","pos1","chr2","pos2") := NULL]
+    data[, `:=`( svg_path = NA_character_, png_path = NA_character_,
+                 has_svg = FALSE, has_png = FALSE)]
+    return(data)
+    
+  } else {
+    message(sprintf("[fusion] Merging base table with manifest for sample '%s'", sample))
+    
+    manifest_dt <- normalize_keys(manifest_dt)
+
+    strip_dot_slash <- function(x) sub("^\\./", "", x)  # cesty nech relativní k www/ (bez "./")
+    manifest_dt[, png_path := strip_dot_slash(png_path)]
+    manifest_dt[, svg_path := strip_dot_slash(svg_path)]
+    
+    merge_dt <- merge(data, manifest_dt, by = c("gene1","gene2","chr1","pos1","chr2","pos2"), all.x = TRUE)
+    
+    merge_dt[, position1 := paste0(chr1, ":", pos1)]
+    merge_dt[, position2 := paste0(chr2, ":", pos2)]
+    merge_dt[,c("chr1","pos1","chr2","pos2") := NULL]
+    
+    merge_dt[, `:=`( has_svg = !is.na(svg_path) & nzchar(svg_path),
+                     has_png = !is.na(png_path) & nzchar(png_path))]
+
+    default_columns <- colFilter("fusion")$default_columns
+    merge_dt[, `:=`(Visual_Check = "", Notes = "")]
+    setcolorder(merge_dt, default_columns)
+    
+    message(paste0("Fusion genes, pacient ", unique(merge_dt$sample), " (prepare_table script)"))
+    return(merge_dt)
+  }
+  
 }
+
+
+# 
+# prepare_fusion_genes_table <- function(data, sample, enable_svg = TRUE, enable_png = TRUE){
+#   wd <- getwd()
+#   igv_dir <- file.path(wd, "www", "igv_snapshots")
+#   arriba_dir <- file.path(wd, "www", "arriba_reports")
+# 
+#   xlsx_dt <- prepare_igv_snapshot_paths(data, sample, igv_dir)
+#   tsv_dt <- prepare_arriba_image_paths(sample)
+#   paths_dt <- merge(xlsx_dt, tsv_dt, by = c("gene1", "gene2","chrom1", "pos1", "chrom2", "pos2"), all.x = TRUE)
+# 
+#   dt <- merge(data, paths_dt, by = c("gene1", "gene2","chrom1", "pos1", "chrom2", "pos2"), all.x = TRUE)
+#   dt[,position1 := paste0(chrom1,":",pos1)]
+#   dt[,position2 := paste0(chrom2,":",pos2)]
+#   dt[,c("chrom1","pos1","chrom2","pos2") := NULL]
+#   default_columns <- colFilter("fusion")$default_columns
+# 
+#   dt[, `:=`(Visual_Check = "", Notes = "")]
+#   setcolorder(dt, default_columns)
+#   message(paste0("Fusion genes, pacient ",unique(dt$sample)," (prepare_table script)"))
+#   return(dt)
+# }
 
 #' @export
 prepare_somatic_table <- function(dt){
@@ -304,7 +350,7 @@ colFilter <- function(flag,expr_flag = NULL){
   } else if (flag == "fusion"){
     if (file.exists(filenames$fusions[1])) {
       all_column_var <- names(read.xlsx(filenames$fusions[1], rows = 1))
-      filtered_all_column_var <- setdiff(all_column_var, c("chrom1", "chrom2", "pos1", "pos2"))
+      filtered_all_column_var <- setdiff(all_column_var, c("chr1", "chr2", "pos1", "pos2"))
       
       all_column_names <- c(filtered_all_column_var,"Visual_Check","Notes","position1","position2")
       default_selection <- c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","Visual_Check","Notes","position1","strand1","position2","strand2",

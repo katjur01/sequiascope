@@ -15,8 +15,7 @@ box::use(
   reactable[reactable,reactableOutput,renderReactable,colDef,colGroup,JS,getReactableState],
   # reactable.extras[reactable_extras_ui,reactable_extras_server],
   htmltools[tags,HTML],
-  app/logic/patients_list[set_patient_to_sample],
-  shinyWidgets[prettyCheckbox,prettyCheckboxGroup,updatePrettyCheckboxGroup,searchInput,pickerInput, dropdown,actionBttn,pickerOptions,dropdownButton],
+  shinyWidgets[prettyCheckbox,prettyCheckboxGroup,updatePrettyCheckboxGroup,searchInput,pickerInput,updatePickerInput,dropdown,actionBttn,pickerOptions,dropdownButton],
   shinyalert[shinyalert,useShinyalert],
   shinyjs[useShinyjs,hide,show],
   data.table[data.table,as.data.table,uniqueN,copy,rbindlist,fread,is.data.table],
@@ -31,21 +30,11 @@ box::use(
 box::use(
   app/logic/load_data[get_inputs,load_data],
   app/logic/prepare_table[prepare_germline_table],
-  app/logic/patients_list[sample_list_germ],
   app/logic/waiters[use_spinner],
   app/logic/reactable_helpers[selectFilter,minRangeFilter,filterMinValue,create_clinvar_filter,create_consequence_filter],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
-
-
-# Load and process data table
-input_data <- function(sample){
-  filenames <- get_inputs("per_sample_file")
-  message("Loading data for germline: ", filenames$var_call.germline)
-  data <- prepare_germline_table(load_data(filenames$var_call.germline,"varcall",sample))
-  return(data)
-}
 
 
 ui <- function(id) {
@@ -75,7 +64,7 @@ ui <- function(id) {
           column(3,actionButton(ns("delete_button"), "Delete variants", icon = icon("trash-can"))))
       ),
       dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
-               pickerInput(ns("idpick"), "Select patients for IGV:", choices = sample_list_germ(), options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
+               pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
                div(style = "display: flex; justify-content: center; margin-top: 10px;",
                    actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
                )
@@ -84,18 +73,15 @@ ui <- function(id) {
   )
 }
 
-server <- function(id, selected_samples, shared_data) {
+server <- function(id, selected_samples, shared_data, file,  load_session_btn = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    # Call loading function to load data
+    # Load and process data table
     data <- reactive({
-      start <- Sys.time()
-      x <- input_data(selected_samples)
-      end <- Sys.time()
-      message("⏱️ reactive data: ", round(difftime(end, start, units = "secs"), 3), " sec")
-      x
+      message("Loading input data for germline: ", file$variant)
+      data <- load_data(file$variant, "varcall", selected_samples)
+      prepare_germline_table(data)
     })
-    
 
     # observe({
     #     req(data())
@@ -381,9 +367,21 @@ server <- function(id, selected_samples, shared_data) {
     ## run IGV ##
     #############
     
+    ## update IGV button choices
+    observeEvent(shared_data$germline.patients(), {
+      patient_list <- shared_data$germline.patients()
+      if (is.null(patient_list)) patient_list <- character(0)
+      prev <- input$idpick; if (is.null(prev)) prev <- character(0)
+      sel  <- intersect(prev, patient_list)
+      if (!length(sel) && length(patient_list) && !is.null(selected_samples)) {
+        sel <- intersect(selected_samples, patient_list)
+      }
+      updatePickerInput(session, "idpick", choices = patient_list, selected = sel)
+    }, ignoreInit = FALSE)
+    
     observeEvent(input$go2igv_button, {
       selected_empty <- is.null(selected_variants()) || nrow(selected_variants()) == 0
-      bam_empty <- is.null(shared_data$germline_bam) || length(shared_data$germline_bam) == 0
+      bam_empty <- is.null(shared_data$germline.bam) || length(shared_data$germline.bam) == 0
       
       if (selected_empty || bam_empty) {
         shinyalert(
@@ -402,8 +400,8 @@ server <- function(id, selected_samples, shared_data) {
             list(name = id_val, file = sub(bam_path$path_to_folder, ".", full_path, fixed = TRUE))  # relativní cesta)
         })
         
-        shared_data$germline_bam(bam_list)
-        message("✔ Assigned germline_bam: ",paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
+        shared_data$germline.bam(bam_list)
+        message("✔ Assigned germline.bam: ",paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
         
         updateNavbarTabs(session = session$userData$parent_session, inputId = "navbarMenu", selected = session$userData$parent_session$ns("hidden_igv"))
       }

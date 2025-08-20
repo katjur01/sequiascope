@@ -122,3 +122,4 @@ args <- commandArgs(trailingOnly = T)
 #           "/mnt/share/share/710000-CEITEC/713000-cmm/713009-slaby/base/sequencing_results/projects/pediatric_oncology_project_fusions/106_fusions/fusion_genes_detection/LN0358fuze_fusions.xlsx")
 run_all(args)
 
+

@@ -5,8 +5,10 @@
     "cytoscape-cola": "^2.5.1",
     "cytoscape-fcose": "^2.2.0",
     "cytoscape-panzoom": "^2.5.3",
+    "igv": "^3.5.0",
     "layout-base": "^2.0.1",
-    "webcola": "^3.4.0"
+    "webcola": "^3.4.0",
+    "xvfb": "^0.4.0"
   },
   "engines": {
     "node": ">=22.14.0",

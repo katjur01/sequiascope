@@ -7,7 +7,7 @@ box::use(
   reactable[colDef,reactableOutput,renderReactable,reactable,getReactableState,JS],
   bs4Dash[box,tabsetPanel,updateTabItems,updateNavbarTabs],
   htmltools[tags, span,HTML],
-  shinyWidgets[pickerInput, dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
+  shinyWidgets[pickerInput,updatePickerInput,dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
   networkD3[sankeyNetwork,renderSankeyNetwork,sankeyNetworkOutput],
   billboarder[billboarderOutput],
   stats[setNames],
@@ -24,25 +24,15 @@ box::use(
   app/logic/vaf_plot[generate_vaf],
   app/logic/sankey_plot[sankey_plot],
   app/logic/waiters[use_spinner],
-  app/view/selected_variants[render_selected_variants_ui,render_selected_variants_table,
-                        handle_delete_variant, handle_confirm_selected],
+  app/view/selected_variants[render_selected_variants_ui,render_selected_variants_table,handle_delete_variant, handle_confirm_selected],
   app/view/export_functions[get_table_download_handler,get_sankey_download_handler,get_hist_download_handler],
   app/logic/load_data[get_inputs,load_data],
   app/logic/prepare_table[prepare_somatic_table,colFilter],
-  app/logic/patients_list[sample_list_som],
   app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
-
-# Load and process data table
-input_data <- function(sample){
-  filenames <- get_inputs("per_sample_file")
-  message("Loading data for somatic: ", filenames$var_call.somatic)
-  data <- prepare_somatic_table(load_data(filenames$var_call.somatic,"varcall",sample))
-  return(data)
-}
 
 # UI funkce pro modul nastavujici vzhled veskerych grafickych prvku v zalozce somatic variants
 
@@ -71,17 +61,13 @@ ui <- function(id) {
          tags$br(),
          fluidRow(
            column(3,actionButton(ns("delete_button"),"Delete variants", icon = icon("trash-can"))))
-         ),
-
-       # div(
-         # style = "height: 38px;font-size: 16px;",
-         dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
-           pickerInput(ns("idpick"), "Select patients for IGV:", choices = sample_list_som(), options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
-           div(style = "display: flex; justify-content: center; margin-top: 10px;",
-               actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
-           )
+       ),
+       dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
+         pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
+         div(style = "display: flex; justify-content: center; margin-top: 10px;",
+             actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
          )
-       # )
+       )
      ),
      uiOutput(ns("confirm_button_ui")),
      tags$br(),
@@ -112,61 +98,62 @@ ui <- function(id) {
 }
 
 # Serverova funkce pro modul definující funkce veskerych prvku v zalozce somatic variants
-server <- function(id, selected_samples, shared_data, restore_flag) {
+server <- function(id, selected_samples, shared_data, file) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # Call loading function to load data
+    # Load and process data table
     data <- reactive({
-      message("Loading input data for somatic")
-      input_data(selected_samples)
-    })
-    
-    
-    colnames_list <- getColFilterValues("somatic") # gives list of all_columns and default_columns
-    map_list <- colnames_map_list("somatic") # gives list of all columns with their column definitions
-    mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
-  
-    filter_state <- filterTab_server("filterTab_dropdown",colnames_list, data(),mapped_checkbox_names)
-    
-    ############
-    
-    selected_tumor_depth <- reactiveVal(NULL)
-    selected_gnomAD_min  <- reactiveVal(NULL)
-    selected_gene_region <- reactiveVal(NULL)
-    selected_clinvar_sig <- reactiveVal(NULL)
-    selected_consequence <- reactiveVal(NULL)
-    selected_columns <- reactiveVal(colnames_list$default_columns)
-    selected_variants <- reactiveVal(data.frame(patient = character(),var_name = character(), Gene_symbol = character()))
-
-    
-    # Call generate_columnsDef to generate colDef setting for reactable
-    column_defs <- reactive({
-      req(data())
-      req(selected_columns())
-      generate_columnsDef(names(data()), selected_columns(), "somatic", map_list)
+      message("Loading input data for somatic: ", file$variant)
+      data <- load_data(file$variant, "varcall", selected_samples)
+      prepare_somatic_table(data)
     })
 
-    
-    filtered_data <- reactive({
-      req(data())
-      dt <- copy(data())
 
-      if (!is.null(selected_tumor_depth())) {
-        dt <- dt[selected_tumor_depth() <= tumor_depth, ]
-      }
-      if (!is.null(selected_gnomAD_min())) {
-        dt <- dt[gnomAD_NFE <= selected_gnomAD_min()]
-      }
-      if (!is.null(selected_gene_region()) && length(selected_gene_region()) > 0) {
-        dt <- dt[gene_region %in% selected_gene_region(), ]
-      }
-      if (!is.null(selected_consequence()) && length(selected_consequence()) > 0) {
-        dt <- create_consequence_filter(dt, selected_consequence())
-      }
-      
-      return(dt)
-    })
+colnames_list <- getColFilterValues("somatic") # gives list of all_columns and default_columns
+map_list <- colnames_map_list("somatic") # gives list of all columns with their column definitions
+mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
+
+filter_state <- filterTab_server("filterTab_dropdown",colnames_list, data(),mapped_checkbox_names)
+
+############
+
+selected_tumor_depth <- reactiveVal(NULL)
+selected_gnomAD_min  <- reactiveVal(NULL)
+selected_gene_region <- reactiveVal(NULL)
+selected_clinvar_sig <- reactiveVal(NULL)
+selected_consequence <- reactiveVal(NULL)
+selected_columns <- reactiveVal(colnames_list$default_columns)
+selected_variants <- reactiveVal(data.frame(patient = character(),var_name = character(), Gene_symbol = character()))
+
+
+# Call generate_columnsDef to generate colDef setting for reactable
+column_defs <- reactive({
+  req(data())
+  req(selected_columns())
+  generate_columnsDef(names(data()), selected_columns(), "somatic", map_list)
+})
+
+
+filtered_data <- reactive({
+  req(data())
+  dt <- copy(data())
+
+  if (!is.null(selected_tumor_depth())) {
+    dt <- dt[selected_tumor_depth() <= tumor_depth, ]
+  }
+  if (!is.null(selected_gnomAD_min())) {
+    dt <- dt[gnomAD_NFE <= selected_gnomAD_min()]
+  }
+  if (!is.null(selected_gene_region()) && length(selected_gene_region()) > 0) {
+    dt <- dt[gene_region %in% selected_gene_region(), ]
+  }
+  if (!is.null(selected_consequence()) && length(selected_consequence()) > 0) {
+    dt <- create_consequence_filter(dt, selected_consequence())
+  }
+
+  return(dt)
+})
 
     output$somatic_var_call_tab <- renderReactable({
       req(filtered_data())
@@ -209,24 +196,24 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
       )
     })
 
-    
+
     # Akce po kliknutí na tlačítko pro přidání varianty
     observeEvent(input$selectPathogenic_button, {
       selected_rows <- getReactableState("somatic_var_call_tab", "selected")
       req(selected_rows)
-      
+
       new_variants <- filtered_data()[selected_rows, c("var_name", "Gene_symbol","tumor_variant_freq","tumor_depth", "Consequence",
                                                        "HGVSc","HGVSp","variant_type","Feature", "gnomAD_NFE")]  # Získání vybraných variant
       new_variants$sample <- selected_samples
-      
+
       current_variants <- selected_variants()  # Stávající přidané varianty
       new_unique_variants <- new_variants[!(new_variants$var_name %in% current_variants$var_name &       # Porovnání - přidáme pouze ty varianty, které ještě nejsou v tabulce
                                               new_variants$Gene_symbol %in% current_variants$Gene_symbol), ]
-      
+
       if (nrow(new_unique_variants) > 0) selected_variants(rbind(current_variants, new_unique_variants))
-      
-      # Aktualizace globální proměnné shared_data$somatic_var:
-      global_data <- shared_data$somatic_var()
+
+      # Aktualizace globální proměnné shared_data$somatic.variants:
+      global_data <- shared_data$somatic.variants()
 
       # Pokud je NULL nebo nemá správnou strukturu, inicializujeme
       if (is.null(global_data) || !is.data.table(global_data) || !("sample" %in% names(global_data))) {
@@ -244,17 +231,17 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
           gnomAD_NFE = numeric()
         )
       }
-      
+
       # VŽDY provedeme odstranění záznamů daného pacienta — bezpodmínečně!
       global_data <- global_data[sample != selected_samples]
-      
+
 
       # Přidáme nově aktualizované lokální data daného pacienta
       updated_global_data <- rbind(global_data, selected_variants())
-      shared_data$somatic_var(updated_global_data)
+      shared_data$somatic.variants(updated_global_data)
     })
-    
-    
+
+
     output$selectPathogenic_tab <- renderReactable({
       variants <- selected_variants()
       if (is.null(variants) || nrow(variants) == 0) {
@@ -270,16 +257,16 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
           selection = "multiple", onClick = "select")
       }
     })
-    
+
     observeEvent(input$delete_button, {
       rows <- getReactableState("selectPathogenic_tab", "selected")
       req(rows)
-      
+
       current_variants <- selected_variants()
       updated_variants <- current_variants[-rows, ]
       selected_variants(updated_variants)
-      
-      global_data <- shared_data$somatic_var()
+
+      global_data <- shared_data$somatic.variants()
       # if (!is.null(global_data) && is.data.table(global_data) && "sample" %in% colnames(global_data)) {
       if (!is.null(global_data) && is.data.table(global_data)) {
         global_data <- global_data[sample != selected_samples]
@@ -298,26 +285,26 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
           gnomAD_NFE = character()
         )
       }
-      
+
       if (nrow(updated_variants) > 0) {
         updated_global_data <- rbind(global_data, as.data.table(updated_variants))
       } else {
         updated_global_data <- global_data
       }
-      
-      shared_data$somatic_var(updated_global_data)
+
+      shared_data$somatic.variants(updated_global_data)
       session$sendCustomMessage("resetReactableSelection", updated_variants)
-      
+
       if (nrow(updated_variants) == 0) {
         hide("delete_button")
       }
     })
-    
+
     # Při stisku tlačítka pro výběr
     observeEvent(input$selectPathogenic_button, {
       if (is.null(selected_variants()) || nrow(selected_variants()) == 0 ) {
         hide("delete_button")
-        
+
         shinyalert(
           title = "No variant selected",
           text = "Please select the potentially oncogenic variants from table above.",
@@ -335,7 +322,7 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
         show("delete_button")
       }
     })
-    
+
     observe({
       variants <- selected_variants()
       if (!is.null(variants) && nrow(variants) > 0) {
@@ -344,8 +331,8 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
         hide("delete_button")
       }
     })
-    
-    
+
+
     observeEvent(filter_state$confirm(), {
       message("🟢 Confirm button was clicked")
       selected_tumor_depth(filter_state$tumor_depth())
@@ -354,16 +341,16 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
       selected_consequence(filter_state$consequence())
       selected_columns(filter_state$selected_columns())
     })
-    
+
     # plot VAF histogram
     hist <- reactive({
       generate_vaf(filtered_data(),selected_variants())
     })
     output$Histogram <- renderPlot({ hist() },height = 480)
-    
+
     # Rendering the Sankey network
     p <-reactiveVal()
-    
+
     sankey_data <- reactive({
       sankey_plot(filtered_data())
     })
@@ -379,7 +366,7 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
     output$diagram <- renderUI({
       sankeyNetworkOutput(ns("sankey_plot"), height = sankey_data()$plot_height)
     })
-    
+
     #################
     ## export data ##
     #################
@@ -391,10 +378,23 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
     ## run IGV ##
     #############
     
+    ## update IGV button choices
+    observeEvent(shared_data$somatic.patients(), {
+      patient_list <- shared_data$somatic.patients()
+      if (is.null(patient_list)) patient_list <- character(0)
+      prev <- input$idpick; if (is.null(prev)) prev <- character(0)
+      sel  <- intersect(prev, patient_list)
+      if (!length(sel) && length(patient_list) && !is.null(selected_samples)) {
+        sel <- intersect(selected_samples, patient_list)
+      }
+      updatePickerInput(session, "idpick", choices = patient_list, selected = sel)
+    }, ignoreInit = FALSE)
+    
+    
     observeEvent(input$go2igv_button, {
       selected_empty <- is.null(selected_variants()) || nrow(selected_variants()) == 0
-      bam_empty <- is.null(shared_data$somatic_bam) || length(shared_data$somatic_bam) == 0
-      
+      bam_empty <- is.null(shared_data$somatic.bam) || length(shared_data$somati._bam) == 0
+
       if (selected_empty || bam_empty) {
         shinyalert(
           title = "No variant or patient selected",
@@ -402,37 +402,37 @@ server <- function(id, selected_samples, shared_data, restore_flag) {
           type = "warning",
           showCancelButton = FALSE,
           confirmButtonText = "OK")
-        
+
       } else {
         shared_data$navigation_context("somatic")   # odkud otevíráme IGV
-        
+
         bam_path  <- get_inputs("bam_file")
         # bam_list  <- lapply(input$idpick, function(id_val) {
         #   full_path <- grep(paste0(id_val, ".*\\.bam$"), bam_path$dna.tumor_bam, value = TRUE)
         #   list(name = id_val, file = sub(bam_path$path_to_folder, ".", full_path, fixed = TRUE))
         # })
-        
+
         bam_list <- unlist(
           lapply(input$idpick, function(id_val) {
             ## 1) DNA-tumor BAM
             tumor_path <- grep(paste0(id_val, ".*\\.bam$"), bam_path$dna.tumor_bam, value = TRUE)
             tumor_track <- list(name = paste0(id_val, "tumor"), file = sub(bam_path$path_to_folder, ".", tumor_path, fixed = TRUE))
-            
+
             ## 2) DNA-normal BAM
             normal_path <- grep(paste0(id_val, ".*\\.bam$"), bam_path$dna.normal_bam, value = TRUE)
             normal_track <- list(name = paste0(id_val, "normal"), file = sub(bam_path$path_to_folder, ".", normal_path, fixed = TRUE))
-            
+
             list(tumor_track, normal_track)  # pořadí: tumor -> chimeric
           }), recursive = FALSE              # nerozbalujeme úplně, zůstane list tracků
         )
-        
-        shared_data$somatic_bam(bam_list)
+
+        shared_data$somatic.bam(bam_list)
         message("✔ Assigned somatic_bam: ", paste(sapply(bam_list, `[[`, "file"), collapse = ", "))
-        
+
         updateNavbarTabs(session = session$userData$parent_session, inputId = "navbarMenu", selected = session$userData$parent_session$ns("hidden_igv"))
       }
     })
-    
+
     ###########################
     ## get / restore session ##
     ###########################
@@ -471,7 +471,7 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names) {
                                 prettyOptions = list(status = "primary",icon = icon("check"),outline = FALSE))
       updatePrettyCheckboxGroup(session, "colFilter_checkBox", choices = mapped_checkbox_names[order(mapped_checkbox_names)], selected = colnames_list$default_columns,
                                 prettyOptions = list(status = "primary",icon = icon("check"),outline = FALSE))
-      
+
       if(isTruthy(is.na(input$coverage_depth))) updateNumericInput(session, "coverage_depth", value = 10)
       if(isTruthy(is.na(input$gnomAD_min))) updateNumericInput(session, "gnomAD_min", value = 0.01)
     })
@@ -491,7 +491,7 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names) {
       if (!is.null(data$consequence)) updatePrettyCheckboxGroup(session, "consequence", selected = safe_extract(data$consequence))
       if (!is.null(data$selected_cols)) updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = safe_extract(data$selected_cols))
     }
-    
+
     return(list(
       confirm = reactive(input$confirm_btn),
       tumor_depth = reactive(input$tumor_depth),
