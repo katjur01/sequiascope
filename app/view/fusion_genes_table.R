@@ -9,14 +9,13 @@ box::use(
   htmltools[tags, p,span,HTML],
   bs4Dash[actionButton,bs4Card,box,updateNavbarTabs],
   shinyjs[useShinyjs,runjs,hide,show],
-  reactablefmtr[pill_buttons,icon_assign],
   shinyalert[shinyalert,useShinyalert],
   data.table[data.table,uniqueN,as.data.table,copy,is.data.table,fifelse,setcolorder,fread,setnames],
   shinyWidgets[pickerInput,updatePickerInput,dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
 )
 box::use(
   app/logic/load_data[get_inputs,load_data],
-  app/logic/prepare_table[prepare_fusion_genes_table,prepare_arriba_images], 
+  app/logic/prepare_table[prepare_fusion_genes_table], 
   app/logic/waiters[use_spinner],
   app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter,update_fusion_data],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
@@ -79,15 +78,6 @@ read_fusion_manifest <- function(sample, www_dir = "www") {
 server <- function(id, selected_samples, shared_data, file, load_session_btn) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    # prepare_arriba_images(selected_samples)
-    
-  # # Call loading function to load data
-  #   data <- reactive({
-  #     message("Loading input data for fusion: ",file$fusion)
-  #     data <- load_data(file$fusion,"fusion",selected_samples)
-  #     prepare_fusion_genes_table(data, selected_samples)
-  #   })
-
    
     prerun_ready <- reactive({
       status <- shared_data$fusion_prerun_status()
@@ -116,7 +106,7 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
       message("[fusion] Loading input data for: ", file$fusion)
       data <- load_data(file$fusion, "fusion", selected_samples)
       manifest_dt <- read_fusion_manifest(selected_samples, www_dir = "www")
-      patient_dt <- prepare_fusion_genes_table(selected_samples, as.data.table(data), manifest_dt)
+      patient_dt <- prepare_fusion_genes_table(selected_samples, as.data.table(data), manifest_dt, colnames(data))
 
       message(sprintf("[fusion] Rows: %d | has_svg: %d | has_png: %d",
                       nrow(patient_dt), sum(patient_dt$has_svg, na.rm = TRUE), sum(patient_dt$has_png, na.rm = TRUE)))

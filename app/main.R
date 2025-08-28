@@ -62,7 +62,7 @@ box::use(
   app/view/fusion_genes_table,
   app/view/germline_var_call_table,
   app/view/somatic_var_call_table,
-  # app/view/expression_profile_table,
+  app/view/expression_profile_table,
   # app/logic/patients_list[patients_list,set_patient_to_sample],
 #   app/view/IGV,
 #   app/logic/igv_helper[start_static_server,stop_static_server],
@@ -72,7 +72,7 @@ box::use(
   # app/view/create_report,
   # app/logic/session_utils[save_session],
   app/logic/prerun_fusion[fusion_patients_to_prerun,prerun_fusion_data, get_fusion_prerun_status],
-  app/logic/helper_main[get_patients,get_files_fo_all_patients,get_files_by_patient,add_dataset_tabs],
+  app/logic/helper_main[get_patients,add_dataset_tabs],
 )
 
 #####################################################
@@ -219,7 +219,7 @@ ui <- function(id){
                                      .btn-mygrey {background-color: lightgray; color: black;}")),
                     div(class = "patient-tabs",
                         tabsetPanel(id = ns("expression_tabset"))),
-                    
+
                     # do.call(tabsetPanel, c(id = ns("expression_profile_patients"),
                     #      lapply(names(set_patient_to_sample("expression")), function(patient) {
                     #        tabPanel(title = patient,
@@ -377,102 +377,103 @@ server <- function(id) {
     observeEvent(upload$confirmed_paths(), {
       confirmed_paths <- upload$confirmed_paths()   # make visible to helper above; or pass as arg
       
-      # Somatic
-      add_dataset_tabs(session, confirmed_paths, "somatic", shared_data, added_tab_values, "somatic_tabset", "som_", somatic_var_call_table)
-      # Germline
-      add_dataset_tabs(session, confirmed_paths, "germline", shared_data, added_tab_values, "germline_tabset", "germ_", germline_var_call_table)
-      # Fusion
-      add_dataset_tabs(session, confirmed_paths, "fusion", shared_data, added_tab_values, "fusion_tabset", "fus_", fusion_genes_table, reactive(input$load_session_btn))
-      
-      
-      fusion_patients <- get_patients(confirmed_paths, "fusion")
-      patients_to_run <- fusion_patients_to_prerun(fusion_patients, "www")
-      
-      # NOVÝ KÓD: Spustit fusion prerun na pozadí
-      
-      if (length(patients_to_run) > 0) {
-        message("Starting fusion prerun in background for: ", paste(patients_to_run, collapse = ", "))
-        shared_data$fusion_prerun_status <- reactiveVal("running")
-        shared_data$fusion_prerun_progress <- reactiveVal(0)
-        
-        # omez vstupní tabulku jen na tyto pacienty
-        confirmed_subset <- subset(confirmed_paths, patient %in% patients_to_run & dataset == "fusion")
-        
-        prog_file <- file.path(tempdir(), paste0("fusion_", as.integer(Sys.time()), ".progress"))
-        shared_data$fusion_prerun_progress_file <- prog_file
-        
-        fusion_future <- future({
-          message("[DEBUG] fusion prerun: sleeping 30s to simulate heavy work...")
-          
-          Sys.sleep(15)
-          
-
-          # prerun_fusion_data(confirmed_subset, shared_data)
-
-          writeLines("0", prog_file)
-          ok <- FALSE
-          try({
-            ok <- isTRUE(prerun_fusion_data(confirmed_subset, NULL, prog_file = prog_file))
-          })
-          writeLines("100", prog_file)
-          ok
-
-          TRUE
-        })
-        
-        shared_data$fusion_prerun_future <- fusion_future
-        
+      # # Somatic
+      # add_dataset_tabs(session, confirmed_paths, "somatic", shared_data, added_tab_values, "somatic_tabset", "som_", somatic_var_call_table)
+      # # Germline
+      # add_dataset_tabs(session, confirmed_paths, "germline", shared_data, added_tab_values, "germline_tabset", "germ_", germline_var_call_table)
+      # # Fusion
+      # add_dataset_tabs(session, confirmed_paths, "fusion", shared_data, added_tab_values, "fusion_tabset", "fus_", fusion_genes_table, reactive(input$load_session_btn))
+      # Expression
+      add_dataset_tabs(session, confirmed_paths, "expression", shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
+      # 
+      # fusion_patients <- get_patients(confirmed_paths, "fusion")
+      # patients_to_run <- fusion_patients_to_prerun(fusion_patients, "www")
+      # 
+      # # NOVÝ KÓD: Spustit fusion prerun na pozadí
+      # 
+      # if (length(patients_to_run) > 0) {
+      #   message("Starting fusion prerun in background for: ", paste(patients_to_run, collapse = ", "))
+      #   shared_data$fusion_prerun_status <- reactiveVal("running")
+      #   shared_data$fusion_prerun_progress <- reactiveVal(0)
+      #   
+      #   # omez vstupní tabulku jen na tyto pacienty
+      #   confirmed_subset <- subset(confirmed_paths, patient %in% patients_to_run & dataset == "fusion")
+      #   
+      #   prog_file <- file.path(tempdir(), paste0("fusion_", as.integer(Sys.time()), ".progress"))
+      #   shared_data$fusion_prerun_progress_file <- prog_file
+      #   
+      #   fusion_future <- future({
+      #     message("[DEBUG] fusion prerun: sleeping 30s to simulate heavy work...")
+      #     
+      #     # Sys.sleep(15)
+      #     
+      # 
+      #     # prerun_fusion_data(confirmed_subset, shared_data)
+      # 
+      #     writeLines("0", prog_file)
+      #     ok <- FALSE
+      #     try({
+      #       ok <- isTRUE(prerun_fusion_data(confirmed_subset, NULL, prog_file = prog_file))
+      #     })
+      #     writeLines("100", prog_file)
+      #     ok
+      # 
+      #     TRUE
+      #   })
+      #   
+      #   shared_data$fusion_prerun_future <- fusion_future
+      #   
+      # #   fusion_status_observer <- observe({
+      # #     invalidateLater(1000)
+      # #     if (!is.null(shared_data$fusion_prerun_future) && resolved(shared_data$fusion_prerun_future)) {
+      # #       tryCatch({
+      # #         value(shared_data$fusion_prerun_future)
+      # #         shared_data$fusion_prerun_status <- reactiveVal("completed")
+      # #         message("Fusion prerun completed successfully!")
+      # #       }, error = function(e) {
+      # #         shared_data$fusion_prerun_status <- reactiveVal("failed")
+      # #         message("Fusion prerun failed: ", e$message)
+      # #       })
+      # #       shared_data$fusion_prerun_future <- NULL
+      # #       fusion_status_observer$destroy()
+      # #     }
+      # #   })
+      #   
       #   fusion_status_observer <- observe({
       #     invalidateLater(1000)
-      #     if (!is.null(shared_data$fusion_prerun_future) && resolved(shared_data$fusion_prerun_future)) {
-      #       tryCatch({
-      #         value(shared_data$fusion_prerun_future)
-      #         shared_data$fusion_prerun_status <- reactiveVal("completed")
-      #         message("Fusion prerun completed successfully!")
-      #       }, error = function(e) {
-      #         shared_data$fusion_prerun_status <- reactiveVal("failed")
-      #         message("Fusion prerun failed: ", e$message)
-      #       })
+      #     
+      #     # čti průběžný progress ze souboru
+      #     pf <- isolate(shared_data$fusion_prerun_progress_file)
+      #     if (!is.null(pf) && nzchar(pf) && file.exists(pf)) {
+      #       p <- suppressWarnings(as.integer(readLines(pf, n = 1)))
+      #       if (!is.na(p)) shared_data$fusion_prerun_progress(p)  # <<< setter, ne reactiveVal()
+      #     }
+      #     
+      #     # dokončení future
+      #     if (!is.null(shared_data$fusion_prerun_future) &&
+      #         future::resolved(shared_data$fusion_prerun_future)) {
+      #       
+      #       ok <- tryCatch(future::value(shared_data$fusion_prerun_future), error = function(e) FALSE)
+      #       
+      #       shared_data$fusion_prerun_status(if (ok) "completed" else "failed")  # <<< setter
+      #       shared_data$fusion_prerun_progress(100)                               # <<< setter
+      #       
+      #       # úklid
       #       shared_data$fusion_prerun_future <- NULL
+      #       if (!is.null(pf) && file.exists(pf)) unlink(pf)
+      #       shared_data$fusion_prerun_progress_file <- NULL
+      #       
       #       fusion_status_observer$destroy()
       #     }
       #   })
-        
-        fusion_status_observer <- observe({
-          invalidateLater(1000)
-          
-          # čti průběžný progress ze souboru
-          pf <- isolate(shared_data$fusion_prerun_progress_file)
-          if (!is.null(pf) && nzchar(pf) && file.exists(pf)) {
-            p <- suppressWarnings(as.integer(readLines(pf, n = 1)))
-            if (!is.na(p)) shared_data$fusion_prerun_progress(p)  # <<< setter, ne reactiveVal()
-          }
-          
-          # dokončení future
-          if (!is.null(shared_data$fusion_prerun_future) &&
-              future::resolved(shared_data$fusion_prerun_future)) {
-            
-            ok <- tryCatch(future::value(shared_data$fusion_prerun_future), error = function(e) FALSE)
-            
-            shared_data$fusion_prerun_status(if (ok) "completed" else "failed")  # <<< setter
-            shared_data$fusion_prerun_progress(100)                               # <<< setter
-            
-            # úklid
-            shared_data$fusion_prerun_future <- NULL
-            if (!is.null(pf) && file.exists(pf)) unlink(pf)
-            shared_data$fusion_prerun_progress_file <- NULL
-            
-            fusion_status_observer$destroy()
-          }
-        })
-        
-        
-      } else {
-        print("### Fusion prerun skript is not needed for any selected patient.")
-      }
+      #   
+      #   
+      # } else {
+      #   print("### Fusion prerun skript is not needed for any selected patient.")
+      # }
 
       # Optionally focus the whole Variant calling page
-      # updateNavbarTabs(session, "navbarMenu", selected = ns("fusion_genes"))
+      updateNavbarTabs(session, "navbarMenu", selected = ns("expression_profile"))
     
 
 # ## run summary module

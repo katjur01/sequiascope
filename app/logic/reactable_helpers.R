@@ -5,7 +5,6 @@ box::use(
   htmltools[div,tags,tagAppendAttributes],
   stats[na.omit,setNames],
   bs4Dash[actionButton],
-  reactablefmtr[pill_buttons,data_bars],
   htmltools[HTML,span, div, tagList],
   data.table[uniqueN]
 )

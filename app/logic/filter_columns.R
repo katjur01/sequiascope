@@ -8,7 +8,6 @@ box::use(
   reactable[colDef,JS,colGroup],
   stats[setNames], #na.omit,
   shinyWidgets[radioGroupButtons],
-  reactable.extras[text_extra],
   # data.table[uniqueN]
 )
 
@@ -35,10 +34,13 @@ map_checkbox_names <- function(map_list){
 }
 
 #' @export
-getColFilterValues <- function(flag,expr_flag = NULL) {
-  colnames_list <- colFilter(flag,expr_flag)
-  list(all_columns = colnames_list$all_columns, default_columns = colnames_list$default_columns)
+getColFilterValues <- function(flag, all_column_var, tissues = NULL) {
+  colFilter(flag, all_column_var, tissues)
 }
+# getColFilterValues <- function(flag,expr_flag = NULL) {
+#   colnames_list <- colFilter(flag,expr_flag)
+#   list(all_columns = colnames_list$all_columns, default_columns = colnames_list$default_columns)
+# }
 
 #' @export
 generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
@@ -95,7 +97,7 @@ generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
 }
 
 #' @export
-colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL, session = NULL){
+colnames_map_list <- function(tag,all_columns = NULL, session = NULL){
   if (tag == "fusion"){
     map_list <- list(
       gene1 = colDef(minWidth = 120,filterable = TRUE,sticky = "left",name="Gene 1"),
@@ -320,26 +322,26 @@ colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL, session
       )
   } else if (tag == "expression"){
     
-      if (expr_flag == "all_genes") {
-        static_columns <- list(
-          feature_name = colDef(name = "Gene name", sticky = "left", minWidth = 140, filterable = TRUE),
-          geneid = colDef(name = "Gene ID", minWidth = 110, filterable = TRUE),
-          refseq_id = colDef(name = "RefSeq ID", minWidth = 110),
-          type = colDef(name = "Type", minWidth = 100),
-          gene_definition = colDef(name = "Gene definition", minWidth = 200),
-          all_kegg_gene_names = colDef(name = "KEGG gene names", minWidth = 180),
-          pathway = colDef(name = "Pathway", minWidth = 150),
-          num_of_paths = colDef(name = "Pathway (n)", minWidth = 100),
-          mean_log2FC = colDef(name = "Mean log2FC", minWidth = 120)
-        )
-      } else {
-        static_columns <- list(
-          feature_name = colDef(name = "Gene name", sticky = "left", minWidth = 140, filterable = TRUE),
-          geneid = colDef(name = "Gene ID", minWidth = 110, filterable = TRUE),
-          pathway = colDef(name = "Pathway", minWidth = 150),
-          mean_log2FC = colDef(name = "Mean log2FC", minWidth = 120)
-        )
-      }
+      # if (expr_flag == "all_genes") {
+      static_columns <- list(
+        feature_name = colDef(name = "Gene name", sticky = "left", minWidth = 140, filterable = TRUE),
+        geneid = colDef(name = "Gene ID", minWidth = 110, filterable = TRUE),
+        refseq_id = colDef(name = "RefSeq ID", minWidth = 110),
+        type = colDef(name = "Type", minWidth = 100),
+        gene_definition = colDef(name = "Gene definition", minWidth = 200),
+        all_kegg_gene_names = colDef(name = "KEGG gene names", minWidth = 180),
+        pathway = colDef(name = "Pathway", minWidth = 150),
+        num_of_paths = colDef(name = "Pathway (n)", minWidth = 100),
+        mean_log2FC = colDef(name = "Mean log2FC", minWidth = 120)
+      )
+      # } else {
+      #   static_columns <- list(
+      #     feature_name = colDef(name = "Gene name", sticky = "left", minWidth = 140, filterable = TRUE),
+      #     geneid = colDef(name = "Gene ID", minWidth = 110, filterable = TRUE),
+      #     pathway = colDef(name = "Pathway", minWidth = 150),
+      #     mean_log2FC = colDef(name = "Mean log2FC", minWidth = 120)
+      #   )
+      # }
       
       # 2️⃣ Dynamické sloupce podle tkání a typů
       dynamic_columns <- list()
@@ -412,72 +414,7 @@ colnames_map_list <- function(tag, expr_flag = NULL, all_columns = NULL, session
       
       # 3️⃣ Sloučení do map_list
       map_list <- c(static_columns, dynamic_columns)
-    
-    # dropdown_btn <- list()
-    # table <- list()
-    # tissue_list <- get_tissue_list()
-    # 
-    # rename_column <- function(col, tissue_list) {
-    #   for (tissue in tissue_list) {
-    #     if (grepl(tissue, col)) {
-    #       prefix <- gsub(paste0("_", tissue), "", col)  # Odstraníme tkáň z názvu
-    #       tissue <- gsub("_", " ", tissue)  # Nahrazení podtržítka mezerou pro čitelnost
-    #       
-    #       # Vrátíme přejmenovaný sloupec jen pokud je relevantní
-    #       if (prefix %in% c("log2FC", "p_value", "p_adj")) {
-    #         return(paste(tissue, ifelse(prefix == "log2FC", "log2FC",
-    #                                     ifelse(prefix == "p_value", "p-value", "p-adj"))))
-    #       }
-    #     }
-    #   }
-    #   return(NULL)  # Pokud se sloupec nemá přejmenovat, vrátíme NULL
-    # }
-    # 
-    # if (expr_flag == "all_genes"){
-    #   static_columns <- list(
-    #     feature_name = "Gene name",
-    #     geneid = "Gene ID",
-    #     refseq_id = "RefSeq ID",
-    #     type = "Type",
-    #     gene_definition = "Gene definition",
-    #     all_kegg_gene_names = "KEGG gene names",
-    #     pathway = "Pathway",
-    #     num_of_paths = "Pathway (n)",
-    #     mean_log2FC = "Mean log2FC")
-    # } else {
-    #   static_columns <- list(
-    #     feature_name = "Gene name",
-    #     geneid = "Gene ID",
-    #     pathway = "Pathway",
-    #     mean_log2FC = "Mean log2FC")
-    # }
-    # 
-    # for (col in all_columns) {
-    #   new_name <- rename_column(col, tissue_list)
-    #   if (!is.null(new_name)) {  # Přidáme jen pokud má smysl
-    #     dropdown_btn[[col]] <- new_name
-    #   }
-    # }
-    # 
-    # for (col in all_columns) {
-    #   if (grepl("^log2FC_", col)) {
-    #     table[[col]] <- "log2FC"
-    #   } else if (grepl("^p_value_", col)) {
-    #     table[[col]] <- "p-value"
-    #   } else if (grepl("^p_adj_", col)) {
-    #     table[[col]] <- "p-adj"
-    #   }
-    # }
-    # 
-    # dropdown_btn <- append(static_columns,dropdown_btn)
-    # table <- c(static_columns,table)
-    # map_list <- list(dropdown_btn = dropdown_btn, table = table)
-    # 
-    
-    
-    ##########
-    
-    
+
   } else {
     print("NOT germline, expression or fusion")
   }

@@ -23,26 +23,34 @@ box::use(
 #' @param batch_file_name Name for the batch file
 #' @param output_dir Output directory for snapshots
 #' @param genome_build Genome build (default: hg38)
-createIGVBatchFile <- function(bam_file, chimeric_file, chrom_break_pos, snapshot_name, batch_file_name, output_dir, genome_build = "hg38") {
+createIGVBatchFile <- function(tumor_bam, chimeric_bam, fusions_tab, batch_file, output_dir, genome_build) {
   header <- paste("new",
                   paste0("genome ", genome_build),
-                  paste0("load ", bam_file),
-                  paste0("load ", chimeric_file),
                   paste0("snapshotDirectory ", output_dir),
-                  paste0("goto ", chrom_break_pos),
+                  paste0("load ", tumor_bam),
+                  paste0("load ", chimeric_bam),
                   "viewaspairs",
                   "maxPanelHeight 10000",
-                  "preference SAM.SHOW_SOFT_CLIPPED true",
-                  "preference IGV.Bounds 94,0,1280,1024",
-                  "preference SAM.SHOW_JUNCTION_TRACK true",
+                  "preference SAM.SHOW_SOFT_CLIPPED TRUE",
+                  "preference SAM.SHOW_JUNCTION_TRACK TRUE",
                   "preference SAM.COLOR_BY NONE",
-                  paste0("snapshot ", snapshot_name, ".png"),
-                  "exit",
-                  sep = "\n")
-
-  cat(header, file = batch_file_name)
-  return(batch_file_name)
+                  "preference IGV.Bounds 94,0,1280,1024",
+                   sep = "\n")
+  writeLines(header, con = batch_file)
+  
+  # pro každý řádek: goto + snapshot (jen basename, když máš snapshotDirectory)
+  for (i in seq_len(nrow(fusions_tab))) {
+    goto_line     <- paste0("goto ", fusions_tab$chrom_break_pos[i])
+    snapshot_name <- basename(fusions_tab$png_path[i])
+    snap_line     <- paste0("snapshot ", snapshot_name)
+    write(goto_line, file = batch_file, append = TRUE)
+    write(snap_line, file = batch_file, append = TRUE)
+  }
+  
+  write("exit", file = batch_file, append = TRUE)
+  return(batch_file)
 }
+
 
 #' Create fusion table from Excel/TSV file for IGV snapshots
 #' @param fusion_file Path to fusion file
@@ -94,11 +102,10 @@ createFusionTableFromFile <- function(fusion_file, sample_name, zoom = 251) {
 #' @param IGV_batch_file Path to IGV batch file
 runIGVSnapshot <- function(IGV_batch_file) {
   igv_executive <- "igv"
-  igv_command <- paste0("xvfb-run --auto-servernum --server-args='-screen 0 1280x1024x24 -ac' ",
-                        igv_executive, " -b ", IGV_batch_file)
+  igv_command <- paste0("xvfb-run --auto-servernum --server-args='-screen 0 1280x1024x24 -ac' ",igv_executive," -b ",IGV_batch_file)
 
   result <- tryCatch({
-    system(igv_command, wait = TRUE)
+    system(igv_command, wait = FALSE)
 
   }, error = function(e) {
     message("Error running IGV command: ", e$message)
@@ -109,7 +116,6 @@ runIGVSnapshot <- function(IGV_batch_file) {
   if (file.exists(IGV_batch_file)) {
     file.remove(IGV_batch_file)
   }
-
   return(result)
 }
 
@@ -117,74 +123,49 @@ runIGVSnapshot <- function(IGV_batch_file) {
 #' @param patient_id Patient identifier
 #' @param file_list List of files for this patient (fusion, tumor, chimeric)
 #' @param output_base_dir Base directory for output (usually "./www")
-process_patient_igv <- function(patient_id, file_list, output_base_dir = "./www") {
-  message("Processing IGV snapshots for patient: ", patient_id)
+process_patient_igv <- function(sample, file_list, output_base_dir = "./www") {
+  message("Processing IGV snapshots for patient: ", sample)
 
   # Get required files
   fusion_file <- file_list$fusion
   tumor_files <- file_list$tumor
   chimeric_files <- file_list$chimeric
   
-  if (length(fusion_file) == 0) {
-    message("No fusion file found for patient: ", patient_id)
-    return(FALSE)
-  }
-
+  if (length(fusion_file) == 0) { message("No fusion file: ", sample); return(FALSE) }
+  
   # Create fusion table
-  fusions_tab <- createFusionTableFromFile(fusion_file, patient_id)
-  if (is.null(fusions_tab) || nrow(fusions_tab) == 0) {
-    message("No fusion data found for patient: ", patient_id)
-    return(FALSE)
-  }
+  fusions_tab <- createFusionTableFromFile(fusion_file, sample)
+  if (is.null(fusions_tab) || nrow(fusions_tab) == 0) { message("No data: ", sample); return(FALSE) }
+  
 
   # Create output directory
-  output_dir <- file.path(output_base_dir, "igv_snapshots", patient_id)
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  output_dir <- file.path(output_base_dir, "igv_snapshots", sample)
+  if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   # Find BAM files (optional for IGV)
-  tumor_bam <- if (length(tumor_files) > 0) {
-    tumor_files[grepl("\\.bam$", tumor_files)][1]
-  } else NULL
+  tumor_bam    <- if (length(tumor_files))    tumor_files[grepl("\\.bam$", tumor_files)][1]    else NULL
+  chimeric_bam <- if (length(chimeric_files)) chimeric_files[grepl("\\.bam$", chimeric_files)][1] else NULL
 
-  chimeric_bam <- if (length(chimeric_files) > 0) {
-    chimeric_files[grepl("\\.bam$", chimeric_files)][1]
-  } else NULL
+  if (is.null(tumor_bam) || is.null(chimeric_bam)) message("Warning: Missing BAM files for patient ", sample,". IGV snapshots may not be complete.")
 
-  if (is.null(tumor_bam) || is.null(chimeric_bam)) {
-    message("Warning: Missing BAM files for patient ", patient_id,
-            ". IGV snapshots may not be complete.")
-  }
+  batch_file = file.path(output_dir, paste0(sample,"_batch.txt"))
 
-  # Process each fusion
-  success_count <- 0
-  # for (i in seq_len(nrow(fusions_tab))) {
-  #   tryCatch({
-  #     if (!is.null(tumor_bam) && !is.null(chimeric_bam)) {
-  #       batch_file <- createIGVBatchFile(
-  #         bam_file = tumor_bam,
-  #         chimeric_file = chimeric_bam,
-  #         chrom_break_pos = fusions_tab$chrom_break_pos[i],
-  #         snapshot_name = sprintf("%s_%03d", patient_id, i),
-  #         output_dir = output_dir,
-  #         batch_file_name = paste0("www/igv_snapshots/",fusions_tab$fusion_genes[i], "_temp_batch.txt")
-  #       )
-  # 
-  #       result <- runIGVSnapshot(batch_file)
-  #       if (result == 0) {
-  #         success_count <- success_count + 1
-  #       }
-  #     }
-  #   }, error = function(e) {
-  #     message("Error processing fusion ", i, " for patient ", patient_id, ": ", e$message)
-  #   })
-  # }
+  tryCatch({
+    if (!is.null(tumor_bam) && !is.null(chimeric_bam)) {
+      batch_file <- createIGVBatchFile(
+        tumor_bam = tumor_bam,
+        chimeric_bam = chimeric_bam,
+        fusions_tab = fusions_tab,
+        batch_file = batch_file,
+        output_dir = output_dir,
+        genome_build = "hg38")
+      
+      # runIGVSnapshot(batch_file)
+    }
+  }, error = function(e) {
+    message("Error processing fusions for patient ", sample, ": ", e$message)
+  })
 
-  message("IGV snapshots completed for patient ", patient_id, ": ",
-          success_count, "/", nrow(fusions_tab), " successful")
-
-  return(success_count > 0)
 }
 
 #' Process Arriba images for a single patient
@@ -203,7 +184,7 @@ process_arriba_pdf <- function(sample, arriba, output_base_dir = "./www") {
   
 
   pages <- NA_integer_  # kolik stran má PDF (pdftocairo pak pojedeme po jedné stránce)
-  pdfinfo_out <- tryCatch(system2("pdfinfo", args = shQuote(arriba_pdf), stdout = TRUE), error = function(e) character())
+  pdfinfo_out <- tryCatch(system2("pdfinfo", args = shQuote(arriba_pdf), stdout = TRUE), error = function(e) character(), , wait = FALSE)
   if (length(pdfinfo_out)) {
     p_line <- pdfinfo_out[grepl("^Pages:\\s+\\d+", pdfinfo_out)]
     if (length(p_line)) pages <- as.integer(sub("^Pages:\\s+", "", p_line[1]))
@@ -213,7 +194,7 @@ process_arriba_pdf <- function(sample, arriba, output_base_dir = "./www") {
   if (length(list.files(output_dir, pattern = "\\.svg$", ignore.case = TRUE)) == 0) {
     for (i in seq_len(pages)) {
       output_svg <- file.path(output_dir, sprintf("%s_%03d.svg", sample, i))
-      system2("pdftocairo", args = c("-svg", "-f", as.character(i), "-l", as.character(i), shQuote(arriba_pdf), shQuote(output_svg)))
+      system2("pdftocairo", args = c("-svg", "-f", as.character(i), "-l", as.character(i), shQuote(arriba_pdf), shQuote(output_svg)), wait = FALSE)
       if (file.exists(output_svg)) success_count <- success_count + 1
     }
     message("Creating arriba pictures... (", success_count, "/", pages, ")")
@@ -279,79 +260,6 @@ create_fusion_manifest <- function(patient_id, fusion_file, arriba, output_base_
 #' @param confirmed_paths Data frame with paths from upload_data
 #' @param shared_data Reactive values object to update status
 #' @export
-# prerun_fusion_data <- function(confirmed_paths, shared_data) {
-#   print("Starting fusion data prerun...")
-# 
-#   # Update status
-#   if (!is.null(shared_data)) {
-#     shared_data$fusion_prerun_status <- reactiveVal("running")
-#     shared_data$fusion_prerun_progress <- reactiveVal(0)
-#   }
-#   
-#   # Get fusion patients and their files
-#   fusion_patients <- get_patients(confirmed_paths, "fusion")
-#   if (length(fusion_patients) == 0) {
-#     print("No fusion patients found")
-#     if (!is.null(shared_data)) {
-#       shared_data$fusion_prerun_status <- reactiveVal("completed")
-#     }
-#     return()
-#   }
-#   
-#   fusion_files <- get_files_fo_all_patients(confirmed_paths, "fusion")
-#   message("Found ", length(fusion_patients), " fusion patients: ", paste(fusion_patients, collapse = ", "))
-#   
-#   # Create base directories
-#   base_dirs <- c("./www/igv_snapshots", "./www/arriba_reports", "./www/manifests/fusion")
-#   for (dir in base_dirs) {
-#     if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
-#   }
-#   
-#   # Process each patient
-#   total_patients <- length(fusion_patients)
-#   prog_file <- file.path(tempdir(), paste0("fusion_", Sys.getpid(), ".progress"))
-#   
-#   for (i in seq_along(fusion_patients)) {
-#     sample <- fusion_patients[i]
-#     file_list <- fusion_files[[sample]]
-#     
-#     if (is.null(file_list)) {
-#       message("No files found for patient: ", sample)
-#       next
-#     }
-#     
-#     message("Processing patient ", i, "/", total_patients, ": ", sample)
-#     
-#     tryCatch({
-#       igv_success <- process_patient_igv(sample, file_list) # Process IGV snapshots
-#       arriba_success <- process_arriba_pdf(sample, file_list$arriba)  # Process Arriba images
-# 
-#       # Create manifest
-#       fusion_file <- file_list$fusion
-#       if (length(fusion_file) > 0) {
-#         create_fusion_manifest(sample, fusion_file[1], file_list$arriba)
-#       }
-#       # Update progress
-#       if (!is.null(shared_data)) {
-#         progress <- round((i / total_patients) * 100)
-#         shared_data$fusion_prerun_progress <- reactiveVal(progress)
-#         writeLines(as.character(progress), prog_file)
-#       }
-# 
-#     }, error = function(e) {  # Continue with next patient instead of stopping
-#       message("Error processing patient ", sample, ": ", e$message)
-# 
-#     })
-#   }
-#   
-#   # Mark as completed
-#   if (!is.null(shared_data)) {
-#     shared_data$fusion_prerun_status <- reactiveVal("completed")
-#     shared_data$fusion_prerun_progress <- reactiveVal(100)
-#   }
-#   
-#   message("Fusion data prerun completed!")
-# }
 prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
   message("Starting fusion data prerun...")
   

@@ -55,59 +55,21 @@ load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){
     return(dt)
     
   } else if (flag == "expression") { 
-    # input_files <- expression_profile_filenames
-    # input_files_var <- get_inputs("per_sample_file")
-    patient_files <- input_files[grep(sample, input_files)] # sample = "MR1507"
-    
-    if(expr_flag == "genes_of_interest"){
-      patient_files <- patient_files[grep(expr_flag, patient_files)] # sample = "DZ1601"
-      
-      dt_list <- lapply(patient_files, function(file) {
+    files   <- input_files$files$expression
+    tissues <- input_files$tissues
+
+    dt_list <- invisible(mapply(function(file, tissue) {
         dt <- fread(file)
-        tissue <- gsub("^.*/|_genes_of_interest\\.tsv$","",file)
         dt[, c("tissue", "sample") := .(tissue, sample)]
         return(dt)
-      })
-      combined_dt <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
-      
-    } else if (expr_flag == "all_genes"){
-      patient_files <- patient_files[grep(expr_flag, patient_files)] # sample = "DZ1601"
-      patient_files <- patient_files[grep("multiRow", patient_files)]
-      dt_list <- lapply(patient_files, function(file) {
-        dt <- fread(file)
-        tissue <- gsub("^.*/|_all_genes_multiRow\\.tsv$","",file)
-        dt[, c("tissue", "sample") := .(tissue, sample)]
-        return(dt)
-      })
-      combined_dt <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
-      combined_dt$sample <- NULL
-      combined_dt[, sample := sample]
-      setnames(combined_dt, "all_kegg_paths_name", "pathway")
-    } else{
-      stop("Your data table has wrong name. Must contain string gene_of_interest or all_genes.")
-    }
-    
+    }, file = files[tissues != "none"], tissue = tissues[tissues != "none"], SIMPLIFY = FALSE))
+
+    combined_dt <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
+    combined_dt$sample <- NULL
+    combined_dt[, sample := sample]
+    setnames(combined_dt, "all_kegg_paths_name", "pathway", skip_absent = TRUE)
+
     return(combined_dt)
-    
-    
-    # patient_data <- lapply(patient_files, function(file) { #file <- patient_files[1]
-    #   sheet_names <- getSheetNames(file)
-    #   input_var <- lapply(sheet_names, function(sheet) read.xlsx(file, sheet = sheet))
-    #   names(input_var) <- sheet_names
-    #   info <- gsub(paste0(".*", input_files_var$expression.project, "\\/(.*)\\_[0-9]*\\_(.*)\\_report.xlsx"), "\\1_\\2", file)
-    #   info <- gsub("[ -]", "", info)
-    # 
-    #   dt <- as.data.table(rbindlist(input_var, fill = TRUE))
-    #   dt[, c("Sample", "Tissue") := tstrsplit(info, "_")]
-    #   setcolorder(dt, c("Sample", "Tissue", "Gene", "Pathway", "Scale", "FC"))
-    #   tissue <- unique(dt$Tissue)
-    #   setnames(dt, c("Sample", paste0("Tissue_",tissue), "Gene", "Pathway", paste0("Scale_",tissue), paste0("FC_",tissue)))
-    # 
-    #   return(dt)
-    # })
-    # 
-    #     combined_data <- merge(patient_data[[1]], patient_data[[2]], by = c("Sample", "Gene", "Pathway"), all = TRUE)
-    #     return(combined_data)
     
   } else {
     return(print("not varcall nor fusion nor expression"))

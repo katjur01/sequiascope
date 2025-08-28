@@ -1,14 +1,13 @@
 # app/view/expression_profile_table.R
 
 box::use(
-  shiny[moduleServer, NS, tagList, fluidRow, fluidPage, column, tabPanel, reactive, req, observe, div, observeEvent, reactiveVal, icon, splitLayout, h4, bindEvent,
+  shiny[moduleServer, NS, tagList, fluidRow, fluidPage, column, tabPanel, reactive, req, observe, div, observeEvent, reactiveVal, icon, splitLayout, h4, bindEvent,conditionalPanel,
         updateSelectInput, selectInput, numericInput, actionButton, renderPlot, plotOutput, uiOutput, renderUI, verbatimTextOutput, renderPrint, reactiveValues, isolate,downloadButton],
   reactable,
-  bs4Dash[box],
+  bs4Dash[box,tabBox],
   reactable[colDef, reactableOutput, renderReactable, reactable, getReactableState, colGroup, JS],
   htmltools[tags,HTML],
   plotly[plotlyOutput, renderPlotly, toWebGL],
-  reactablefmtr[pill_buttons, data_bars],
   utils[head],
   shinyWidgets[radioGroupButtons, checkboxGroupButtons, updateCheckboxGroupButtons,prettyCheckboxGroup, updatePrettyCheckboxGroup, dropdown, dropdownButton, actionBttn,
                awesomeCheckboxGroup, pickerInput, updatePickerInput],
@@ -28,71 +27,94 @@ box::use(
   app/logic/load_data[get_inputs, load_data],
   app/logic/reactable_helpers[custom_colGroup_setting],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
-  app/logic/prepare_table[prepare_expression_table, set_pathway_colors, get_tissue_list],
+  app/logic/prepare_table[prepare_expression_table, set_pathway_colors],
   app/logic/networkGraph_helper[get_pathway_list],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
-
-# Load and process data table
-input_data <- function(sample,expr_flag){
-  input_files <- get_inputs("per_sample_file") 
-  # message("Loading data for expression profile: ", input_files$expression.files)
-  data <- load_data(input_files$expression.files,"expression",sample,expr_flag) #expr_flag = "all_genes"|"genes_of_interest" #sample = "FZ0711"
-  dt <- prepare_expression_table(data,expr_flag)
-  return(dt)
-}
-
-
-
-ui <- function(id) {
+ui <- function(id, tissue_list, goi) {
   ns <- NS(id)
   useShinyjs()
-  tagList(
-    tags$head(tags$style(HTML(".btn-default.hover,.btn-default:active,.btn-default:hover {background-color: #fff; box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15); transition: box-shadow .4s ease-out;}"))),
-    fluidRow(
-      div(style = "width: 100%; text-align: right;",
-          dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
-                         selectInput(ns("export_data_table"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
-                         selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
-                         downloadButton(ns("Table_download"),"Download")),
-          filterTab_ui(ns("filterTab_dropdown")))),
-      use_spinner(reactableOutput(ns("expression_table"))),
-    div(
-      tags$br(),
-      actionButton(ns("selectDeregulated_button"), "Select deregulated genes for report", status = "info"),
-      tags$br(),
+  
+  tabs <- list()
+  
+  if (isTRUE(goi)) {
+    tabs <- c(tabs, list(
+      tabPanel(title = "Genes of Interest", value = "genesOfinterest",
+        reactableOutput(ns("goi_expression_table")))))}
+  
+  tabs <- c(tabs, list(
+
+    tabPanel(title = "All Genes", value = "allGenes",
       fluidRow(
-        column(8,reactableOutput(ns("selectDeregulated_tab")))),
+        div(style = "width: 100%; text-align: right;",
+            dropdownButton(label = NULL, right = TRUE, width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
+                selectInput(ns("export_data_table"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
+                selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
+                downloadButton(ns("Table_download"), "Download")),
+            filterTab_ui(ns("filterTab_dropdown"), tissue_list))
+      ),
+      use_spinner(reactableOutput(ns("expression_table"))),   # jen v All Genes
+      div(
+          tags$br(),
+          actionButton(ns("selectDeregulated_button"), "Select deregulated genes for report", status = "info"),
+          tags$br(),
+          fluidRow(column(8, reactableOutput(ns("selectDeregulated_tab")))),
+          tags$br(),
+          fluidRow(column(3, actionButton(ns("delete_button"), "Delete genes", icon = icon("trash-can"))))),
       tags$br(),
-      fluidRow(
-        column(3,actionButton(ns("delete_button"),"Delete genes", icon = icon("trash-can"))))
-    ),
-    tags$br(),
-    plot_ui(ns("plot"))
-    
-  )
+      plot_ui(ns("plot"))
+    )
+  ))
+  
+  # ID tabBoxu podle toho, zda zobrazuje i GOI tab
+  tabbox_id <- if (isTRUE(goi)) "expression_profile_tabs_goi" else "expression_profile_tabs_allGenes"
+  
+  do.call(tabBox, c(list(id = ns(tabbox_id), width = 12, collapsible = FALSE, selected = "allGenes"), tabs))
 }
 
+
 ### its on purpose that its just expression_var instead of shared_data$expression_var
-server <- function(id,  patient, expr_tag, expression_var) {
+server <- function(id,  patient, shared_data, tissue_file) {
   
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
-    # Načtení dat
-    data <- reactive({
-      input_data(patient, expr_tag)
-    })
+    expr_tag <- "all_genes"
+    expression_var <- shared_data$expression_var
 
-    colnames_list <- getColFilterValues("expression",expr_tag) # gives list of all_columns and default_columns
-    map_list <- colnames_map_list("expression",expr_tag, colnames_list$all_columns) # gives list of all columns with their column definitions
+    # file <- list("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Blood_all_genes_multiRow.tsv",
+    #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Blood_Vessel_all_genes_multiRow.tsv",
+    #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Breast_all_genes_multiRow.tsv",
+    #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Kidney_all_genes_multiRow.tsv",
+    #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Retina_all_genes_multiRow.tsv",
+    #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Testis_all_genes_multiRow.tsv")
+    # Load and process data table
+    # data <- reactive({
+    #   # message("Loading input data for expression: ", tissue_file)
+    #   data <- load_data(tissue_file, "expression", patient)
+    #   prepare_expression_table(data, colnames(data))
+    # })
+
+    # colnames_list <- getColFilterValues("expression",colnames(data()),unique(data()$tissue)) # gives list of all_columns and default_columns
+
+    prepare_data <- reactive({
+      data <- load_data(tissue_file, "expression", patient)
+      prepare_expression_table(data)  # returns list(dt, columns, tissues)
+    })
+    
+
+    data <- reactive(prepare_data()$dt)
+    tissue_list <- prepare_data()$tissues
+
+    colnames_list <- prepare_data()$columns # gives list of all_columns and default_columns
+
+    map_list <- colnames_map_list("expression", colnames_list$all_columns) # gives list of all columns with their column definitions
     mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
 
-    filter_state <- filterTab_server("filterTab_dropdown",colnames_list, data(),mapped_checkbox_names,expr_tag)
-    
+    filter_state <- filterTab_server("filterTab_dropdown",colnames_list, data(), mapped_checkbox_names,expr_tag)
+
     # Reaktivní hodnoty filtrů
-    selected_tissues_final <- reactiveVal(get_tissue_list())
+    selected_tissues_final <- reactiveVal(tissue_list)
     selected_pathway_final <- reactiveVal(get_pathway_list(expr_tag))
     log2fc_bigger1_final <- reactiveVal(NULL)
     log2fc_smaller1_final <- reactiveVal(NULL)
@@ -362,7 +384,7 @@ server <- function(id,  patient, expr_tag, expression_var) {
     })
     
     
-    plot_server("plot", patient, data, expr_tag) 
+    plot_server("plot", patient, data, expr_tag, tissue_list) 
     
     ###########################
     ## get / restore session ##
@@ -480,7 +502,7 @@ options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = 
 
 
 
-filterTab_ui <- function(id){
+filterTab_ui <- function(id, tissue_list){
   ns <- NS(id)
   
   
@@ -501,7 +523,7 @@ filterTab_ui <- function(id){
          column(6,
             box(width = 12, title = tags$div(style = "padding-top: 8px;","Filter data by:"),closable = FALSE, collapsible = FALSE,style = "height: 100%;",
                 fluidRow(#class = "filterTab-select-tissue",
-                        checkboxGroupButtons(ns("select_tissue"),"Tissues:",choices = get_tissue_list(),selected = get_tissue_list(),individual = TRUE)),
+                        checkboxGroupButtons(ns("select_tissue"),"Tissues:",choices = tissue_list,selected = tissue_list,individual = TRUE)),
                 fluidRow(#class = "filter_pathway",
                     pickerInput(ns("filter_pathway"), "Pathways",choices = character(0), multiple = TRUE,
                                 options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select pathways",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE))),
@@ -510,20 +532,20 @@ filterTab_ui <- function(id){
                         # div(style = "width: 100%",
                         checkboxGroupButtons(ns("log2fc_bigger1_btn"),choices = "log2FC > 1",selected = "",individual = TRUE),
                         div(class = "filter_pathway",
-                            pickerInput(ns("log2fc_bigger1_tissue"),choices = get_tissue_list(), multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)
+                            pickerInput(ns("log2fc_bigger1_tissue"),choices = tissue_list, multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)
                                         ))),
                     div(style = "display: flex; gap: 10px; margin-bottom: -10px;",
                         checkboxGroupButtons(ns("log2fc_smaller1_btn"),choices = "log2FC < -1",selected = "",individual = TRUE),
                         div(class = "filter_pathway",
-                            pickerInput(ns("log2fc_smaller1_tissue"), choices = get_tissue_list(), multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)))),
+                            pickerInput(ns("log2fc_smaller1_tissue"), choices = tissue_list, multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)))),
                     div(style = "display: flex; gap: 10px; margin-bottom: -10px;",
                         checkboxGroupButtons(ns("pval_btn"),choices = "p-value < 0.05",selected = "",individual = TRUE),
                         div(class = "filter_pathway",
-                            pickerInput(ns("pval_tissue"), choices = get_tissue_list(), multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)))),
+                            pickerInput(ns("pval_tissue"), choices = tissue_list, multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)))),
                     div(style = "display: flex; gap: 10px; margin-bottom: -10px;",
                         checkboxGroupButtons(ns("padj_btn"),choices = "p-adj < 0.05",selected = "",individual = TRUE),
                         div(class = "filter_pathway",
-                            pickerInput(ns("padj_tissue"), choices = get_tissue_list(), multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)))))),
+                            pickerInput(ns("padj_tissue"), choices = tissue_list, multiple = TRUE, options = list(`live-search` = TRUE,`actions-box` = TRUE,`multiple-separator` = ", ",`none-selected-text` = "Select tissue",`width` = "100%",`virtual-scroll` = 10,`tick-icon` = "fa fa-check",`dropupAuto` = FALSE)))))),
          column(6,
             box(width = 12, title = tags$div(style = "padding-top: 8px;","Select columns:"),closable = FALSE,collapsible = FALSE,height = "100%",
                 div(style = "flex: 1; min-width: 300px;",
@@ -550,11 +572,9 @@ plot_ui <- function(id){
 }
 
 
-plot_server <- function(id, patient, data, expr_flag) {
+plot_server <- function(id, patient, data, expr_flag, tissue_names) {
   moduleServer(id, function(input, output, session) {
-    
-    tissue_names <- get_tissue_list()
-    
+
     ### render ui ###
     
     output$selected_plot_ui <- renderUI({
@@ -567,7 +587,7 @@ plot_server <- function(id, patient, data, expr_flag) {
         div(class = "collapsible-box",
             box(width = 12, closable = FALSE, collapsible = TRUE, collapsed = TRUE, title = tags$div(style = "padding-top: 8px;","Volcano plot"),
                 column(6, div(class = "filterTab-select-tissue",
-                              radioGroupButtons(ns("selected_tissue"), "Choose a tissue :", choices = get_tissue_list(), justified = TRUE))),
+                              radioGroupButtons(ns("selected_tissue"), "Choose a tissue :", choices = tissue_names, justified = TRUE))),
                 fluidRow(
                   column(6, use_spinner(plotlyOutput(outputId = ns("volcanoPlot_blood")))),
                   column(1,),

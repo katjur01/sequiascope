@@ -60,7 +60,12 @@ step1_ui <- function(id) {
                              textAreaInput(inputId = ns("fusion_tumor_pattern"), label = "Pattern for tumor BAM files:", placeholder = "e.g. tumor, fusion"),
                              textAreaInput(inputId = ns("fusion_chimeric_pattern"), label = "Pattern for chimeric BAM files:", placeholder = "e.g. chimeric"))
                        ),
-                       prettySwitch(ns("expression_data"), label = "Expression profile", status = "primary", slim = TRUE)))
+                       prettySwitch(ns("expression_data"), label = "Expression profile", status = "primary", slim = TRUE),
+                       conditionalPanel(
+                         condition = paste0("input['", ns("expression_data"), "'] == true"),
+                         div(style = "padding-left: 40px;",
+                             textAreaInput(inputId = ns("tissue_list"), label = "Reference tissues (GTEx/HPA):", placeholder = "e.g. blood, liver")))
+                       ))
         ),
         br(),
         div(style = "display: flex; justify-content: flex-end;",
@@ -69,7 +74,7 @@ step1_ui <- function(id) {
   )
 }
 
-step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern) {
+step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern, tissues) {
   moduleServer(id, function(input, output, session) {
     
     next1_btn <- reactiveVal(NULL)
@@ -200,6 +205,9 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
       tumor_pattern$chimeric <- trimws(ifelse(isTruthy(input$fusion_chimeric_pattern), input$fusion_chimeric_pattern, ""))
     })
     
+    observeEvent(input$tissue_list, {
+      tissues(trimws(ifelse(isTruthy(input$tissue_list), input$tissue_list, "")))
+    })
     
     return(list(
       next1 = reactive(next1_btn(1))

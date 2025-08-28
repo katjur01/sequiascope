@@ -43,16 +43,18 @@
      # datasets <- reactiveVal(character(0))
      # tumor_pattern <- reactiveValues(somatic = NULL, fusion = NULL, chimeric = NULL, arriba = NULL)
      # normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
+     # tissues <- reactiveVal(NULL)
      patients <- reactiveVal(c("DZ1601","MR1507"))
-     path     <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
-     datasets <- reactiveVal(c("somatic","germline","fusion")) #
+     path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
+     datasets <- reactiveVal(c("somatic","germline","fusion","expression")) #
      tumor_pattern <- reactiveValues(somatic = NULL, fusion = "fuze", chimeric = "chimeric", arriba = NULL)
      normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
+     tissues <- reactiveVal(c("Blood","Blood_Vessel"))
      confirmed_paths_state <- reactiveVal(NULL)
      
-     step1 <- upload_data_step1$step1_server("first_step",  path, patients, datasets, tumor_pattern, normal_pattern)
-     # step2 <- upload_data_step2$step2_server("second_step", path, patients, datasets, tumor_pattern, normal_pattern)
-     step2 <- upload_data_step2$step2_server("second_step",  path=reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117"), patients=reactiveVal(c("DZ1601","MR1507")), datasets =reactiveVal(c("somatic","germline","fusion")), tumor_pattern=reactiveValues(chimeric = "chimeric",fusion = "fuze"), normal_pattern=NULL)
+     step1 <- upload_data_step1$step1_server("first_step",  path, patients, datasets, tumor_pattern, normal_pattern, tissues)
+     # step2 <- upload_data_step2$step2_server("second_step", path, patients, datasets, tumor_pattern, normal_pattern, tissues)
+     step2 <- upload_data_step2$step2_server("second_step",  path=reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117"), patients=reactiveVal(c("DZ1601","MR1507")), datasets =reactiveVal(c("somatic","germline","fusion","expression")), tumor_pattern=reactiveValues(chimeric = "chimeric",fusion = "fuze"), normal_pattern=NULL, tissues = reactiveVal(c("Blood","Blood_Vessel")))
 
      output$step <- renderText(step())
      outputOptions(output, "step", suspendWhenHidden = FALSE) # zajistí, že inputy běží i když jsou skryté
@@ -66,6 +68,7 @@
      
 
      observeEvent(step2$confirmed_paths(), {
+       # message("confirmed_paths: ",paste(step2$confirmed_paths(),collapse = ", "))
        confirmed_paths_state(step2$confirmed_paths())
      }, ignoreInit = TRUE)
      

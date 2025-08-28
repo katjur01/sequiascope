@@ -14,7 +14,6 @@ box::use(
   shinyalert[shinyalert,useShinyalert],
   shinyjs[useShinyjs,hide,show],
   data.table[fread,data.table,as.data.table,copy,is.data.table],
-  DT[renderDT,datatable,formatStyle,styleEqual,DTOutput],
   magrittr[`%>%`],
   jsonlite[read_json],
 )
@@ -106,7 +105,7 @@ server <- function(id, selected_samples, shared_data, file) {
     data <- reactive({
       message("Loading input data for somatic: ", file$variant)
       data <- load_data(file$variant, "varcall", selected_samples)
-      prepare_somatic_table(data)
+      prepare_somatic_table(data, colnames(data))
     })
 
 

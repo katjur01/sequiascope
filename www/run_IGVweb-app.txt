@@ -1,2 +1,0 @@
-cd Desktop/igv_test/www
-npx http-server -a localhost ./

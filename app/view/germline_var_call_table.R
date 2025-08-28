@@ -13,14 +13,12 @@ box::use(
   bs4Dash[actionButton, box,popover,addPopover,updateNavbarTabs],
   reactable,
   reactable[reactable,reactableOutput,renderReactable,colDef,colGroup,JS,getReactableState],
-  # reactable.extras[reactable_extras_ui,reactable_extras_server],
   htmltools[tags,HTML],
   shinyWidgets[prettyCheckbox,prettyCheckboxGroup,updatePrettyCheckboxGroup,searchInput,pickerInput,updatePickerInput,dropdown,actionBttn,pickerOptions,dropdownButton],
   shinyalert[shinyalert,useShinyalert],
   shinyjs[useShinyjs,hide,show],
   data.table[data.table,as.data.table,uniqueN,copy,rbindlist,fread,is.data.table],
   stats[setNames],
-  DT[renderDT,datatable,formatStyle,styleEqual,DTOutput],
   magrittr[`%>%`],
   # waiter[useWaitress,Waitress]
 
@@ -80,7 +78,7 @@ server <- function(id, selected_samples, shared_data, file,  load_session_btn = 
     data <- reactive({
       message("Loading input data for germline: ", file$variant)
       data <- load_data(file$variant, "varcall", selected_samples)
-      prepare_germline_table(data)
+      prepare_germline_table(data, colnames(data))
     })
 
     # observe({

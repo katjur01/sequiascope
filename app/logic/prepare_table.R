@@ -10,7 +10,6 @@ box::use(
 box::use(
   app/logic/load_data[get_inputs,load_data],
   app/logic/prepare_arriba_pictures[pdf2png],
-  app/logic/load_data[get_inputs],
   stringi[stri_trans_totitle]
 )
 
@@ -98,58 +97,8 @@ fast_lookup_column <- function(dt, input_col, output_col, clean_fun) {
 }
 
 
-
-# 
-# prepare_arriba_image_paths <- function(sample, arriba_svg_dir, arriba_dir){
-# 
-#   tsv_file <- list.files(file.path(arriba_dir, sample),pattern = "\\.tsv$", full.names = TRUE, recursive = TRUE)[1]
-# 
-#   input_tsv <- fread(tsv_file)
-#   input_tsv[, path := sprintf(file.path(arriba_svg_dir, sample, paste0(sample, "_%03d.svg")), .I)]
-#   
-#   input_tsv[, gene1 := gsub("\\(.*?\\)", "", `#gene1`)]
-#   input_tsv[, gene2 := gsub("\\(.*?\\)", "", gene2)]
-#   input_tsv[, c("chrom1", "pos1") := tstrsplit(breakpoint1, ":", fixed = TRUE)]
-#   input_tsv[, c("chrom2", "pos2") := tstrsplit(breakpoint2, ":", fixed = TRUE)]
-#   input_tsv[, chrom1 := paste0("chr", chrom1)]
-#   input_tsv[, chrom2 := paste0("chr", chrom2)]
-#   input_tsv[, pos1 := as.numeric(pos1)]
-#   input_tsv[, pos2 := as.numeric(pos2)]
-#   
-#   tsv_dt <- split_genes(input_tsv)
-#   setnames(tsv_dt, "path", "svg_path")
-# 
-#   return(tsv_dt)
-# }
-
 #' @export
-prepare_arriba_images <- function(sample){
-#   #sample = "LK0302fuze"
-#   filenames <- get_inputs("per_sample_file")
-#   arriba_images_folder <- filenames$arriba_images
-#   input_pdf <- paste0(paste(arriba_images_folder,sample,"arriba/",sep="/"),sample,".arriba_fusion_viz.pdf")
-# 
-#   print(getwd())
-#   folder_path <- paste0("./www/arriba_reports/",sample)
-#   output_svg <- paste0(folder_path,"/",sample,"_%03d.svg")
-#   print(output_svg)
-#   pdf2png(input_pdf,folder_path,output_svg)
-}
-
-# selected_samples = "DZ1601fuze"
-
-# prepare_igv_snapshot_paths <- function(data, sample, igv_png_dir){   # sample = "DZ1601fuze"
-#   
-#   input_xlsx <- data[,.(gene1 = paste(unique(gene1),collapse = ","),gene2 = paste(unique(gene2),collapse = ",")),by = .(chrom1,pos1,chrom2,pos2)]
-#   input_xlsx[, path := sprintf(file.path(igv_png_dir, sample, paste0(sample, "_%03d.png")), .I)]
-#   xlsx_dt <- split_genes(input_xlsx)
-#   setnames(xlsx_dt, "path", "png_path")
-#   
-#   return(xlsx_dt)
-# }
-
-#' @export
-prepare_fusion_genes_table <- function(sample, data, manifest_dt){
+prepare_fusion_genes_table <- function(sample, data, manifest_dt,all_colNames){
   
   normalize_keys <- function(dt) {
     dt <- as.data.table(dt)
@@ -188,7 +137,7 @@ prepare_fusion_genes_table <- function(sample, data, manifest_dt){
     merge_dt[, `:=`( has_svg = !is.na(svg_path) & nzchar(svg_path),
                      has_png = !is.na(png_path) & nzchar(png_path))]
 
-    default_columns <- colFilter("fusion")$default_columns
+    default_columns <- colFilter("fusion",all_colNames)$default_columns
     merge_dt[, `:=`(Visual_Check = "", Notes = "")]
     setcolorder(merge_dt, default_columns)
     
@@ -199,30 +148,8 @@ prepare_fusion_genes_table <- function(sample, data, manifest_dt){
 }
 
 
-# 
-# prepare_fusion_genes_table <- function(data, sample, enable_svg = TRUE, enable_png = TRUE){
-#   wd <- getwd()
-#   igv_dir <- file.path(wd, "www", "igv_snapshots")
-#   arriba_dir <- file.path(wd, "www", "arriba_reports")
-# 
-#   xlsx_dt <- prepare_igv_snapshot_paths(data, sample, igv_dir)
-#   tsv_dt <- prepare_arriba_image_paths(sample)
-#   paths_dt <- merge(xlsx_dt, tsv_dt, by = c("gene1", "gene2","chrom1", "pos1", "chrom2", "pos2"), all.x = TRUE)
-# 
-#   dt <- merge(data, paths_dt, by = c("gene1", "gene2","chrom1", "pos1", "chrom2", "pos2"), all.x = TRUE)
-#   dt[,position1 := paste0(chrom1,":",pos1)]
-#   dt[,position2 := paste0(chrom2,":",pos2)]
-#   dt[,c("chrom1","pos1","chrom2","pos2") := NULL]
-#   default_columns <- colFilter("fusion")$default_columns
-# 
-#   dt[, `:=`(Visual_Check = "", Notes = "")]
-#   setcolorder(dt, default_columns)
-#   message(paste0("Fusion genes, pacient ",unique(dt$sample)," (prepare_table script)"))
-#   return(dt)
-# }
-
 #' @export
-prepare_somatic_table <- function(dt){
+prepare_somatic_table <- function(dt,all_colNames){
   dt <- replace_dot_with_na(dt)
   dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "Consequence", "clinvar_DBN"))
   cols_to_numeric <- c("gnomAD_NFE", "tumor_variant_freq")
@@ -230,7 +157,7 @@ prepare_somatic_table <- function(dt){
   
   fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
   
-  default_columns <- colFilter("somatic")$default_columns
+  default_columns <- colFilter("somatic",all_colNames)$default_columns
   dt <- setcolorder(dt,default_columns)
   
   message(paste0("Somatic varcall, pacient ",unique(dt$sample)," (prepare_table script)"))
@@ -256,57 +183,103 @@ prepare_germline_table <- function(dt){
   return(dt)
 }
 
+#' @export
+prepare_expression_table <- function(combined_dt) {
+  # vyhoď "none", pokud by se tam náhodou připletlo
+  combined_dt <- combined_dt[tissue != "none"]
+  
+  tissues <- unique(combined_dt$tissue)
+  base_cols <- colnames(combined_dt)
+  
+  # sloupce pro UI (all/default) odvodíme JEŠTĚ na longu (base_cols)
+  cols <- colFilter("expression", base_cols, tissues)
+  
+  # wide
+  wide_dt <- dcast(
+    combined_dt,
+    sample + feature_name + geneid + refseq_id + type + all_kegg_gene_names +
+      gene_definition + pathway + num_of_paths ~ tissue,
+    value.var = c("log2FC","p_value","p_adj")
+  )
+  
+  # pomocné metriky
+  wide_dt[, mean_log2FC := rowMeans(.SD, na.rm = TRUE), .SDcols = patterns("^log2FC_")]
+  
+  # cílové pořadí sloupců – vezmeme defaulty + zbývající „log2FC_/p_value_/p_adj_“ dle tissues
+  log2FC_cols <- paste0("log2FC_", tissues)
+  p_value_cols <- paste0("p_value_", tissues)
+  p_adj_cols   <- paste0("p_adj_", tissues)
+  column_order <- c(cols$default_columns, as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
+  column_order <- intersect(column_order, names(wide_dt))  # jistota
+  
+  wide_dt <- wide_dt[, ..column_order]
+  
+  # formátování (ponechá NA)
+  if (length(intersect(log2FC_cols, names(wide_dt)))) {
+    wide_dt[, (intersect(log2FC_cols, names(wide_dt))) :=
+              lapply(.SD, function(x) formatC(x, format = "fg")), .SDcols = intersect(log2FC_cols, names(wide_dt))]
+  }
+  if (length(intersect(p_value_cols, names(wide_dt)))) {
+    wide_dt[, (intersect(p_value_cols, names(wide_dt))) :=
+              lapply(.SD, function(x) formatC(x, format = "e", digits = 3)), .SDcols = intersect(p_value_cols, names(wide_dt))]
+  }
+  if (length(intersect(p_adj_cols, names(wide_dt)))) {
+    wide_dt[, (intersect(p_adj_cols, names(wide_dt))) :=
+              lapply(.SD, function(x) formatC(x, format = "e", digits = 3)), .SDcols = intersect(p_adj_cols, names(wide_dt))]
+  }
+  
+  message(paste0("Expression profile, pacient ", paste(unique(wide_dt$sample), collapse = ", "), " (prepare_table)"))
+  
+  # vrátíme balíček: tabulka + sloupce + tissues
+  list(
+    dt = wide_dt,
+    columns = cols,       # list(all_columns=..., default_columns=...)
+    tissues = tissues
+  )
+}
+
 
 #' @export
-prepare_expression_table <- function(combined_dt,expr_flag){
-  tissue_order <- unique(combined_dt$tissue)
-  default_columns <- colFilter("expression")$default_columns
-  
-  log2FC_cols <- paste0("log2FC_", tissue_order)
-  p_value_cols <- paste0("p_value_", tissue_order)
-  p_adj_cols <- paste0("p_adj_", tissue_order)
-  
-  if(expr_flag == "genes_of_interest"){
-    wide_dt <- dcast(combined_dt,
-                     sample + feature_name + geneid + pathway ~ tissue,
-                     value.var = c("log2FC", "p_value", "p_adj"))
-    wide_dt[, mean_log2FC := rowMeans(.SD, na.rm = TRUE), .SDcols = patterns("^log2FC_")]
-    # Column ordering
+colFilter <- function(flag, all_column_var,tissues = NULL){
+  if (flag == "somatic"){
+    all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
+    default_selection <- c("var_name","in_library","Gene_symbol","tumor_variant_freq","tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
+                           "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD","Consequence","HGVSc", "HGVSp","all_full_annot_name")
+  } else if (flag == "germline"){
+    all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
+    default_selection <- c("var_name","variant_freq","in_library","Gene_symbol","coverage_depth","gene_region",
+                           "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name")
     
-    column_order <- c(default_columns,as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
-    wide_dt <- wide_dt[, column_order, with = FALSE]
+  } else if (flag == "fusion"){
+    filtered_all_column_var <- setdiff(all_column_var, c("chr1", "chr2", "pos1", "pos2"))
     
-    # tissue_cols <- unlist(lapply(unique(combined_dt$tissue), function(tissue) {
-    #   paste0(c("log2FC", "p_value", "p_adj"), "_", tissue)
-    # }))
-    # wide_dt <- wide_dt[, c(ordered_columns, tissue_cols), with = FALSE]
-  } else if (expr_flag == "all_genes"){
-    # setnames(combined_dt, "all_kegg_paths_name", "pathway")
-    wide_dt <- dcast(combined_dt,
-                     sample + feature_name + geneid + refseq_id + type + all_kegg_gene_names
-                     + gene_definition + pathway + num_of_paths ~ tissue,
-                     value.var = c("log2FC", "p_value", "p_adj"))
-    wide_dt[, mean_log2FC := rowMeans(.SD, na.rm = TRUE), .SDcols = patterns("^log2FC_")]
+    all_column_names <- c(filtered_all_column_var,"Visual_Check","Notes","position1","position2")
+    default_selection <- c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","Visual_Check","Notes","position1","strand1","position2","strand2",
+                           "arriba.site1","arriba.site2","starfus.splice_type","DB_count","DB_list")
+
+  } else if (flag == "expression"){
+    filtered_all_column_var <- setdiff(all_column_var, c("log2FC","p_value","p_adj","sample","all_kegg_paths_name","counts_tpm_round","fc","size","mu","lower_than_p","higher_than_p"))
     
-    # column_order <- c("sample","feature_name","geneid","refseq_id","type","gene_definition","all_kegg_gene_names","pathway", "num_of_paths","mean_log2FC",as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
-    # wide_dt <- wide_dt[, column_order, with = FALSE]
-    column_order <- c(default_columns,as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
-    wide_dt <- wide_dt[, column_order, with = FALSE]
+    # Generování dynamických sloupců pro každou tkáň
+    log2FC_cols <- paste0("log2FC_", tissues)
+    p_value_cols <- paste0("p_value_", tissues)
+    p_adj_cols <- paste0("p_adj_", tissues)
     
-    # Převod pouze číselných sloupců na scientific zápis
-    # Použití scientific formátu a zajištění, že NA zůstane NA
-    wide_dt[, (log2FC_cols) := lapply(.SD, function(x) formatC(x, format = "fg")), .SDcols = log2FC_cols]
-    wide_dt[, (p_value_cols) := lapply(.SD, function(x) formatC(x, format = "e", digits = 3)), .SDcols = p_value_cols]
-    wide_dt[, (p_adj_cols) := lapply(.SD, function(x) formatC(x, format = "e", digits = 3)), .SDcols = p_adj_cols]
+    # # Kombinace do finálního pořadí sloupců
+    all_column_names <- c(filtered_all_column_var, as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
+    default_selection <- c("sample", "feature_name", "geneid", "pathway", "mean_log2FC", as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
     
   } else {
-    stop("Unknown expr_tag: ", expr_flag)
+    print("NOT germline, expression or fusion")
   }
 
-  
-  message(paste0("Expression profile, pacient ",unique(wide_dt$sample)," (prepare_table script)"))
-  return(wide_dt)
+  ordered_columns <- factor(all_column_names, levels = default_selection)
+  all_column_names_sorted <- all_column_names[order(ordered_columns)]
+
+  return(list(all_columns = all_column_names_sorted, default_columns = default_selection))
 }
+
+
 
 #' @export
 set_pathway_colors <- function(){
@@ -331,69 +304,6 @@ set_pathway_colors <- function(){
   )
   return(pathway_colors)
 }
-
-#' @export
-colFilter <- function(flag,expr_flag = NULL){
-  filenames <- get_inputs("per_sample_file")
-  # message(paste("Getting columns for flag:", flag))
-  if (flag == "somatic"){
-    all_column_var <- names(fread(filenames$var_call.somatic[1], nrows = 0))
-    all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
-    default_selection <- c("var_name","in_library","Gene_symbol","tumor_variant_freq","tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
-                           "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD","Consequence","HGVSc", "HGVSp","all_full_annot_name")
-  } else if (flag == "germline"){
-    all_column_var <- names(fread(filenames$var_call.germline[1], nrows = 0))
-    all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
-    default_selection <- c("var_name","variant_freq","in_library","Gene_symbol","coverage_depth","gene_region",
-                           "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name")
-    
-  } else if (flag == "fusion"){
-    if (file.exists(filenames$fusions[1])) {
-      all_column_var <- names(read.xlsx(filenames$fusions[1], rows = 1))
-      filtered_all_column_var <- setdiff(all_column_var, c("chr1", "chr2", "pos1", "pos2"))
-      
-      all_column_names <- c(filtered_all_column_var,"Visual_Check","Notes","position1","position2")
-      default_selection <- c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","Visual_Check","Notes","position1","strand1","position2","strand2",
-                             "arriba.site1","arriba.site2","starfus.splice_type","DB_count","DB_list")
-    } else {
-      stop("Fusion file not found: ", filenames$fusions[1])
-    }
-  } else if (flag == "expression"){
-
-    if (file.exists(filenames$expression.files[grep("multiRow", filenames$expression.files)][1])) {
-      # Načtení pouze názvů sloupců
-      tissue <- unique(gsub("^.*/|_all_genes_multiRow\\.tsv$", "", filenames$expression.files[grep("multiRow", filenames$expression.files)]))
-      all_column_var <- names(fread(filenames$expression.files[grep("multiRow", filenames$expression.files)][1], nrows = 0))
-
-      filtered_all_column_var <- setdiff(all_column_var, c("log2FC","p_value","p_adj","sample","all_kegg_paths_name","counts_tpm_round","fc","size","mu","lower_than_p","higher_than_p"))
-      default_selection_var <- c("sample", "feature_name", "geneid", "pathway", "mean_log2FC")
-      
-      # Generování dynamických sloupců pro každou tkáň
-      log2FC_cols <- paste0("log2FC_", tissue)
-      p_value_cols <- paste0("p_value_", tissue)
-      p_adj_cols <- paste0("p_adj_", tissue)
-      
-      # Kombinace do finálního pořadí sloupců
-      all_column_names <- c(filtered_all_column_var, as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
-      default_selection <- c(default_selection_var, as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
-      
-
-    } else {
-      stop("Expression file not found: ", filenames$expression.files[grep("multiRow", filenames$expression.files)][1])
-    }
-    
-  } else {
-    print("NOT germline, expression or fusion")
-  }
-
-  ordered_columns <- factor(all_column_names, levels = default_selection)
-  all_column_names_sorted <- all_column_names[order(ordered_columns)]
-  # message(paste("Returning column names for flag:", flag))
-  return(list(all_columns = all_column_names_sorted, default_columns = default_selection))
-}
-
-
-
 
 # dt <- fread("./input_files/MOII_e117/117_WES_germline/final_variant_table.tsv")
 

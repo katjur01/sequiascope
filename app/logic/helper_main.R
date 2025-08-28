@@ -2,8 +2,14 @@
 
 box::use(
   shiny[reactiveVal,removeTab,appendTab,NS,onFlushed,updateTabsetPanel,tabPanel],
+  stats[setNames],
 )
 
+#' @export
+get_files_fo_all_patients <- function(){
+  return(message("I dont know who called me but in this function is nothing."))
+}
+  
 #' @export
 get_patients <- function(confirmed_paths, dataset_type) {
   if (is.null(confirmed_paths) || !nrow(confirmed_paths)) return(character(0))
@@ -28,37 +34,18 @@ get_patients <- function(confirmed_paths, dataset_type) {
   sort(patients[keep])
 }
 
-
-#' @export
-get_files_fo_all_patients <- function(confirmed_paths, dataset_type) {
+get_files_by_patient <- function(confirmed_paths, dataset_type) {
   rows <- subset(confirmed_paths, dataset == dataset_type)
   if (!nrow(rows)) return(list())
   
-  # split per patient → per file_type
-  split_by_patient <- split(rows, rows$patient)
-  
-  files_map <- lapply(split_by_patient, function(tab) {
-    by_type <- split(tab$path, tab$file_type)
-    # necháme klíče "tumor","chimeric","fusion","arriba" atd.
-    by_type
+  by_patient <- split(rows, rows$patient)
+  lapply(by_patient, function(tab) {
+    if (dataset_type == "expression") {
+      list(files = split(tab$path, tab$file_type), tissues = setNames(tab$tissue, tab$path))
+    } else {
+      split(tab$path, tab$file_type)
+    }
   })
-  
-  # pojisti, že vršek listu má jména pacientů
-  if (is.null(names(files_map)) || any(!nzchar(names(files_map)))) {
-    names(files_map) <- vapply(split_by_patient, function(df) df$patient[1], character(1))
-  }
-  
-  files_map
-}
-
-
-# helper: per-patient file map (file_type -> character(paths))
-#' @export
-get_files_by_patient <- function(confirmed_paths, dataset_type) {
-  som_rows <- subset(confirmed_paths, dataset == dataset_type)
-  if (!nrow(som_rows)) return(list())
-  by_patient <- split(som_rows, som_rows$patient)
-  lapply(by_patient, function(tab) split(tab$path, tab$file_type))
 }
 
 #' @export
@@ -94,25 +81,43 @@ add_dataset_tabs <- function(session,
   new_vals <- character(0)
   invisible(lapply(patients, function(patient_id) {
     tab_value <- paste0(tab_value_prefix, patient_id)
+    id_ns <- ns(paste0(dataset_name, "_tab_", patient_id))
+    
+    ui_args <- list(id_ns)
+    
+    patient_files <- if (patient_id %in% names(file_list)) file_list[[patient_id]] else list()
+    
+    if (identical(dataset_name, "expression")) { # just for expression dataset
+      tissues <- patient_files$tissues
+      tissues <- unique(tissues)
+      tissues <- tissues[!is.na(tissues) & tissues != "none"]
+      ui_args$tissue_list <- tissues
 
+      if (!is.null(patient_files$files$goi)) ui_args$goi <- TRUE else ui_args$goi <- FALSE
+    }
+    # Start UI for this patient
     appendTab(
       inputId = tabset_input_id,
       tab = tabPanel(
         title = patient_id,
         value = tab_value,
-        module_obj$ui(ns(paste0(dataset_name, "_tab_", patient_id)))  # namespaced module UI id
+        do.call(module_obj$ui, ui_args)
       ),
       select = FALSE
     )
-    
-    # Collect files for this patient; default to empty list if missing
-    patient_files <- if (patient_id %in% names(file_list)) file_list[[patient_id]] else list()
-    
     # Start server for this patient
     if (identical(dataset_name, "fusion") && !is.null(load_session_btn)) { # just for fusion dataset
-      module_obj$server(paste0(dataset_name, "_tab_", patient_id), patient_id, shared_data, patient_files, load_session_btn)
+      module_obj$server(
+        paste0(dataset_name, "_tab_", patient_id), 
+        patient_id, 
+        shared_data, 
+        patient_files, 
+        load_session_btn)
     } else {
-      module_obj$server(paste0(dataset_name, "_tab_", patient_id), patient_id, shared_data, patient_files)
+      module_obj$server(paste0(dataset_name, "_tab_", patient_id),
+                        patient_id, 
+                        shared_data, 
+                        patient_files)
     }
     
     new_vals <- c(new_vals, tab_value)

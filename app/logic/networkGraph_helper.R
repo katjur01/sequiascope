@@ -2,9 +2,7 @@
 box::use(
   jsonlite[fromJSON, toJSON],
   data.table[fread,setnames],
-  readxl[read_excel],
   httr[GET, status_code, content],
-  cyjShiny[dataFramesToJSON],
   stats[setNames]
 )
 box::use(
@@ -99,9 +97,6 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL) {
         stringsAsFactors = FALSE
       )
     }
-    
-  # Generování JSON pro cyjShiny
-  # network_json <- toJSON(dataFramesToJSON(edges, node_data), auto_unbox = TRUE)
 
   node_data <- node_data[match(proteins, node_data$id, nomatch = 0), ]
   edges <- edges[edges$source %in% proteins & edges$target %in% proteins, ]

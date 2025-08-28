@@ -36,10 +36,9 @@ step2_ui <- function(id) {
 
 
 
-  step2_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern) {
+  step2_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern, tissues) {
     moduleServer(id, function(input, output, session) {
       ns <- session$ns
-
       all_files <- reactiveVal()
       goi_files <- reactiveVal()
       confirmed_paths_state <- reactiveVal(NULL)
@@ -62,10 +61,9 @@ step2_ui <- function(id) {
 
       datasets_data <- reactive({
         req(datasets(), all_files(), patients(), path())
-        
         result <- list()
         for (dataset in datasets()) {
-          result[[dataset]] <- create_dataset_data(dataset, all_files(), goi_files(), patients(), path(), tumor_pattern, normal_pattern)
+          result[[dataset]] <- create_dataset_data(dataset, all_files(), goi_files(), patients(), path(), tumor_pattern, normal_pattern, tissues())
         }
         return(result)
       })
@@ -94,7 +92,6 @@ step2_ui <- function(id) {
       # Refresh tlačítko
       observeEvent(input$refresh_files, {
         req(path(), patients())
-        
         # Znovu načti všechny soubory
         all_files_list <- list.files(path(), full.names = TRUE, recursive = TRUE)
         patient_pattern <- paste(patients(), collapse = "|")
@@ -142,10 +139,7 @@ step2_ui <- function(id) {
           )
           return()
         }
-        
-        
-        # Pokud jsou oranžové stavy - zobrazit warning a zeptat se
-        # Pokud jsou oranžové stavy - zobrazit warning a zeptat se
+
         if (validation$has_orange_status) {
           warning_parts <- c()
           
@@ -186,7 +180,6 @@ step2_ui <- function(id) {
           }
           
           warning_message <- paste0(paste(warning_parts, collapse = "<br>"), "<br>Do you want to continue anyway?")
-          
           shinyalert(
             title = "Warnings Detected",
             text = HTML(warning_message),
@@ -207,8 +200,6 @@ step2_ui <- function(id) {
           )
           return()
         }
-        
-        
 
         confirmed_paths_state(build_confirmed_paths(data))  # NO RED, NO ORANGE: pass data directly
         # showModal(modalDialog("Your selection has been confirmed! All files are ready for analysis.", easyClose = TRUE))
