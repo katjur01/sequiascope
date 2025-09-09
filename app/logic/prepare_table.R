@@ -238,6 +238,17 @@ prepare_expression_table <- function(combined_dt) {
   )
 }
 
+#' @export
+prepare_goi_table <- function(dt, goi) {
+  goi_data <- fread(goi)
+  goi_dt <- dt$dt[feature_name %in% goi_data$gene]
+  
+  if(!is.null(goi_data$pathway)){
+    goi_dt[, pathway := goi_data$pathway[match(feature_name, goi_data$gene)]]
+  }
+  return(goi_dt)
+}
+
 
 #' @export
 colFilter <- function(flag, all_column_var,tissues = NULL){

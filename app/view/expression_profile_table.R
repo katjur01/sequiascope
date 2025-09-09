@@ -27,7 +27,7 @@ box::use(
   app/logic/load_data[get_inputs, load_data],
   app/logic/reactable_helpers[custom_colGroup_setting],
   app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
-  app/logic/prepare_table[prepare_expression_table, set_pathway_colors],
+  app/logic/prepare_table[prepare_expression_table, prepare_goi_table, set_pathway_colors],
   app/logic/networkGraph_helper[get_pathway_list],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
@@ -82,12 +82,15 @@ server <- function(id,  patient, shared_data, tissue_file) {
     expr_tag <- "all_genes"
     expression_var <- shared_data$expression_var
 
-    # file <- list("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Blood_all_genes_multiRow.tsv",
+    # files <- list("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Blood_all_genes_multiRow.tsv",
     #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Blood_Vessel_all_genes_multiRow.tsv",
     #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Breast_all_genes_multiRow.tsv",
     #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Kidney_all_genes_multiRow.tsv",
     #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Retina_all_genes_multiRow.tsv",
     #              "/home/katka/BioRoots/sequiaViz/input_files/MOII_e117/RNAseq21/DZ1601/Testis_all_genes_multiRow.tsv")
+    
+    # files <- list("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117/RNAseq21_NEW/DZ1601/Blood_all_genes_multiRow.tsv",
+    #              "/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117/RNAseq21_NEW/DZ1601/Blood_Vessel_all_genes_multiRow.tsv")
     # Load and process data table
     # data <- reactive({
     #   # message("Loading input data for expression: ", tissue_file)
@@ -97,9 +100,16 @@ server <- function(id,  patient, shared_data, tissue_file) {
 
     # colnames_list <- getColFilterValues("expression",colnames(data()),unique(data()$tissue)) # gives list of all_columns and default_columns
 
+    
     prepare_data <- reactive({
       data <- load_data(tissue_file, "expression", patient)
-      prepare_expression_table(data)  # returns list(dt, columns, tissues)
+      dt <- prepare_expression_table(data)  # returns list(dt, columns, tissues)
+      
+      if (!is.null(patient_files$files$goi)) {
+        goi_data <- load_data(tissue_file$files$goi, "expression", patient)
+        goi_dt <- prepare_goi_table(dt, goi_data)
+      }
+
     })
     
 
