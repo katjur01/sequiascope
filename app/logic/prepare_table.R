@@ -137,19 +137,22 @@ prepare_fusion_genes_table <- function(sample, data, manifest_dt,all_colNames){
     merge_dt[, `:=`( has_svg = !is.na(svg_path) & nzchar(svg_path),
                      has_png = !is.na(png_path) & nzchar(png_path))]
 
-    default_columns <- colFilter("fusion",all_colNames)$default_columns
+    cols <- colFilter("fusion", all_colNames)
     merge_dt[, `:=`(Visual_Check = "", Notes = "")]
-    setcolorder(merge_dt, default_columns)
+    setcolorder(merge_dt, cols)
     
     message(paste0("Fusion genes, pacient ", unique(merge_dt$sample), " (prepare_table script)"))
-    return(merge_dt)
+    list(
+      dt = merge_dt,
+      columns = cols       # list(all_columns=..., default_columns=...)
+    )
   }
   
 }
 
 
 #' @export
-prepare_somatic_table <- function(dt,all_colNames){
+prepare_somatic_table <- function(dt, all_colNames){
   dt <- replace_dot_with_na(dt)
   dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "Consequence", "clinvar_DBN"))
   cols_to_numeric <- c("gnomAD_NFE", "tumor_variant_freq")
@@ -157,16 +160,20 @@ prepare_somatic_table <- function(dt,all_colNames){
   
   fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
   
-  default_columns <- colFilter("somatic",all_colNames)$default_columns
-  dt <- setcolorder(dt,default_columns)
+  cols <- colFilter("somatic",all_colNames)
+  setcolorder(dt,cols$default_columns)
   
   message(paste0("Somatic varcall, pacient ",unique(dt$sample)," (prepare_table script)"))
-  return(dt)
+  # vrátíme list: tabulka + sloupce
+  list(
+    dt = dt,
+    columns = cols       # list(all_columns=..., default_columns=...)
+  )
 }
 
 
 #' @export
-prepare_germline_table <- function(dt){
+prepare_germline_table <- function(dt, all_colNames){
   dt <- replace_dot_with_na(dt)
   dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "Consequence", "clinvar_DBN"))
   cols_to_numeric <- c("gnomAD_NFE", "variant_freq")
@@ -174,13 +181,15 @@ prepare_germline_table <- function(dt){
 
   fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
   fast_lookup_column(dt, "clinvar_sig", "clinvar_trimws", clean_clinvar_sig)
-  
-  default_selection <- c("var_name","variant_freq","in_library","Gene_symbol","coverage_depth","gene_region",
-                         "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name")
-  setcolorder(dt, default_selection)
 
+  cols <- colFilter("germline",all_colNames)
+  setcolorder(dt,cols$default_columns)
+  
   message(paste0("Germline varcall, pacient ",unique(dt$sample)," (prepare_table script)"))
-  return(dt)
+  list(
+    dt = dt,
+    columns = cols       # list(all_columns=..., default_columns=...)
+  )
 }
 
 #' @export
@@ -241,7 +250,7 @@ prepare_expression_table <- function(combined_dt) {
 #' @export
 prepare_goi_table <- function(dt, goi) {
   goi_data <- fread(goi)
-  goi_dt <- dt$dt[feature_name %in% goi_data$gene]
+  goi_dt <- dt[feature_name %in% goi_data$gene]
   
   if(!is.null(goi_data$pathway)){
     goi_dt[, pathway := goi_data$pathway[match(feature_name, goi_data$gene)]]

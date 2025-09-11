@@ -34,13 +34,10 @@ map_checkbox_names <- function(map_list){
 }
 
 #' @export
-getColFilterValues <- function(flag, all_column_var, tissues = NULL) {
-  colFilter(flag, all_column_var, tissues)
-}
-# getColFilterValues <- function(flag,expr_flag = NULL) {
-#   colnames_list <- colFilter(flag,expr_flag)
-#   list(all_columns = colnames_list$all_columns, default_columns = colnames_list$default_columns)
+# getColFilterValues <- function(flag, all_column_var, tissues = NULL) {
+#   colFilter(flag, all_column_var, tissues)
 # }
+
 
 #' @export
 generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
@@ -97,7 +94,7 @@ generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
 }
 
 #' @export
-colnames_map_list <- function(tag,all_columns = NULL, session = NULL){
+colnames_map_list <- function(tag, all_columns = NULL, session = NULL){
   if (tag == "fusion"){
     map_list <- list(
       gene1 = colDef(minWidth = 120,filterable = TRUE,sticky = "left",name="Gene 1"),

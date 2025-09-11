@@ -30,7 +30,7 @@ box::use(
   app/logic/prepare_table[prepare_germline_table],
   app/logic/waiters[use_spinner],
   app/logic/reactable_helpers[selectFilter,minRangeFilter,filterMinValue,create_clinvar_filter,create_consequence_filter],
-  app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
+  app/logic/filter_columns[map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
@@ -75,7 +75,7 @@ server <- function(id, selected_samples, shared_data, file,  load_session_btn = 
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     # Load and process data table
-    data <- reactive({
+    prepare_data <- reactive({
       message("Loading input data for germline: ", file$variant)
       data <- load_data(file$variant, "varcall", selected_samples)
       prepare_germline_table(data, colnames(data))
@@ -91,7 +91,9 @@ server <- function(id, selected_samples, shared_data, file,  load_session_btn = 
     #     shared_data$germline_overview[[ selected_samples ]] <- overview_dt
     # })
 
-    colnames_list <- getColFilterValues("germline") # gives list of all_columns and default_columns
+    data <- reactive(prepare_data()$dt)
+    colnames_list <- prepare_data()$columns
+    
     map_list <- colnames_map_list("germline") # gives list of all columns with their column definitions
     mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
     

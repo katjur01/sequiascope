@@ -217,7 +217,7 @@ ui <- function(id){
                   fluidPage(
                     tags$style(HTML(".btn-group > .btn.active {background-color: skyblue; color: white;}
                                      .btn-mygrey {background-color: lightgray; color: black;}")),
-                    div(class = "patient-tabs",
+                    div(class = "patient-tabs", style = "box-shadow: none !important;",
                         tabsetPanel(id = ns("expression_tabset"))),
 
                     # do.call(tabsetPanel, c(id = ns("expression_profile_patients"),

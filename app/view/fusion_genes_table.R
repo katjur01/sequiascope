@@ -18,7 +18,7 @@ box::use(
   app/logic/prepare_table[prepare_fusion_genes_table], 
   app/logic/waiters[use_spinner],
   app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter,update_fusion_data],
-  app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
+  app/logic/filter_columns[map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
@@ -100,7 +100,7 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
     })
     
 
-    data <- reactive({
+    prepare_data <- reactive({
       req(prerun_ready())
       
       message("[fusion] Loading input data for: ", file$fusion)
@@ -121,6 +121,9 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
       patient_dt
     })
     
+    data <- reactive(prepare_data()$dt)
+    colnames_list <- prepare_data()$columns
+    
     fusion_data_to_render <- reactiveVal(NULL)
     observeEvent(data(), ignoreInit = FALSE, {
       fusion_data_to_render(data())
@@ -136,7 +139,6 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
       shared_data$fusion_overview[[ selected_samples ]] <- overview_dt
     })
 
-    colnames_list <- getColFilterValues("fusion") # gives list of all_columns and default_columns
     map_list <- colnames_map_list("fusion",session = session) # gives list of all columns with their column definitions
     mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
     

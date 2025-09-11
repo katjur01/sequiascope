@@ -118,17 +118,16 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL) {
 }
 
 #' @export
-get_pathway_list <- function(expr_tag){
-  if(expr_tag == "all_genes") {
+get_pathway_list <- function(expr_tag, goi_dt = NULL){
+  if(expr_tag == "genes_of_interest") {
+    if(!is.null(goi_dt$pathway)) return(sort(unique(goi_dt$pathway)))
+  }
+  tryCatch({
     dt <- fread("input_files/kegg_tab.tsv")
     return(sort(unique(dt$kegg_paths_name)))
-  } else if (expr_tag == "genes_of_interest"){
-    # input_files <- get_inputs("goi_file")
-    # dt <- fread(input_files$goi.expression)
-    dt <- fread("input_files/MOII_e117/RNAseq21_NEW/genes_of_interest.tsv")
-    return(sort(unique(dt$pathway)))
-  } else {
-    message("Invalid expr_tag. Please use 'all_genes' or 'genes_of_interest'.")
-  }
-  return(pathway_list)
+    
+  }, error = function(e) {
+    return(message("Invalid expr_tag. Please use 'all_genes' or 'genes_of_interest'."))
+  })
+
 }

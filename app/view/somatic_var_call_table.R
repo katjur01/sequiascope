@@ -28,7 +28,7 @@ box::use(
   app/logic/load_data[get_inputs,load_data],
   app/logic/prepare_table[prepare_somatic_table,colFilter],
   app/logic/reactable_helpers[create_clinvar_filter,create_consequence_filter],
-  app/logic/filter_columns[getColFilterValues,map_checkbox_names,colnames_map_list,generate_columnsDef],
+  app/logic/filter_columns[map_checkbox_names,colnames_map_list,generate_columnsDef],
   app/logic/session_utils[create_session_handlers,safe_extract]
 )
 
@@ -102,16 +102,19 @@ server <- function(id, selected_samples, shared_data, file) {
     ns <- session$ns
     
     # Load and process data table
-    data <- reactive({
+    prepare_data <- reactive({
       message("Loading input data for somatic: ", file$variant)
       data <- load_data(file$variant, "varcall", selected_samples)
       prepare_somatic_table(data, colnames(data))
     })
+    
+    data <- reactive(prepare_data()$dt)
+    colnames_list <- prepare_data()$columns
 
-
-colnames_list <- getColFilterValues("somatic") # gives list of all_columns and default_columns
+# colnames_list <- getColFilterValues("somatic") # gives list of all_columns and default_columns
 map_list <- colnames_map_list("somatic") # gives list of all columns with their column definitions
 mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
+
 
 filter_state <- filterTab_server("filterTab_dropdown",colnames_list, data(),mapped_checkbox_names)
 
