@@ -60,11 +60,7 @@ load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){
     
     expr_files <- input_files$files$expression
     input_var  <- expr_files[grepl(sample, expr_files)]
-    
-    message("input_var: ", input_var)
-    message("unique(input_files$tissues): ", unique(input_files$tissues))
-    message("tissues (names): ", names(input_var))
-    
+
     if (length(input_var) == 1 && unique(input_files$tissues) == "none") {
       combined_dt <- fread(unlist(input_var))
       combined_dt[, c("tissue", "sample") := .("none", sample)]
@@ -72,7 +68,7 @@ load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){
     } else {
       dt_list <- lapply(seq_along(input_var), function(i) {
         dt <- fread(input_var[[i]])
-        dt[, c("tissue", "sample") := .(names(input_var)[i], sample)]
+        dt[, c("tissue", "sample") := .(input_files$tissues[i], sample)]
         return(dt)
       })
       combined_dt <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
@@ -81,7 +77,6 @@ load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){
     combined_dt$sample <- NULL
     combined_dt[, sample := sample]
     setnames(combined_dt, "all_kegg_paths_name", "pathway", skip_absent = TRUE)
-    
     return(combined_dt)
     
   } else if (flag == "TMB") { 
@@ -100,10 +95,10 @@ load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){
     if (ncol(dt) < 1L) stop("Soubor neobsahuje žádné sloupce.")
     
     dt <- dt[,1:2]
-    setnames(dt,c("sample","TMB"))
+    setnames(dt,c("patient","TMB"))
     dt[,TMB := as.numeric(gsub(",", ".", TMB))]
+    return(dt[patient == sample,])
     
-    return(dt)
   } else {
     return(print("not varcall nor fusion nor expression"))
   }

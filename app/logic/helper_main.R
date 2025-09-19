@@ -66,11 +66,11 @@ add_summary_panels <- function(session,
   ns <- session$ns
   if (is.null(mounted_ref)) mounted_ref <- reactiveValues(mounted = character(0))
   
-  # patients_list <- reactive({ unique(c(shared_data$somatic.patients(), 
-  #                                          shared_data$germline.patients(), 
-  #                                          shared_data$fusion.patients(), 
-  #                                          shared_data$expression.patients())) })
-  patients_list <- reactiveVal(c("DZ1601","MR1507"))
+  patients_list <- reactive({ unique(c(shared_data$somatic.patients(),
+                                       shared_data$germline.patients(),
+                                       shared_data$fusion.patients(),
+                                       shared_data$expression.patients())) })
+
   # 1) UI render – karty pro všechny aktuální pacienty
   output[[ui_output_id]] <- renderUI({
     pats <- patients_list()
@@ -111,6 +111,11 @@ add_summary_panels <- function(session,
   invisible(NULL)
 }
 
+set_dataset_patients <- function(shared_data, dataset_name, patients) {
+  var_name <- paste0(dataset_name, ".patients")  # "somatic.patients" | "germline.patients" | ...
+  shared_data[[var_name]](patients)
+}
+
 #' @export
 add_dataset_tabs <- function(session,
                              confirmed_paths,
@@ -125,6 +130,7 @@ add_dataset_tabs <- function(session,
   
   # 1) Derive patients and file map for this dataset
   patients  <- get_patients(confirmed_paths, dataset_name)
+  set_dataset_patients(shared_data, dataset_name, patients)
   file_list <- get_files_by_patient(confirmed_paths, dataset_name)
   
   # 2) Ensure shared_data field exists and is a reactiveVal, then update it

@@ -7,7 +7,8 @@ box::use(
   reactable[colDef],
   data.table[fread,as.data.table,rbindlist,tstrsplit,setcolorder,setnames,fwrite, uniqueN],
   openxlsx[read.xlsx,getSheetNames],
-  htmltools[hr,strong,h5]
+  htmltools[hr,strong,h5],
+  stats[na.omit]
   # shiny.gosling
   # plotly[renderPlotly, plot_ly,plotlyOutput]
   # plotly[plot_ly,plotlyOutput,renderPlotly],
@@ -81,24 +82,17 @@ ui <- function(id){
 server <- function(id, patient, shared_data){ #,active_tab
   moduleServer(id, function(input, output, session){
 
-# 
-# 
 #     #####################
 #     ### Card overview ###
 #     #####################
-    
-
+  
     output$tissues <- renderText({
       if (is.null(patient)) return("Tissue comparison: Not available")
       overview_exp  <- shared_data$expression.overview[[ patient ]]
-      if (is.null(overview_exp$tissues)) {
-        paste0("Tissue comparison: NA")
-      } else if (overview_exp$tissues == "none") {
-        paste0("Tissue comparison: ",0)
-      } else {
-        paste0("Tissue comparison: ",uniqueN(overview_exp$tissues))
-      }
- 
+      tissue_N <- unique(na.omit(trimws(overview_exp$tissues)))
+      if (!length(tissue_N)) return("Tissue comparison: NA")
+      if (length(tissue_N) == 1 && tissue_N[1] == "none") return("Tissue comparison: 0")
+      paste0("Tissue comparison: ", sum(tissue_N != "none"))
     })
     
     output$for_review_som <- renderText({
@@ -115,7 +109,7 @@ server <- function(id, patient, shared_data){ #,active_tab
       if (is.null(patient)) return("Tumor mutation burden: Not available")
       overview_som  <- shared_data$somatic.overview[[ patient ]]
       if (!is.null(overview_som$TMB)){
-        paste("Tumor mutation burden (load):", overview_som$TMB[sample == patient, TMB])
+        paste("Tumor mutation burden (load):", overview_som$TMB)
       } else {
         "Tumor mutation burden: N/A"
       }

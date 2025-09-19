@@ -98,8 +98,8 @@ fast_lookup_column <- function(dt, input_col, output_col, clean_fun) {
 
 
 #' @export
-prepare_fusion_genes_table <- function(sample, data, manifest_dt,all_colNames){
-  
+prepare_fusion_genes_table <- function(sample, data, manifest_dt, all_colNames){
+ 
   normalize_keys <- function(dt) {
     dt <- as.data.table(dt)
     if ("chrom1" %in% names(dt)) setnames(dt, c("chrom1","chrom2"), c("chr1","chr2"))
@@ -138,9 +138,8 @@ prepare_fusion_genes_table <- function(sample, data, manifest_dt,all_colNames){
                      has_png = !is.na(png_path) & nzchar(png_path))]
 
     cols <- colFilter("fusion", all_colNames)
-    print(merge_dt)
     merge_dt[, `:=`(Visual_Check = "", Notes = "")]
-    setcolorder(merge_dt, cols)
+    setcolorder(merge_dt, cols$default_columns)
     
     message(paste0("Fusion genes, pacient ", unique(merge_dt$sample), " (prepare_table script)"))
     list(
@@ -271,7 +270,6 @@ colFilter <- function(flag, all_column_var,tissues = NULL){
     
   } else if (flag == "fusion"){
     filtered_all_column_var <- setdiff(all_column_var, c("chr1", "chr2", "pos1", "pos2"))
-    
     all_column_names <- c(filtered_all_column_var,"Visual_Check","Notes","position1","position2")
     default_selection <- c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","Visual_Check","Notes","position1","strand1","position2","strand2",
                            "arriba.site1","arriba.site2","starfus.splice_type","DB_count","DB_list")

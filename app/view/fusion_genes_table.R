@@ -290,7 +290,7 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
       }
       
       # Aktualizace globální proměnné shared_data$germline_data:
-      global_data <- shared_data$fusion_var()
+      global_data <- shared_data$fusion.variants()
 
       # Pokud je NULL nebo nemá správnou strukturu, inicializujeme
       if (is.null(global_data) || !is.data.table(global_data) || !("sample" %in% names(global_data))) {
@@ -311,8 +311,8 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
       
       # Přidáme nově aktualizované lokální data daného pacienta
       updated_global_data <- rbind(global_data, selected_fusions())
-      shared_data$fusion_var(updated_global_data)
-      message("## shared_data$fusion_var(): ", shared_data$fusion_var())
+      shared_data$fusion.variants(updated_global_data)
+      message("## shared_data$fusion.variants(): ", shared_data$fusion.variants())
     })
     
     output$selectFusion_tab <- renderReactable({
@@ -345,7 +345,7 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
       updated_variants <- current_variants[-rows, ]
       selected_fusions(updated_variants)
       
-      global_data <- shared_data$fusion_var()
+      global_data <- shared_data$fusion.variants()
       if (!is.null(global_data) && is.data.table(global_data)) {
         global_data <- global_data[sample != selected_samples]
       } else {
@@ -368,7 +368,7 @@ server <- function(id, selected_samples, shared_data, file, load_session_btn) {
         updated_global_data <- global_data
       }
       
-      shared_data$fusion_var(updated_global_data)
+      shared_data$fusion.variants(updated_global_data)
       session$sendCustomMessage("resetReactableSelection", updated_variants)
       
       if (nrow(updated_variants) == 0) {

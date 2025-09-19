@@ -53,9 +53,19 @@ server <- function(id, patient, shared_data) {
   moduleServer(id, function(input, output, session) {
 
     noNA_text <- function(x) ifelse(is.na(x) | x == "", "-", x)
+
+    mutation_load <- reactive({
+      overview_som <- shared_data$somatic.overview[[ patient ]]
+      if (!is.null(overview_som$TMB)){
+        mut_load_str <- overview_som$TMB
+      } else {
+        mut_load_str <- NA
+      }
+      return(as.character(mut_load_str))
+    })
     
     somatic_dt <- reactive({
-      som_vars <- as.data.table(shared_data$somatic_var())
+      som_vars <- as.data.table(shared_data$somatic.variants())
 
       if (is.null(som_vars) || nrow(som_vars) == 0) {
       } else {
@@ -104,7 +114,7 @@ server <- function(id, patient, shared_data) {
     }
 
     germline_dt <- reactive({
-      germ_vars <- as.data.table(shared_data$germline_var())
+      germ_vars <- as.data.table(shared_data$germline.variants())
       
       if (is.null(germ_vars) || nrow(germ_vars) == 0) {
       } else {
@@ -160,7 +170,7 @@ server <- function(id, patient, shared_data) {
     
     
     fusion_dt <- reactive({
-      fusion <- as.data.table(shared_data$fusion_var())
+      fusion <- as.data.table(shared_data$fusion.variants())
       
       if (is.null(fusion) || nrow(fusion) == 0) {
       } else {
@@ -211,8 +221,8 @@ server <- function(id, patient, shared_data) {
     
     
     expression_dt <- reactive({
-      exp_goi <- as.data.table(shared_data$expression_goi_var())
-      exp_all <- as.data.table(shared_data$expression_all_var())
+      exp_goi <- as.data.table(shared_data$expression.variants.goi())
+      exp_all <- as.data.table(shared_data$expression.variants.all())
       exp_genes <- unique(rbind(exp_goi, exp_all, use.names = TRUE, fill = TRUE))
       
       if (is.null(exp_genes) || nrow(exp_genes) == 0) {
@@ -257,23 +267,7 @@ server <- function(id, patient, shared_data) {
       ft <- bold(ft, j = ~ Gene, bold = TRUE)
       ft
     }
-    
-    mutation_load <- reactive({
-      filenames <- get_inputs("per_sample_file")
-      if (file.exists(filenames$var_call.somatic.mut_load)) {
-        dt <- as.data.table(read.xlsx(filenames$var_call.somatic.mut_load))
-        dt[, normal:= as.numeric(gsub(",", ".", normal))]
-        mut_load_str <- dt[sample == patient, normal]
-        if (length(mut_load_str) == 0 || is.na(mut_load_str)) {
-          mut_load_str <- NA
-        }
-      } else {
-        mut_load_str <- NA
-        print("its NA")
-      }
-      return(mut_load_str)
-    })
-    
+
 #     
 #     expression_dt <- reactive({
 #       dt <- data.table(
