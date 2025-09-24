@@ -101,6 +101,7 @@ server <- function(id, selected_samples, shared_data, file) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     is_restoring_session <- reactiveVal(FALSE)
+    
     observe({
       req(data())
       if (!is.null(file$TMB)) {
@@ -556,12 +557,22 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
     # Funkce pro update gene regions
     update_gene_region_choices <- function() {
       gene_choices <- sort(unique(ch(data$gene_region)))
-      current <- isolate(nz(input$gene_regions, gene_choices))
+      
+      # Při první inicializaci použij default (exon, splice), jinak zachovej current
+      if (!initialized()) {
+        default_regions <- c("exon", "splice")
+        # Jen ty, které skutečně existují v datech
+        selected <- intersect(default_regions, gene_choices)
+      } else {
+        current <- isolate(input$gene_regions)
+        selected <- if (is.null(current)) intersect(c("exon", "splice"), gene_choices) else current
+        selected <- intersect(ch(selected), gene_choices)  # jen platné hodnoty
+      }
       
       updatePrettyCheckboxGroup(
         session, "gene_regions", 
         choices = gene_choices, 
-        selected = current,
+        selected = selected,
         prettyOptions = list(status = "primary", icon = icon("check"), outline = FALSE)
       )
     }

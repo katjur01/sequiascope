@@ -300,8 +300,7 @@ server <- function(id) {
         message("Fusion prerun failed!")
       }
     })
-  
-    
+
     observeEvent(upload$confirmed_paths(), {
       confirmed_paths <- upload$confirmed_paths()   # make visible to helper above; or pass as arg
       

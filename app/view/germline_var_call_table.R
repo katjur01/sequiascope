@@ -500,18 +500,20 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
     update_gene_region_choices <- function() {
       gene_choices <- sort(unique(ch(data$gene_region)))
       
+      # Při první inicializaci použij default (exon, splice), jinak zachovej current
       if (!initialized()) {
-        preferred <- c("exon", "splice")
-        selected  <- if (length(intersect(preferred, gene_choices))) intersect(preferred, gene_choices) else gene_choices
+        default_regions <- c("exon", "splice")
+        # Jen ty, které skutečně existují v datech
+        selected <- intersect(default_regions, gene_choices)
       } else {
-        print("##### it is else not if")
-        selected <- isolate(nz(input$gene_regions, gene_choices))
-        selected <- intersect(ch(selected), gene_choices)
+        current <- isolate(input$gene_regions)
+        selected <- if (is.null(current)) intersect(c("exon", "splice"), gene_choices) else current
+        selected <- intersect(ch(selected), gene_choices)  # jen platné hodnoty
       }
       
       updatePrettyCheckboxGroup(
-        session, "gene_regions",
-        choices = gene_choices,
+        session, "gene_regions", 
+        choices = gene_choices, 
         selected = selected,
         prettyOptions = list(status = "primary", icon = icon("check"), outline = FALSE)
       )
