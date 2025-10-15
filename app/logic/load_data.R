@@ -2,72 +2,92 @@
 
 box::use(
   data.table[fread,as.data.table,rbindlist,tstrsplit,setcolorder,setnames,fwrite],
+  tools[file_ext],
   openxlsx[read.xlsx,getSheetNames],
-  tools[file_ext]
+  readxl[read_xls],
+  VariantAnnotation[readVcf],
 )
 
+box::use(
+  app/logic/session_utils[add_in_library_from_session]
+)
+
+# Helper function to read file based on extension
+read_by_extension <- function(file_path) {
+  ext <- tolower(file_ext(file_path))
+  
+  if (ext %in% c("tsv", "txt")) {
+    return(fread(file_path))
+  } else if (ext == "xlsx") {
+    return(as.data.table(read.xlsx(file_path)))
+  } else if (ext == "xls") {
+    return(as.data.table(read_xls(file_path)))
+    vcf <- readVcf(file_path)
+    return(as.data.table(info(vcf)))
+  } else {
+    stop(paste("Nepodporovaný formát:", ext))
+  }
+}
 # sample <- "DZ1601"
 # input_files <- fusion_genes_filenames
 #' @export
-load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){ 
-  if (flag == "varcall"){
+load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) { 
+  
+  # ============ SOMATIC ============
+  if (flag == "somatic") {
     input_var <- input_files[grepl(sample, input_files)]
-    dt <- fread(input_var)
-    dt[,sample := sample]
+    if (length(input_var) == 0) stop("Soubor pro vzorek ", sample, " nenalezen")
     
-    if("in_library" %in% colnames(dt)){
-      return(dt)
-      
-    } else {
-      ## adding information about how unique variants are in samples
-      ## this will run only first time when in_library column is not present 
-      message("Creating in_library column.")
-      
-      filenames_all <- get_inputs("all_sample_file")
-      input_files_all <- filenames_all$var_call.germline
-      input_var_all <- lapply(input_files_all,fread)
-      dt_all <- rbindlist(input_var_all,fill=TRUE)
-      
-      sample_list <- c()
-      
-      for (path in input_files) {
-        if (grepl("somatic", path)) {
-          sample <- gsub(".*\\/(.*)\\.variants.tsv", "\\1", path)
-          sample_list <- c(sample_list, paste0(sample, "krev"))
-        } else if (grepl("germline", path)) {
-          sample <- gsub(".*\\/(.*)\\.variants.tsv", "\\1", path)
-          sample_list <- c(sample_list, paste0(sample, "krev"))
-        }
-      }
-      
-      
-      dt_all[, in_library := rowSums(.SD), .SDcols = sample_list]
-      dt_all[, in_library := paste0(in_library, "/", length(sample_list))]
-      merged_dt <- merge(dt, unique(dt_all[, .(var_name, in_library)]), by = "var_name", all.x = TRUE)
-      fwrite(merged_dt,input_var)
-      rm(dt_all,input_var_all,filenames_all,input_files_all,dt)
-      
-      return(merged_dt)
+    dt <- read_by_extension(input_var)
+    dt[, sample := sample]
+    
+    # Add in_library if cache exists
+    if (!is.null(session_dir) && dir.exists(session_dir)) {
+      dt <- add_in_library_from_session(dt, session_dir, "somatic")
     }
     
+    return(dt)
+    
+    # ============ GERMLINE ============
+  } else if (flag == "germline") {
+    input_var <- input_files[grepl(sample, input_files)]
+    if (length(input_var) == 0) stop("Soubor pro vzorek ", sample, " nenalezen")
+    
+    dt <- read_by_extension(input_var)
+    dt[, sample := sample]
+    
+    # Add in_library if cache exists
+    if (!is.null(session_dir) && dir.exists(session_dir)) {
+      dt <- add_in_library_from_session(dt, session_dir, "germline")
+    }
+    
+    return(dt)
+    # ============ FUSION ============
   } else if (flag == "fusion") {
     input_var <- input_files[grepl(sample, input_files)]
-    dt <- as.data.table(read.xlsx(input_var))
+    if (length(input_var) == 0) stop("Soubor pro vzorek ", sample, " nenalezen")
+    
+    dt <- read_by_extension(input_var)
     dt[, sample := sample]
     return(dt)
     
+    # ============ EXPRESSION ============
   } else if (flag == "expression") {
-    
+    # Předpokládám strukturu: input_files = list(files = list(expression = ...), tissues = ...)
     expr_files <- input_files$files$expression
-    input_var  <- expr_files[grepl(sample, expr_files)]
-
-    if (length(unique(input_files$tissues)) == 1 &&  unique(input_files$tissues) == "none") {
-      combined_dt <- fread(unlist(input_var))
+    input_var <- expr_files[grepl(sample, expr_files)]
+    
+    if (length(input_var) == 0) stop("Expression soubor pro vzorek ", sample, " nenalezen")
+    
+    # Jeden soubor bez tkání
+    if (length(unique(input_files$tissues)) == 1 && unique(input_files$tissues) == "none") {
+      combined_dt <- read_by_extension(input_var[[1]])
       combined_dt[, c("tissue", "sample") := .("none", sample)]
       
+      # Více souborů s tkáněmi
     } else {
       dt_list <- lapply(seq_along(input_var), function(i) {
-        dt <- fread(input_var[[i]])
+        dt <- read_by_extension(input_var[[i]])
         dt[, c("tissue", "sample") := .(input_files$tissues[i], sample)]
         return(dt)
       })
@@ -79,30 +99,133 @@ load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){
     setnames(combined_dt, "all_kegg_paths_name", "pathway", skip_absent = TRUE)
     return(combined_dt)
     
-  } else if (flag == "TMB") { 
-    ext <- tolower(file_ext(input_files))
+    # ============ GOI (Genes of Interest) ============
+  } else if (flag == "GOI") {
+    dt <- read_by_extension(input_files)
     
-    if (ext == "xlsx") {
-      dt <- as.data.table(read.xlsx(input_files))
-    } else if (ext == "tsv") {
-      dt <- fread(input_files)
-    } else if (ext == "txt") {
-      dt <- fread(input_files)
-    } else {
-      stop("Podporovány jsou pouze soubory .xlsx, .tsv nebo .txt")
-    }
-
     if (ncol(dt) < 1L) stop("Soubor neobsahuje žádné sloupce.")
     
-    dt <- dt[,1:2]
-    setnames(dt,c("patient","TMB"))
-    dt[,TMB := as.numeric(gsub(",", ".", TMB))]
-    return(dt[patient == sample,])
+    # Zde můžeš přidat specifickou logiku pro GOI
+    # např. filtrování podle sample pokud je potřeba
+    if (!is.null(sample)) {
+      dt[, sample := sample]
+    }
+    return(dt)
     
+    # ============ TMB ============
+  } else if (flag == "TMB") { 
+    dt <- read_by_extension(input_files)
+    
+    if (ncol(dt) < 2L) stop("TMB soubor musí obsahovat alespoň 2 sloupce.")
+    
+    dt <- dt[, 1:2]
+    setnames(dt, c("patient", "TMB"))
+    dt[, TMB := as.numeric(gsub(",", ".", TMB))]
+    
+    if (!is.null(sample)) {
+      return(dt[patient == sample, ])
+    }
+    return(dt)
+    
+    # ============ UNKNOWN FLAG ============
   } else {
-    return(print("not varcall nor fusion nor expression"))
+    stop("Neznámý flag: ", flag, ". Podporované: varcall, germline, fusion, expression, GOI, TMB")
   }
 }
+# load_data <- function(input_files, flag, sample = NULL,expr_flag = NULL){ 
+#   if (flag == "varcall"){
+#     input_var <- input_files[grepl(sample, input_files)]
+#     dt <- fread(input_var)
+#     dt[,sample := sample]
+#     
+#     if("in_library" %in% colnames(dt)){
+#       return(dt)
+#       
+#     } else {
+#       ## adding information about how unique variants are in samples
+#       ## this will run only first time when in_library column is not present 
+#       message("Creating in_library column.")
+#       
+#       filenames_all <- get_inputs("all_sample_file")
+#       input_files_all <- filenames_all$var_call.germline
+#       input_var_all <- lapply(input_files_all,fread)
+#       dt_all <- rbindlist(input_var_all,fill=TRUE)
+#       
+#       sample_list <- c()
+#       
+#       for (path in input_files) {
+#         if (grepl("somatic", path)) {
+#           sample <- gsub(".*\\/(.*)\\.variants.tsv", "\\1", path)
+#           sample_list <- c(sample_list, paste0(sample, "krev"))
+#         } else if (grepl("germline", path)) {
+#           sample <- gsub(".*\\/(.*)\\.variants.tsv", "\\1", path)
+#           sample_list <- c(sample_list, paste0(sample, "krev"))
+#         }
+#       }
+#       
+#       
+#       dt_all[, in_library := rowSums(.SD), .SDcols = sample_list]
+#       dt_all[, in_library := paste0(in_library, "/", length(sample_list))]
+#       merged_dt <- merge(dt, unique(dt_all[, .(var_name, in_library)]), by = "var_name", all.x = TRUE)
+#       fwrite(merged_dt,input_var)
+#       rm(dt_all,input_var_all,filenames_all,input_files_all,dt)
+#       
+#       return(merged_dt)
+#     }
+#     
+#   } else if (flag == "fusion") {
+#     input_var <- input_files[grepl(sample, input_files)]
+#     dt <- as.data.table(read.xlsx(input_var))
+#     dt[, sample := sample]
+#     return(dt)
+#     
+#   } else if (flag == "expression") {
+#     
+#     expr_files <- input_files$files$expression
+#     input_var  <- expr_files[grepl(sample, expr_files)]
+# 
+#     if (length(unique(input_files$tissues)) == 1 &&  unique(input_files$tissues) == "none") {
+#       combined_dt <- fread(unlist(input_var))
+#       combined_dt[, c("tissue", "sample") := .("none", sample)]
+#       
+#     } else {
+#       dt_list <- lapply(seq_along(input_var), function(i) {
+#         dt <- fread(input_var[[i]])
+#         dt[, c("tissue", "sample") := .(input_files$tissues[i], sample)]
+#         return(dt)
+#       })
+#       combined_dt <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
+#     }
+#     
+#     combined_dt$sample <- NULL
+#     combined_dt[, sample := sample]
+#     setnames(combined_dt, "all_kegg_paths_name", "pathway", skip_absent = TRUE)
+#     return(combined_dt)
+#     
+#   } else if (flag == "TMB") { 
+#     ext <- tolower(file_ext(input_files))
+#     
+#     if (ext == "xlsx") {
+#       dt <- as.data.table(read.xlsx(input_files))
+#     } else if (ext == "tsv") {
+#       dt <- fread(input_files)
+#     } else if (ext == "txt") {
+#       dt <- fread(input_files)
+#     } else {
+#       stop("Podporovány jsou pouze soubory .xlsx, .tsv nebo .txt")
+#     }
+# 
+#     if (ncol(dt) < 1L) stop("Soubor neobsahuje žádné sloupce.")
+#     
+#     dt <- dt[,1:2]
+#     setnames(dt,c("patient","TMB"))
+#     dt[,TMB := as.numeric(gsub(",", ".", TMB))]
+#     return(dt[patient == sample,])
+#     
+#   } else {
+#     return(print("not varcall nor fusion nor expression"))
+#   }
+# }
 
 
 

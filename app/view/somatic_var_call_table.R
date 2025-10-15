@@ -122,7 +122,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
     # Load and process data table
     prepare_data <- reactive({
       message("Loading input data for somatic: ", file$variant)
-      data <- load_data(file$variant, "varcall", selected_samples)
+      data <- load_data(file$variant, "somatic", selected_samples, shared_data$session_dir())
       prepare_somatic_table(data, colnames(data))
     })
     

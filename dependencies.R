@@ -2,7 +2,8 @@
 # classic installation of required packages
 install.packages(c(
   "rhino", "shiny", "reactable", "shinyjs", "bs4Dash", "htmltools", "BiocManager","devtools","plotly","shinyWidgets", "networkD3", "ggplot2", "dplyr",
-  "data.table","openxlsx", "billboarder", "webshot", "shinycssloaders", "processx","future","shinyalert","shinyFiles","pheatmap","flextable"
+  "data.table","openxlsx", "billboarder", "webshot", "shinycssloaders", "processx","future","shinyalert","shinyFiles","pheatmap","flextable","readxl",
+  "vcfR"
 ))
 
 # installation of specific versions which were used during development
@@ -29,6 +30,8 @@ remotes::install_version("devtools", version = "")
 remotes::install_version("webshot2", version = "")
 remotes::install_version("plotly", version = "")
 remotes::install_version("tools", version = "")
+
+
 
 
 # wget https://data.broadinstitute.org/igv/projects/downloads/2.19/IGV_Linux_2.19.5_WithJava.zip

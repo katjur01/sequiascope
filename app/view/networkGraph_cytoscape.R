@@ -22,7 +22,7 @@ box::use(
 
 box::use(
   app/logic/load_data[get_inputs,load_data],
-  app/logic/prepare_table[get_tissue_list],
+  # app/logic/prepare_table[get_tissue_list],
   app/logic/waiters[use_spinner],
   app/logic/networkGraph_helper[get_string_interactions,prepare_cytoscape_network,get_pathway_list],
   app/view/networkGraph_tables,
@@ -113,7 +113,7 @@ ui <- function(id) {
     ),
    fluidRow(
      column(6,div(class = "networkGraph-tissue-wrapper",
-        radioGroupButtons(inputId=ns("selected_tissue"),"Choose a tissue :",choices = get_tissue_list(),justified = TRUE)))
+        radioGroupButtons(inputId=ns("selected_tissue"),"Choose a tissue :",choices = c("tissue 1 , tissue 2 "),justified = TRUE)))
    ),
    networkGraph_tables$tab_UI(ns("tab"))
   )

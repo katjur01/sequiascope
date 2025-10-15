@@ -1,8 +1,10 @@
 # app/logic/session_utils.R
 box::use(
-  shiny[reactive,isolate,showNotification, getDefaultReactiveDomain, reactiveVal],
+  shiny[reactive,isolate,showNotification, getDefaultReactiveDomain, reactiveVal, invalidateLater],
   jsonlite[read_json,write_json],
-  data.table[rbindlist, as.data.table]
+  data.table[rbindlist, as.data.table, fread, first, uniqueN, setnames],
+  readxl[read_excel,cell_limits],
+  tools[file_path_sans_ext,file_ext],
 )
 
 #' @export
@@ -107,11 +109,23 @@ create_session_handlers <- function(selected_inputs, filter_state, is_restoring 
 
 #' @export
 load_session <- function(file, shared_data, module_configs = NULL) {
-  if (!file.exists(file)) return(invisible(NULL))
-  session_data <- read_json(file, simplifyVector = TRUE)
-
+  if (!file.exists(file)) {
+    showNotification(paste("❌ Session file not found:", file), type = "error")
+    return(invisible(NULL))
+  }
+  
+  message("📄 Reading session file: ", file)
+  session_json <- read_json(file, simplifyVector = TRUE)
+  current_session_dir <- isolate(shared_data$session_dir())
+  
+  if (!is.null(session_json$data)) {
+    session_data <- session_json$data
+  } else {
+    session_data <- session_json
+  }
+  
   if (is.null(module_configs)) module_configs <- get_default_module_configs()
-
+  
   for (module_type in names(module_configs)) {
     if (!is.null(session_data[[module_type]])) {
       config <- module_configs[[module_type]]
@@ -123,6 +137,9 @@ load_session <- function(file, shared_data, module_configs = NULL) {
       )
     }
   }
+  
+  invalidateLater(2000, getDefaultReactiveDomain())
+  return(invisible(NULL))
 }
 
 restore_module_type <- function(module_type, session_data, shared_data, config) {
@@ -172,7 +189,13 @@ save_session <- function(file = "session_data.json", shared_data, module_types =
     }
   }
   
-  write_json(session, file, auto_unbox = TRUE, pretty = TRUE, na = "null")
+  session_metadata <- list(
+    data = session,
+    session_dir = nz(shared_data$session_dir(), NULL),
+    saved_at = Sys.time()
+  )
+  
+  write_json(session_metadata, file, auto_unbox = TRUE, pretty = TRUE, na = "null")
   showNotification(paste("Session saved to", file), type = "message")
 }
 
@@ -303,3 +326,207 @@ register_module <- function(shared_data, module_type, module_id, methods) {
   registry <- create_module_registry(shared_data, module_type)
   registry$register(module_id, methods)
 }
+
+
+
+# ====================================================
+# CREATE CACHE WITH var_name + full_annot_name columns
+# ====================================================
+
+#' @export
+create_session_cache <- function(all_files, all_patients, session_dir, variant_type = "somatic") {
+  
+  if (!dir.exists(session_dir)) {
+    dir.create(session_dir, recursive = TRUE)
+  }
+  
+  cache_file <- file.path(session_dir, paste0("in_library_", variant_type, ".rds"))
+  
+  message("Creating in_library cache for ", variant_type, " from ", length(all_patients), " samples...")
+  start_time <- Sys.time()
+
+  # LOAD ONLY var_name a full_annot_name columns
+  dt_list <- lapply(all_patients, function(patient) {
+    tryCatch({
+    
+      var_file <- all_files[[patient]]$variant
+      
+      # Načti POUZE tyto 2 sloupce
+      dt <- read_by_extension(var_file, select = c("var_name", "full_annot_name"))
+      sample_name <- patient
+      dt[, sample := sample_name]
+
+      message("    ✓ Loaded ", nrow(dt), " variants for sample ", sample_name)
+      
+      return(dt)
+
+    }, error = function(e) {
+      warning("Chyba při načítání: ", basename(var_file), " - ", e$message)
+      return(NULL)
+    })
+  })
+  
+  dt_list <- dt_list[!sapply(dt_list, is.null)]
+  
+  if (length(dt_list) == 0) {
+    stop("Žádná data pro cache!")
+  }
+  
+  # Sloučím všechny
+  dt_all <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
+  
+  # Počítej výskyty podle full_annot_name (UNIKÁTNÍ identifikátor)
+  variant_counts <- dt_all[, .(
+    in_library = paste0(.N, "/", length(all_patients)),
+    sample_count = .N,
+    samples = paste(unique(sample), collapse = ";"),
+    var_name = first(var_name)  # Zachovej var_name pro display
+  ), by = full_annot_name]
+  
+  # Seřaď podle nejčastějších variant
+  variant_counts <- variant_counts[order(-sample_count)]
+  
+  cache_metadata <- list(
+    data = variant_counts,
+    created = Sys.time(),
+    variant_type = variant_type,
+    n_samples = length(all_patients),
+    n_variants = nrow(variant_counts),
+    n_unique_var_names = uniqueN(variant_counts$var_name),
+    sample_files = all_files
+  )
+  
+  saveRDS(cache_metadata, cache_file)
+  
+  elapsed <- round(difftime(Sys.time(), start_time, units = "secs"), 2)
+  message("✓ Cache vytvořen: ", 
+          nrow(variant_counts), " unique variants (full_annot_name), ",
+          cache_metadata$n_unique_var_names, " unique genes (var_name) ",
+          "z ", length(all_patients), " samples (", elapsed, "s)")
+  
+  return(invisible(cache_metadata))
+}
+
+
+# ============================================
+# ADD in_library FROM CACHE
+# ============================================
+#' @export
+add_in_library_from_session <- function(dt, session_dir, variant_type) {
+  cache_file <- file.path(session_dir, paste0("in_library_", variant_type, ".rds"))
+  
+  if (!file.exists(cache_file)) {
+    message("Cache pro ", variant_type, " neexistuje. Sloupec in_library nebude přidán.")
+    return(dt)
+  }
+  
+  # Zkontroluj, že dt má full_annot_name
+  if (!"full_annot_name" %in% colnames(dt)) {
+    warning("Data nemají sloupec full_annot_name! Nelze přidat in_library.")
+    return(dt)
+  }
+  
+  cache_metadata <- readRDS(cache_file)
+  cache_data <- cache_metadata$data
+  
+  # Info pro uživatele
+  message("Používám cache: ", cache_metadata$n_samples, " samples, ", 
+          cache_metadata$n_variants, " unique variants, ",
+          format(cache_metadata$created, "%Y-%m-%d %H:%M"))
+  
+  # Merge podle full_annot_name (unikátní ID)
+  dt <- merge(
+    dt, 
+    cache_data[, .(full_annot_name, in_library, sample_count)], 
+    by = "full_annot_name", 
+    all.x = TRUE
+  )
+  
+  # Varianty které nejsou v cache jsou unikátní pro tohoto pacienta
+  dt[is.na(in_library), `:=`(
+    in_library = "1/1",
+    sample_count = 1L
+  )]
+  
+  return(dt)
+}
+
+
+
+# ============================================
+# CACHE CLEANING
+# ============================================
+#' @export
+cleanup_old_sessions <- function(base_dir = "sessions", days = 7) {
+  if (!dir.exists(base_dir)) return(invisible(NULL))
+  
+  all_dirs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)
+  if (length(all_dirs) == 0) return(invisible(NULL))
+  
+  old_dirs <- all_dirs[file.info(all_dirs)$mtime < Sys.time() - days * 24 * 60 * 60]
+  
+  if (length(old_dirs) > 0) {
+    message("🧹 Cleaning up ", length(old_dirs), " old session directories (>", days, " days old)")
+    unlink(old_dirs, recursive = TRUE, force = TRUE)
+  }
+  
+  return(invisible(NULL))
+}
+
+
+# HELPER FUNCTIONS 
+# DZ1601,MR1507
+read_by_extension <- function(file_path, select = NULL) {
+  ext <- tolower(file_ext(file_path))
+  if (ext == "tsv") {
+    # TSV - podporuje column selection
+    if (!is.null(select)) {
+      return(fread(file_path, select = select))
+    } else {
+      return(fread(file_path))
+    }
+    
+  } else if (ext == "vcf") {
+    # VCF - musíme načíst celý a pak filtrovat
+    dt <- parse_vcf(file_path)
+    
+    if (!is.null(select)) {
+      # Filtruj sloupce po načtení
+      return(dt[, ..select])
+    }
+    return(dt)
+    
+  } else {
+    stop("Nepodporovaný formát: ", file_path, ". Podporovány jsou pouze TSV a VCF.")
+  }
+}
+
+
+# Jednoduchý VCF parser
+parse_vcf <- function(file_path) {
+  # Najdi kde začínají data (za headerem)
+  con <- file(file_path, "r")
+  skip_lines <- 0
+  
+  while (TRUE) {
+    line <- readLines(con, n = 1)
+    if (length(line) == 0) break
+    
+    if (grepl("^#CHROM", line)) {
+      break
+    }
+    skip_lines <- skip_lines + 1
+  }
+  close(con)
+  
+  # Načti VCF jako tabulku
+  dt <- fread(file_path, skip = skip_lines)
+  
+  # Přejmenuj první sloupec (odstraň #)
+  if (names(dt)[1] == "#CHROM") {
+    setnames(dt, "#CHROM", "CHROM")
+  }
+  
+  return(dt)
+}
+

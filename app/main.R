@@ -25,7 +25,7 @@
 # git push -u origin dev
 box::use(
   rhino,
-  shiny[h1,h2,h3,bootstrapPage,div,moduleServer,NS,renderUI,tags,uiOutput,icon,observeEvent,observe,reactive,isTruthy,onFlushed,appendTab,removeTab,
+  shiny[h1,h2,h3,bootstrapPage,div,moduleServer,NS,renderUI,tags,uiOutput,icon,observeEvent,observe,reactive,isTruthy,onFlushed,appendTab,removeTab,withProgress,
         fluidRow,fluidPage,mainPanel,tabPanel,titlePanel,tagList,HTML,textInput,sidebarLayout,sidebarPanel,includeScript,invalidateLater,isolate,
         br,updateTabsetPanel,imageOutput,renderImage,reactiveVal,req,fixedPanel,reactiveValues,fileInput,showNotification],
   bs4Dash[dashboardPage, dashboardHeader, dashboardSidebar, dashboardBody, sidebarMenu, menuItem, menuSubItem, dashboardControlbar,tabItems, tabItem, bs4Card,infoBox,tabBox,tabsetPanel,bs4ValueBox,
@@ -65,8 +65,8 @@ box::use(
   app/view/expression_profile_table,
   app/view/IGV,
   app/logic/helper_igv[start_static_server,stop_static_server],
-#   app/view/networkGraph_cytoscape,
-  app/logic/session_utils[load_session, save_session],
+  app/view/networkGraph_cytoscape,
+  app/logic/session_utils[load_session, save_session, cleanup_old_sessions, create_session_cache],
   app/logic/prerun_fusion[fusion_patients_to_prerun,prerun_fusion_data, get_fusion_prerun_status],
   app/logic/helper_main[get_patients, get_files_by_patient, add_dataset_tabs, add_summary_boxes, run_igv],
 )
@@ -100,8 +100,7 @@ ui <- function(id){
         navbarTab("Network graph", tabName = ns("network_graph"))
       ),
       rightUi = tagList(
-        tags$li(class = "dropdown", actionButton(ns("save_session_btn"), label = NULL, icon = icon("save"), title = "Save session",class = "session-btn")),
-        tags$li(class = "dropdown", actionButton(ns("load_session_btn"), label = NULL, icon = icon("upload"), title = "Load session",class = "session-btn")))),
+        tags$li(class = "dropdown", actionButton(ns("save_session_btn"), label = NULL, icon = icon("save"), title = "Save session",class = "session-btn")))),
     sidebar = dashboardSidebar(disable = TRUE),
     body = dashboardBody(#style = "background-color: white;",
       tabItems(
@@ -233,6 +232,7 @@ server <- function(id) {
     session$userData$parent_session <- session  # for going to different navbarMenu from other modules
     message("[future plan] ", paste(class(future::plan()), collapse = " / "))
 
+    
     shared_data <- reactiveValues(
       somatic.variants = reactiveVal(NULL),
       somatic.patients  = reactiveVal(character(0)),
@@ -255,6 +255,8 @@ server <- function(id) {
       expression.overview = list(),
       session_loaded = reactiveVal(FALSE),
       navigation_context = reactiveVal(NULL),     # somatic or germline or fusion     # from where are we opening IGV
+      session_dir = reactiveVal(NULL),
+      is_loading_session = reactiveVal(FALSE),
       
       # NOVÉ: Přidat pro fusion prerun status
       fusion_prerun_status = reactiveVal("not_started"),
@@ -304,24 +306,97 @@ server <- function(id) {
 
     observeEvent(upload$confirmed_paths(), {
       confirmed_paths <- upload$confirmed_paths()   # make visible to helper above; or pass as arg
-      
-      
       mounted_summary <- reactiveValues(mounted = character(0))
+      
+      session_dir <- isolate(shared_data$session_dir())
 
+      if (isTRUE(shared_data$is_loading_session())) {
+        message("📂 Loading session - using existing cache from: ", session_dir)
+        
+        if (is.null(session_dir) || session_dir == "") {
+          message("❌ ERROR: session_dir is NULL or empty during session load!")
+          showNotification("⚠️ Session directory not set! Creating new cache...", type = "warning")
+          shared_data$is_loading_session(FALSE)
+        } else {
+          somatic_cache <- file.path(session_dir, "in_library_somatic.rds")
+          germline_cache <- file.path(session_dir, "in_library_germline.rds")
+          
+          message("🔍 Checking for cache files:")
+          message("   Somatic: ", somatic_cache, " -> ", file.exists(somatic_cache))
+          message("   Germline: ", germline_cache, " -> ", file.exists(germline_cache))
+          
+          if (!file.exists(somatic_cache) || !file.exists(germline_cache)) {
+            message("❌ Cache files missing!")
+            showNotification("⚠️ Cache files missing! Creating new cache...", type = "warning")
+            shared_data$is_loading_session(FALSE)
+          } else {
+            message("✅ Cache files found - will use existing cache")
+          }
+        }
+      }
+      
+      # Vytvoř nový cache POUZE pokud NENÍ load session
+      if (!isTRUE(shared_data$is_loading_session())) {
+        message("🆕 Creating NEW session with fresh cache...")
+        
+        # Cleanup old sessions
+        cleanup_old_sessions("sessions", days = 7)
+        
+        # Create new session directory
+        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+        new_session_dir <- file.path("sessions", paste0("session_", timestamp))
+        dir.create(new_session_dir, recursive = TRUE)
+        shared_data$session_dir(new_session_dir)
+        
+        message("📂 New session directory: ", new_session_dir)
+        
+        # Create somatic cache
+        withProgress(message = "Creating cache for somatic variants...", {
+          create_session_cache(
+            all_files = get_files_by_patient(confirmed_paths, "somatic"),
+            all_patients = get_patients(confirmed_paths, "somatic"),
+            session_dir = new_session_dir,
+            variant_type = "somatic"
+          )
+        })
+        
+        # Create germline cache
+        withProgress(message = "Creating cache for germline variants...", {
+          create_session_cache(
+            all_files = get_files_by_patient(confirmed_paths, "germline"),
+            all_patients = get_patients(confirmed_paths, "germline"),
+            session_dir = new_session_dir,
+            variant_type = "germline"
+          )
+        })
+        
+        showNotification("✅ Cache created! Data are ready.", type = "message")
+        
+      } else {
+        message("✅ Using existing cache from: ", session_dir)
+        shared_data$is_loading_session(FALSE)
+        message("🔄 Reset is_loading_session to FALSE")
+      }
+      
       # ## Somatic
       add_dataset_tabs(session, confirmed_paths, "somatic", shared_data, added_tab_values, "somatic_tabset", "som_", somatic_var_call_table)
       # # # ## Germline
       add_dataset_tabs(session, confirmed_paths, "germline", shared_data, added_tab_values, "germline_tabset", "germ_", germline_var_call_table)
       ## Fusion
-      add_dataset_tabs(session, confirmed_paths, "fusion", shared_data, added_tab_values, "fusion_tabset", "fus_", fusion_genes_table, reactive(input$load_session_btn))
+      # add_dataset_tabs(session, confirmed_paths, "fusion", shared_data, added_tab_values, "fusion_tabset", "fus_", fusion_genes_table, reactive(input$load_session_btn))
       # # ## Expression
-      add_dataset_tabs(session, confirmed_paths, "expression", shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
+      # add_dataset_tabs(session, confirmed_paths, "expression", shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
       ## Summary
       add_summary_boxes(session, output, shared_data, "summary_table", summary, mounted_summary)
-      # IGV + server mount (ONCE)
-      ##### Spustíme statický server při startu celé aplikace
-      ##### start_static_server(dir = "/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117/primary_analysis/230426_MOII_e117_tkane/mapped")
+    
+      
+      # ##################
+      # #### run network graph module
 
+      networkGraph_cytoscape$server("network_graph", shared_data)
+      
+
+      # ## IGV + static server mount (ONCE)
       if (is.null(shared_data$igv_server_started)) shared_data$igv_server_started <- reactiveVal(FALSE)
       if (is.null(shared_data$igv_root)) shared_data$igv_root <- reactiveVal(NULL)
       
@@ -335,17 +410,13 @@ server <- function(id) {
         shared_data$igv_root(root_path)  
         shared_data$igv_server_started(TRUE)
     
-          session$onSessionEnded(function() {
-            stop_static_server()
-          })
+        session$onSessionEnded(function() {
+          stop_static_server()
+        })
       }
       
         IGV$igv_server("igv", shared_data, root_path)
-
-
-      
-      
-
+        
       
       observeEvent(input$save_session_btn, {
         shinyalert(
@@ -357,30 +428,11 @@ server <- function(id) {
           cancelButtonText  = "Cancel",
           callbackR = function(x) {
             if (isTRUE(x)) {
-              save_session("session_data.json", shared_data)
+              session_file <- file.path(shared_data$session_dir(), "session_data.json")
+              save_session(session_file, shared_data)
               showNotification("Session successfully saved.", type = "message")
             } else {
               showNotification("Saving session was canceled.", type = "default")
-            }
-          }
-        )
-      })
-      
-      observeEvent(input$load_session_btn, {
-        shinyalert(
-          title = "Confirm Load",
-          text  = "Do you really want to load the session? This will overwrite current selections.",
-          type  = "warning",
-          showCancelButton = TRUE,
-          confirmButtonText = "Yes, load it",
-          cancelButtonText  = "Cancel",
-          callbackR = function(x) {
-            if (isTRUE(x)) {
-              load_session("session_data.json", shared_data)
-              updateNavbarTabs(session, "navbarMenu", selected = ns("summary"))  # volitelné
-              showNotification("Session successfully loaded.", type = "message")
-            } else {
-              showNotification("Loading session was canceled.", type = "default")
             }
           }
         )
@@ -475,32 +527,9 @@ server <- function(id) {
 #         print("### Fusion prerun skript is not needed for any selected patient.")
 #       }
 # 
-#       # Optionally focus the whole Variant calling page
-      updateNavbarTabs(session, "navbarMenu", selected = ns("fusion_genes"))
-      # updateNavbarTabs(session, "navbarMenu", selected = ns("summary"))
+      # Optionally focus the whole Variant calling page
+      updateNavbarTabs(session, "navbarMenu", selected = ns("summary"))
 
-# ##################
-# #### run network graph module
-# 
-#     networkGraph_cytoscape$server("network_graph", shared_data)
-# 
-# ##### Spustíme statický server při startu celé aplikace
-# ##### start_static_server(dir = "/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117/primary_analysis/230426_MOII_e117_tkane/mapped")
-# ##### Spustíme statický server při startu celé aplikace
-# 
-#   path <-    get_files_by_patient(confirmed_paths)
-#   path <- get_inputs("bam_file")
-#   path_combined <- file.path(getwd(), path$path_to_folder)
-#   path_clean <- sub("/+$", "", path_combined)
-# 
-#   start_static_server(dir = path_clean)   # paste0(getwd(),"/input_files/MOII_e117/primary_analysis/230426_MOII_e117_tkane/mapped"))
-# 
-#   IGV$igv_server("igv",shared_data)
-# 
-#   # Ukončení serveru při zavření celé session
-#   session$onSessionEnded(function() {
-#     stop_static_server()
-#   })
 
   
     }, ignoreInit = TRUE)

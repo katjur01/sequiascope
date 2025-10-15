@@ -1,7 +1,7 @@
  box::use(
   shiny[NS,tagList,fileInput,moduleServer,observe,reactive,textOutput,updateTextInput,renderText,req,textInput,observeEvent,textAreaInput,column,fluidRow,reactiveVal,
         isTruthy,actionButton,icon,updateTextAreaInput,uiOutput,renderUI,bindEvent,fluidPage,radioButtons,verbatimTextOutput,renderPrint,reactiveValuesToList,showNotification,
-        outputOptions,conditionalPanel,reactiveValues],
+        outputOptions,conditionalPanel,reactiveValues,isolate],
   htmltools[tags,HTML,div,span,h2,h4,br],
   shinyFiles[shinyDirButton,shinyDirChoose,parseDirPath,getVolumes],
   shinyWidgets[prettySwitch,updatePrettySwitch,pickerInput,updatePickerInput, dropdownButton,tooltipOptions,radioGroupButtons],
@@ -123,11 +123,36 @@
          cancelButtonText  = "Cancel",
          callbackR = function(ok) {
            if (isTRUE(ok)) {
-             load_session("session_data.json", shared_data)   # ⬅️ načte upload + somatic (díky registrům/pending)
-             showNotification("Session successfully loaded.", type = "message")
+             session_base <- "sessions"
+
+             if (!dir.exists(session_base)) {
+               showNotification("❌ No sessions directory found!", type = "error")
+               return()
+             }
              
-             # volitelně: přepnout na step 2 hned po loadu:
-             # step(2)
+             session_dirs <- list.dirs(session_base, full.names = TRUE, recursive = FALSE)
+             
+             if (length(session_dirs) == 0) {
+               showNotification("❌ No session directories found!", type = "error")
+               return()
+             }
+             
+             latest_session <- session_dirs[which.max(file.info(session_dirs)$mtime)]
+             session_file <- file.path(latest_session, "session_data.json")
+
+             if (!file.exists(session_file)) {
+               showNotification(paste("❌ Session file not found:", session_file), type = "error")
+               return()
+             }
+             
+             abs_session_dir <- normalizePath(latest_session, mustWork = TRUE)
+             shared_data$session_dir(abs_session_dir)
+             shared_data$is_loading_session(TRUE)
+
+             load_session(session_file, shared_data)
+             
+             showNotification("✅ Session successfully loaded.", type = "message")
+             step(2)
            } else {
              showNotification("Loading session was canceled.", type = "default")
            }
