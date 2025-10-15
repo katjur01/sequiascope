@@ -369,7 +369,8 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
   dt_list <- dt_list[!sapply(dt_list, is.null)]
   
   if (length(dt_list) == 0) {
-    stop("Žádná data pro cache!")
+    warning("Žádná data pro cache v ", variant_type, " - cache nebude vytvořen")
+    return(invisible(NULL))
   }
   
   # Sloučím všechny
@@ -416,17 +417,35 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
   cache_file <- file.path(session_dir, paste0("in_library_", variant_type, ".rds"))
   
   if (!file.exists(cache_file)) {
-    message("Cache pro ", variant_type, " neexistuje. Sloupec in_library nebude přidán.")
+    message("ℹ️  Cache pro ", variant_type, " neexistuje - sloupec in_library nebude přidán")
+    if (!"in_library" %in% colnames(dt)) {
+      dt[, `:=`(in_library = "1/1", sample_count = 1L)]
+    }
     return(dt)
   }
   
-  # Zkontroluj, že dt má full_annot_name
+  # PŘIDAT: Try-catch pro bezpečné načtení cache
+  cache_metadata <- tryCatch({
+    readRDS(cache_file)
+  }, error = function(e) {
+    warning("⚠️  Nelze načíst cache soubor: ", cache_file, " - ", e$message)
+    return(NULL)
+  })
+  
+  # Pokud se nepodařilo načíst cache, použij default hodnoty
+  if (is.null(cache_metadata)) {
+    if (!"in_library" %in% colnames(dt)) {
+      dt[, `:=`(in_library = "1/1", sample_count = 1L)]
+    }
+    return(dt)
+  }
+  
   if (!"full_annot_name" %in% colnames(dt)) {
     warning("Data nemají sloupec full_annot_name! Nelze přidat in_library.")
+    dt[, `:=`(in_library = "1/1", sample_count = 1L)]
     return(dt)
   }
-  
-  cache_metadata <- readRDS(cache_file)
+
   cache_data <- cache_metadata$data
   
   # Info pro uživatele
@@ -434,7 +453,7 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
           cache_metadata$n_variants, " unique variants, ",
           format(cache_metadata$created, "%Y-%m-%d %H:%M"))
   
-  # Merge podle full_annot_name (unikátní ID)
+  # Merge podle full_annot_name
   dt <- merge(
     dt, 
     cache_data[, .(full_annot_name, in_library, sample_count)], 
@@ -442,7 +461,7 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
     all.x = TRUE
   )
   
-  # Varianty které nejsou v cache jsou unikátní pro tohoto pacienta
+  # Varianty které nejsou v cache
   dt[is.na(in_library), `:=`(
     in_library = "1/1",
     sample_count = 1L

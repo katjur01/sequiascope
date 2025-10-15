@@ -9,11 +9,11 @@ box::use(
   bs4Dash[updateTabItems,addPopover],
   htmltools[h3, h4, h6, tags, div,HTML,p],
   jsonlite[fromJSON, toJSON,read_json],
-  cyjShiny[cyjShinyOutput, renderCyjShiny, cyjShiny, dataFramesToJSON, selectNodes,setNodeAttributes,selectFirstNeighbors,fit,fitSelected,clearSelection,getSelectedNodes],
+  # cyjShiny[cyjShinyOutput, renderCyjShiny, cyjShiny, dataFramesToJSON, selectNodes,setNodeAttributes,selectFirstNeighbors,fit,fitSelected,clearSelection,getSelectedNodes],
   data.table[fread,setnames,as.data.table,data.table,copy,rbindlist,setDF],
   stats[aggregate,rnorm],
   readxl[read_excel],
-  graph[nodes],
+  # graph[nodes],
   reactable[reactable,colDef,renderReactable,reactableOutput,JS],
   shinyWidgets[radioGroupButtons,pickerInput,searchInput,updatePickerInput,prettySwitch,dropdown,updatePrettySwitch,actionBttn],
   shinyjs[useShinyjs],
@@ -21,24 +21,14 @@ box::use(
 )
 
 box::use(
-  app/logic/load_data[get_inputs,load_data],
-  # app/logic/prepare_table[get_tissue_list],
+  app/logic/load_data[load_data],
   app/logic/waiters[use_spinner],
   app/logic/networkGraph_helper[get_string_interactions,prepare_cytoscape_network,get_pathway_list],
   app/view/networkGraph_tables,
+
 )
 
-
-input_data <- function(sample,expr_flag){
-  input_files <- get_inputs("per_sample_file")
-  # message("Loading data for expression profile: ", filenames$expression.files)
-  data <- load_data(input_files$expression.files,"expression",sample,expr_flag)
-  return(data)
-}
-
-
-
-ui <- function(id) {
+ui <- function(id, tissue_list) {
   ns <- NS(id)
   useShinyjs()
   tagList(
@@ -113,13 +103,13 @@ ui <- function(id) {
     ),
    fluidRow(
      column(6,div(class = "networkGraph-tissue-wrapper",
-        radioGroupButtons(inputId=ns("selected_tissue"),"Choose a tissue :",choices = c("tissue 1 , tissue 2 "),justified = TRUE)))
+        radioGroupButtons(inputId=ns("selected_tissue"),"Choose a tissue :",choices = tissue_list,justified = TRUE)))
    ),
    networkGraph_tables$tab_UI(ns("tab"))
   )
 }
 
-server <- function(id, shared_data) {
+server <- function(id, patient, shared_data, patient_files, file_list) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -132,7 +122,14 @@ server <- function(id, shared_data) {
     # result_dt <- reactiveVal(NULL)
     selected_dt <- reactiveVal(NULL)
     
-    dt <- input_data("MR1507","all_genes")
+    # Load and process data table
+    dt <- reactive({
+      message("Loading input data for network graph: ", patient_files)
+      load_data(patient_files, "expression", patient)
+    })
+
+
+    # dt <- input_data("MR1507","all_genes")
     # dt <- input_data("FZ0711","all_genes")
     #
     # # subTissue_dt <- fread("input_files/MOII_e117/RNAseq21_NEW/MR1507/Blood_all_genes_oneRow.tsv")
@@ -141,18 +138,17 @@ server <- function(id, shared_data) {
     # tissue_dt <- unique(pathway_dt[tissue == "Breast"])
     # interactions <- get_string_interactions(tissue_dt[, feature_name])
     # network_json <- prepare_cytoscape_network(interactions, tissue_dt[, feature_name], tissue_dt[, log2FC])
-    # 
-    # 
+
     subTissue_dt <- reactive({
       req(input$selected_tissue)
-      req(dt)
-      unique(dt[tissue == input$selected_tissue])
+      req(dt())
+      unique(dt()[tissue == input$selected_tissue])
     })
-
 
     pathway_dt <- reactive({
       req(input$selected_pathway)
-      unique(dt[grepl(input$selected_pathway, pathway,fixed = TRUE),-c("all_kegg_gene_names","counts_tpm_round","size","mu","lower_than_p","higher_than_p","type","gene_definition")])
+      req(dt())
+      unique(dt()[grepl(input$selected_pathway, pathway,fixed = TRUE),-c("all_kegg_gene_names","counts_tpm_round","size","mu","lower_than_p","higher_than_p","type","gene_definition")])
     })
 
     tissue_dt <- reactive({
@@ -160,30 +156,31 @@ server <- function(id, shared_data) {
       req(pathway_dt())
       unique(pathway_dt()[tissue == input$selected_tissue])
     })
-    
+
+
     observe({      # Fetch STRING interactions for the current tissue
       req(tissue_dt())
       message("Fetching STRING interactions")
       interactions(get_string_interactions(tissue_dt()[, feature_name]))
     })
-    
+
     network_json <- reactive({      # Prepare the Cytoscape network using the fetched interactions and log2FC values
       req(tissue_dt(),interactions())
       prepare_cytoscape_network(interactions(), unique(tissue_dt()[, .(feature_name,log2FC)]))
     })
-  
+
     output$js_namespace <- renderUI({    # Předat jmenný prostor do JavaScriptu - umožní  používat ns v JS
       tags$script(HTML(sprintf("var ns = '%s';", ns(""))))
     })
-  
+
     ##################################
     ## Network node synchronization ##
     ##################################
-    
+
     sync_nodes <- function(nodes_from_graph, current_genes, add_genes = NULL, remove_genes = NULL, clear_all) {
-      
+
       ifelse(clear_all, combined <- character(0), combined <- unique(c(nodes_from_graph, current_genes)))
-      
+
       if (!is.null(add_genes) && length(add_genes) > 0) combined <- unique(c(combined, add_genes))  # Přidání nových genů
       if (!is.null(remove_genes) && length(remove_genes) > 0) combined <- setdiff(combined, remove_genes)  # Odebrání genů
 
@@ -192,28 +189,28 @@ server <- function(id, shared_data) {
 
       return(list(updated_nodes = combined, changed = changed))  # Návrat aktualizovaných uzlů a informace o změně
     }
-    
-    
+
+
     ########################
     ## Network UI buttons ##
     ########################
-    
+
     observeEvent(list(input$selected_pathway, input$selected_tissue), {
       req(input$selected_pathway, input$selected_tissue)
       message("Selected pathway: ", input$selected_pathway, ", Selected tissue: ", input$selected_tissue)
       session$sendCustomMessage("cy-init", network_json())
     })
-    
+
     observe({      # Fetch STRING interactions for the current tissue
       req(subTissue_dt())
       message("Fetching STRING interactions")
       sub_interactions(get_string_interactions(unique(subTissue_dt()[feature_name %in% synchronized_nodes(),feature_name])))
     })
-    
+
     observe({
       current_nodes <- synchronized_nodes()
       message("current_nodes v cy-subset eventu: ", paste(current_nodes, collapse = ", "))
-      
+
       if (length(current_nodes) == 0) {
         message("Žádné uzly nejsou vybrány. Odesílám prázdný podgraf.")
         empty_json <- toJSON(list(elements = list(nodes = list(), edges = list())), auto_unbox = TRUE)
@@ -228,7 +225,7 @@ server <- function(id, shared_data) {
       message("# konec cy-subset eventu.")
     })
 
-    
+
     observeEvent(list(input$cySelectedNodes, input$confirm_new_genes_btn, input$confirm_remove_genes_btn, input$clearSelection_btn, new_genes_var(),remove_genes_var()), {
 
       message("nodes_from_graph: ", paste(input$cySelectedNodes, collapse = ", "))
@@ -236,7 +233,7 @@ server <- function(id, shared_data) {
       message("new_genes: ", paste(new_genes_var(), collapse = ", "))
       message("remove_genes: ", paste(remove_genes_var(), collapse = ", "))
       message("clear_all: ", clear_all())
-      
+
       result <- sync_nodes(
         nodes_from_graph = input$cySelectedNodes,
         current_genes = synchronized_nodes(),
@@ -244,33 +241,33 @@ server <- function(id, shared_data) {
         remove_genes = remove_genes_var(),
         clear_all = clear_all()
       )
-      
+
       updated_nodes <- result$updated_nodes
       changed <- result$changed
       message("updated_nodes: ", paste(updated_nodes, collapse = ", "))
-      
+
       if (changed) {
         synchronized_nodes(updated_nodes) # Synchronizace uzlů
         message("Synchronizované uzly byly aktualizovány: ", paste(updated_nodes, collapse = ", "))
       } else {
         message("Uzly se nezměnily, žádná aktualizace není potřeba.")
       }
-      
+
       # Reset vstupů pro přidání a odebrání genů
       updateTextAreaInput(session, "new_genes", value = "")
       updatePickerInput(session, "remove_genes", choices = synchronized_nodes(), selected = NULL)
-      
+
       if (clear_all()) {
-        if (length(updated_nodes) == 0 && length(input$cySelectedNodes) == 0 && length(synchronized_nodes()) == 0 ) { 
+        if (length(updated_nodes) == 0 && length(input$cySelectedNodes) == 0 && length(synchronized_nodes()) == 0 ) {
           clear_all(FALSE)
           message("Clear selection completed. Resetting clear_all to FALSE.")
         }
       }
-      
+
       message("# konec hlavního observeEventu.")
     })
-    
-    
+
+
     # Přidání nových genů do pickerInput po stisknutí tlačítka "Add Genes"
       observeEvent(input$confirm_new_genes_btn, {
         new_genes <- input$new_genes
@@ -291,7 +288,7 @@ server <- function(id, shared_data) {
    # Odebrání vybraných genů z pickerInput
       observeEvent(input$confirm_remove_genes_btn, {
         genes_to_remove <- input$remove_genes
-        
+
         if (!is.null(genes_to_remove) && length(genes_to_remove) > 0) {
           remove_genes_var(genes_to_remove)
           updatePickerInput(session, "remove_genes", choices = synchronized_nodes(), selected = NULL)
@@ -301,11 +298,11 @@ server <- function(id, shared_data) {
         }
         message("# konec eventu confirm_remove_genes_btn.")
       })
-      
+
     ########################
     #### Network buttons ###
     ########################
-      
+
     observeEvent(input$selected_layout, {
       session$sendCustomMessage("cy-layout",input$selected_layout)
     })
@@ -316,13 +313,13 @@ server <- function(id, shared_data) {
       new_genes_var(NULL)
       remove_genes_var(NULL)
       synchronized_nodes(character(0))  # Jasně nastaví stav synchronizovaných uzlů
-      
+
       # Explicitní aktualizace UI komponent
       session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list()))
       session$sendCustomMessage("cy-subset", toJSON(list(elements = list(nodes = list(), edges = list())), auto_unbox = TRUE))
       updatePickerInput(session, "remove_genes", choices = character(0), selected = NULL)
       updateTextAreaInput(session, "new_genes", value = "")
-      
+
       message("All selections cleared.")
     })
 
@@ -342,19 +339,19 @@ server <- function(id, shared_data) {
         session$sendCustomMessage("fit-selected-nodes", list(nodes = NULL)) # NULL znamená vycentrování na celý graf
       }
     })
-    
+
     #################################################
     ### Selected variant or fusion data + buttons ###
     #################################################
     observe({
-      som_vars <- as.data.table(shared_data$somatic_var())
-      germ_vars <- as.data.table(shared_data$germline_var())
-      fusions <- as.data.table(shared_data$fusion_var())
+      som_vars <- as.data.table(shared_data$somatic.variants())
+      germ_vars <- as.data.table(shared_data$germline.variants())
+      fusions <- as.data.table(shared_data$fusion.variants())
       tissue_table <- copy(tissue_dt())  # Výchozí tabulka
-      
+
       # Výchozí hodnota pro selected_dt
       selected_dt(NULL)
-      # 
+      #
       # if ((is.null(som_vars)  || nrow(som_vars) == 0) &&
       #     (is.null(germ_vars) || nrow(germ_vars) == 0) &&
       #     (is.null(fusions)   || nrow(fusions) == 0)) {
@@ -367,25 +364,25 @@ server <- function(id, shared_data) {
       #     selected_som_variants <- unique(selected_som_variants, by = "Gene_symbol")
       #     tissue_table <- merge(tissue_table, selected_som_variants, by.x = "feature_name", by.y = "Gene_symbol", all.x = TRUE)
       #   }
-      #   
+      #
       #   # Přidání germline variant
       #   if (!is.null(germ_vars) && nrow(germ_vars) > 0) {
       #     selected_germ_variants <- germ_vars[, .(Gene_symbol, variant = var_name)]
       #     selected_germ_variants <- unique(selected_germ_variants, by = "Gene_symbol")
       #     tissue_table <- merge(tissue_table, selected_germ_variants, by.x = "feature_name", by.y = "Gene_symbol", all.x = TRUE)
       #   }
-      #   
+      #
       #   # Přidání fúzí
       #   if (!is.null(fusions) && nrow(fusions) > 0) {
       #     fusions <- fusions[, .(Gene_symbol = c(gene1, gene2), fusion = paste(paste(gene1, gene2, sep = "-"), collapse = ", "))]
       #     fusions <- unique(fusions, by = "Gene_symbol")
       #     tissue_table <- merge(tissue_table, fusions, by.x = "feature_name", by.y = "Gene_symbol", all.x = TRUE)
       #   }
-      #   
+      #
       #   result_dt(tissue_table)
       #   message("Updated result_dt with somatic, germline and/or fusion variants.")
       # }
-      
+
       # Vytvoření selected_dt
       if ((!is.null(som_vars) && nrow(som_vars) > 0) || (!is.null(germ_vars) && nrow(germ_vars) > 0) || (!is.null(fusions) && nrow(fusions) > 0)) {
         selected_som_variants <- if (!is.null(som_vars) && nrow(som_vars) > 0) {
@@ -393,13 +390,13 @@ server <- function(id, shared_data) {
         } else {
           data.frame(Gene_symbol = character(0))
         }
-        
+
         selected_germ_variants <- if (!is.null(germ_vars) && nrow(germ_vars) > 0) {
           unique(germ_vars[, var_name := "germline"])
         } else {
           data.frame(Gene_symbol = character(0))
         }
-        
+
         selected_fusions <- if (!is.null(fusions) && nrow(fusions) > 0) {
           fusions <- unique(fusions[, .(Gene_symbol = c(gene1, gene2), fusion = "yes")])
           # unique(fusions[, fusion := "yes"])
@@ -411,26 +408,26 @@ server <- function(id, shared_data) {
         pathways_info <- subTissue_dt()[feature_name %in% combined_selected$Gene_symbol, .(Gene_symbol = feature_name, pathway)]
         combined_selected <- merge(combined_selected, pathways_info, by = "Gene_symbol", all.x = TRUE)
         setDF(combined_selected)
-        
+
         selected_dt(combined_selected)
       } else {
         selected_dt(data.frame(Gene_symbol = character(0), variant = character(0), fusion = character(0), pathway = character(0)))
       }
     })
-    
-    
-    
+
+
+
     observeEvent(list(input$selectedSomVariants, input$selectedGermVariants, input$selectedFusions, input$selected_pathway, input$selected_tissue), {
-      
-      if (input$selectedSomVariants) {
+  
+      if (isTruthy(input$selectedSomVariants)) {
         if ("var_name" %in% names(selected_dt())) {
           selected_dt <- as.data.table(selected_dt())
           somatic_nodes <- as.character(unique(selected_dt[var_name == "somatic", Gene_symbol]))
-          
+
           print(somatic_nodes)
           if (length(somatic_nodes) == 0) {
             updatePrettySwitch(session, "selectedSomVariants", value = FALSE) # Reset prettySwitch na FALSE
-            
+
             shinyalert(
               title = "No variants selected",
               text = "You don't have any somatic variants selected.",
@@ -452,7 +449,7 @@ server <- function(id, shared_data) {
         } else {
           # Reset prettySwitch na FALSE
           updatePrettySwitch(session, "selectedSomVariants", value = FALSE)
-          
+
           shinyalert(
             title = "No variants selected",
             text = "No somatic variants are currently selected as possibly oncogenic.",
@@ -463,23 +460,23 @@ server <- function(id, shared_data) {
             callbackR = function(value) {
               if (!value) {}})
         }
-        
+
       } else {
         message("Removing border for somatic variant nodes.")
         session$sendCustomMessage("variant-border", list(type = "somatic", nodes = character(0)))
       }
-      
-      
+
+
       # Aktualizace pro germline varianty
-      if (input$selectedGermVariants) {
+      if (isTruthy(input$selectedGermVariants)) {
         if ("var_name" %in% names(selected_dt())) {
           selected_dt <- as.data.table(selected_dt())
           germline_nodes <- as.character(unique(selected_dt[var_name == "germline", Gene_symbol]))
-          
+
           print(germline_nodes)
           if (length(germline_nodes) == 0) {
             updatePrettySwitch(session, "selectedGermVariants", value = FALSE) # Reset prettySwitch na FALSE
-            
+
             shinyalert(
               title = "No variants selected",
               text = "You don't have any variants selected.",
@@ -501,7 +498,7 @@ server <- function(id, shared_data) {
         } else {
           # Reset prettySwitch na FALSE
           updatePrettySwitch(session, "selectedGermVariants", value = FALSE)
-          
+
           shinyalert(
             title = "No variants selected",
             text = "No germline variants are currently selected as possibly pathogenic.",
@@ -512,21 +509,21 @@ server <- function(id, shared_data) {
             callbackR = function(value) {
               if (!value) {}})
         }
-        
+
       } else {
         message("Removing border for germline variant nodes.")
         session$sendCustomMessage("variant-border", list(type = "germline", nodes = character(0)))
       }
-      
+
       # Aktualizace pro fúze
-      if (input$selectedFusions) {
-        
+      if (isTruthy(input$selectedFusions)) {
+
         # Kontrola existence sloupce fusion
         if ("fusion" %in% names(selected_dt())) {
           # fusion_nodes <- selected_dt()[!is.na("fusion"), "Gene_symbol"]
           selected_dt <- as.data.table(selected_dt())
           fusion_nodes <- as.character(unique(selected_dt[!is.na(fusion), Gene_symbol]))
-          
+
           if (length(fusion_nodes) == 0) {
             updatePrettySwitch(session, "selectedFusions", value = FALSE)
             shinyalert(
@@ -561,7 +558,7 @@ server <- function(id, shared_data) {
         session$sendCustomMessage("variant-border", list(type = "fusion", nodes = character(0)))
       }
     })
-    
+
     ##############
     ### others ###
     ##############
@@ -571,8 +568,8 @@ server <- function(id, shared_data) {
     addPopover(id = "helpPopover_addGene",options = list(title = "Write comma-separated text:",content = "example: BRCA1, TP53, FOXO3",placement = "right",trigger = "hover"))
     addPopover(id = "helpPopover_layout",options = list(title = "Layout options:",placement = "right",trigger = "hover",
                                                         content = "cola – Ideal for hierarchical structures and smaller graphs. FCOSE – Best for large and complex networks."))
-    
-    
+
+
   })
 }
 

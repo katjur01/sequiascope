@@ -243,7 +243,7 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
     }
     
     return(list(
-      next1              = reactive(next1_btn()),
+      next1              = reactive(next1_btn(1)),
       load_request       = reactive(load_click()),
       restore_ui_inputs  = restore_ui_inputs
     ))

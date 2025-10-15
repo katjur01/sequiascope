@@ -120,7 +120,7 @@ prepare_expression_table <- function(combined_dt) {
   
   # sloupce pro UI (all/default) odvodíme JEŠTĚ na longu (base_cols)
   cols <- colFilter("expression", base_cols, tissues)
-  
+ 
   # wide
   wide_dt <- dcast(
     combined_dt,
@@ -128,7 +128,7 @@ prepare_expression_table <- function(combined_dt) {
       gene_definition + pathway + num_of_paths ~ tissue,
     value.var = c("log2FC","p_value","p_adj")
   )
-  
+
   # pomocné metriky
   wide_dt[, mean_log2FC := rowMeans(.SD, na.rm = TRUE), .SDcols = patterns("^log2FC_")]
   

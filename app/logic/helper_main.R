@@ -12,16 +12,19 @@ box::use(
 #' @export
 get_patients <- function(confirmed_paths, dataset_type) {
   if (is.null(confirmed_paths) || !nrow(confirmed_paths)) return(character(0))
-  rows <- subset(confirmed_paths, dataset == dataset_type)
+
+  actual_dataset <- if (dataset_type == "network") "expression" else dataset_type
+  
+  rows <- subset(confirmed_paths, dataset == actual_dataset)
   if (!nrow(rows)) return(character(0))
   
   required_type <- switch(
-    dataset_type,
+    actual_dataset,
     "somatic"    = "variant",
     "germline"   = "variant",
     "fusion"     = "fusion",
     "expression" = "expression",
-    "variant"  # default (pro jistotu)
+    "variant"
   )
   
   patients <- unique(rows$patient)
@@ -32,25 +35,23 @@ get_patients <- function(confirmed_paths, dataset_type) {
   )
   sort(patients[keep])
 }
+
 #' @export
 get_files_by_patient <- function(confirmed_paths, dataset_type) {
-  rows <- subset(confirmed_paths, dataset == dataset_type)
+
+  actual_dataset <- if (dataset_type == "network") "expression" else dataset_type
+  
+  rows <- subset(confirmed_paths, dataset == actual_dataset)
   if (!nrow(rows)) return(list())
   
   by_patient <- split(rows, rows$patient)
   lapply(by_patient, function(tab) {
-    if (dataset_type == "expression") {
+    if (actual_dataset == "expression") {
       list(files = split(tab$path, tab$file_type), tissues = setNames(tab$tissue, tab$path))
     } else {
       split(tab$path, tab$file_type)
     }
   })
-}
-
-
-#' @export
-run_igv <- function(){
-  
 }
 
 
@@ -120,6 +121,7 @@ set_dataset_patients <- function(shared_data, dataset_name, patients) {
 add_dataset_tabs <- function(session,
                              confirmed_paths,
                              dataset_name,          # "somatic" | "germline" | ...
+                             patients,
                              shared_data,           # reactiveValues()
                              added_tab_values,      # reactiveValues(list per dataset)
                              tabset_input_id,       # e.g. "somatic_tabset" (plain, no ns())
@@ -128,25 +130,20 @@ add_dataset_tabs <- function(session,
                              load_session_btn = NULL){  # optional: reactive for load session button (e.g. input$load_session_btn) {          
   ns <- session$ns
   
-  # 1) Derive patients and file map for this dataset
-  patients  <- get_patients(confirmed_paths, dataset_name)
-  set_dataset_patients(shared_data, dataset_name, patients)
+
+  if (dataset_name != "network") set_dataset_patients(shared_data, dataset_name, patients)
+  
   file_list <- get_files_by_patient(confirmed_paths, dataset_name)
   
-  # 2) Ensure shared_data field exists and is a reactiveVal, then update it
-  pat_var <- paste0(dataset_name, ".patients")
-  if (!isTRUE(is.function(shared_data[[pat_var]]))) {
-    shared_data[[pat_var]] <- reactiveVal(character(0))
-  }
-  shared_data[[pat_var]](patients)
-  # 3) Remove old tabs for this dataset (if any)
+  # Remove old tabs for this dataset (if any)
+
   old_vals <- added_tab_values[[dataset_name]]
   if (length(old_vals)) {
     lapply(old_vals, function(val) removeTab(inputId = tabset_input_id, target = val))
     added_tab_values[[dataset_name]] <- character(0)
   }
 
-  # 4) Append tabs for all patients and start their module servers
+  # Append tabs for all patients and start their module servers
   new_vals <- character(0)
   invisible(lapply(patients, function(patient_id) {
     tab_value <- paste0(tab_value_prefix, patient_id)
@@ -164,6 +161,14 @@ add_dataset_tabs <- function(session,
 
       if (!is.null(patient_files$files$goi)) ui_args$goi <- TRUE else ui_args$goi <- FALSE
     }
+    
+    if (identical(dataset_name, "network")) { # just for expression dataset
+      tissues <- patient_files$tissues
+      tissues <- unique(tissues)
+      tissues <- tissues[!is.na(tissues) & tissues != "none"]
+      ui_args$tissue_list <- tissues
+    }
+    
     # Start UI for this patient
     appendTab(
       inputId = tabset_input_id,

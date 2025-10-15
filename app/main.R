@@ -68,7 +68,7 @@ box::use(
   app/view/networkGraph_cytoscape,
   app/logic/session_utils[load_session, save_session, cleanup_old_sessions, create_session_cache],
   app/logic/prerun_fusion[fusion_patients_to_prerun,prerun_fusion_data, get_fusion_prerun_status],
-  app/logic/helper_main[get_patients, get_files_by_patient, add_dataset_tabs, add_summary_boxes, run_igv],
+  app/logic/helper_main[get_patients, get_files_by_patient, add_dataset_tabs, add_summary_boxes],
 )
 
 #####################################################
@@ -199,10 +199,12 @@ ui <- function(id){
                     div(class = "patient-tabs", style = "box-shadow: none !important;",
                         tabsetPanel(id = ns("expression_tabset")))
                     ))),
-        tabItem(h1("Gene Interactions Network"),tabName = ns("network_graph"),
+        tabItem(tabName = ns("network_graph"),
                 bs4Card(width = 12,headerBorder = FALSE, collapsible = FALSE,
                   fluidPage(
-                    # networkGraph_cytoscape$ui(ns("network_graph"))
+                    div(class = "patient-tabs",
+                        tabsetPanel(id = ns("network_graph"))),
+                    # uiOutput(ns("network_graph"))
                     ))
         ),
         tabItem(tabName = ns("hidden_igv"),
@@ -279,7 +281,8 @@ server <- function(id) {
       somatic  = character(0),
       germline = character(0),
       fusion = character(0),
-      expression = character(0)
+      expression = character(0),
+      network = character(0)
     )
     
     observe({ session$sendCustomMessage("initRadioSync", list()) })
@@ -307,6 +310,12 @@ server <- function(id) {
     observeEvent(upload$confirmed_paths(), {
       confirmed_paths <- upload$confirmed_paths()   # make visible to helper above; or pass as arg
       mounted_summary <- reactiveValues(mounted = character(0))
+      
+      
+      somatic_patients <- get_patients(confirmed_paths, "somatic")
+      germline_patients <- get_patients(confirmed_paths, "germline")
+      fusion_patients <- get_patients(confirmed_paths, "fusion")
+      expression_patients <- get_patients(confirmed_paths, "expression")
       
       session_dir <- isolate(shared_data$session_dir())
 
@@ -337,40 +346,49 @@ server <- function(id) {
       
       # Vytvoř nový cache POUZE pokud NENÍ load session
       if (!isTRUE(shared_data$is_loading_session())) {
-        message("🆕 Creating NEW session with fresh cache...")
-        
+
         # Cleanup old sessions
         cleanup_old_sessions("sessions", days = 7)
         
-        # Create new session directory
-        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-        new_session_dir <- file.path("sessions", paste0("session_", timestamp))
-        dir.create(new_session_dir, recursive = TRUE)
-        shared_data$session_dir(new_session_dir)
+        if (length(somatic_patients) > 0 || length(germline_patients) > 0 ) {
+          # Create new session directory
+          timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+          new_session_dir <- file.path("sessions", paste0("session_", timestamp))
+          dir.create(new_session_dir, recursive = TRUE)
+          shared_data$session_dir(new_session_dir)
+          
+          message("📂 New session directory: ", new_session_dir)
+        }
+
+        if (length(somatic_patients) > 0) {
+          # Create somatic cache
+          withProgress(message = "Creating cache for somatic variants...", {
+            create_session_cache(
+              all_files = get_files_by_patient(confirmed_paths, "somatic"),
+              all_patients = somatic_patients,
+              session_dir = new_session_dir,
+              variant_type = "somatic"
+            )
+          })
+        } else {
+          message("⏭️  Skipping somatic cache - no data available")
+        }
         
-        message("📂 New session directory: ", new_session_dir)
+
         
-        # Create somatic cache
-        withProgress(message = "Creating cache for somatic variants...", {
-          create_session_cache(
-            all_files = get_files_by_patient(confirmed_paths, "somatic"),
-            all_patients = get_patients(confirmed_paths, "somatic"),
-            session_dir = new_session_dir,
-            variant_type = "somatic"
-          )
-        })
-        
-        # Create germline cache
-        withProgress(message = "Creating cache for germline variants...", {
-          create_session_cache(
-            all_files = get_files_by_patient(confirmed_paths, "germline"),
-            all_patients = get_patients(confirmed_paths, "germline"),
-            session_dir = new_session_dir,
-            variant_type = "germline"
-          )
-        })
-        
-        showNotification("✅ Cache created! Data are ready.", type = "message")
+        if (length(germline_patients) > 0) {
+          # Create germline cache
+          withProgress(message = "Creating cache for germline variants...", {
+            create_session_cache(
+              all_files = get_files_by_patient(confirmed_paths, "germline"),
+              all_patients = germline_patients,
+              session_dir = new_session_dir,
+              variant_type = "germline"
+            )
+          })
+        } else {
+          message("⏭️  Skipping germline cache - no data available")
+        }
         
       } else {
         message("✅ Using existing cache from: ", session_dir)
@@ -379,44 +397,43 @@ server <- function(id) {
       }
       
       # ## Somatic
-      add_dataset_tabs(session, confirmed_paths, "somatic", shared_data, added_tab_values, "somatic_tabset", "som_", somatic_var_call_table)
-      # # # ## Germline
-      add_dataset_tabs(session, confirmed_paths, "germline", shared_data, added_tab_values, "germline_tabset", "germ_", germline_var_call_table)
-      ## Fusion
-      # add_dataset_tabs(session, confirmed_paths, "fusion", shared_data, added_tab_values, "fusion_tabset", "fus_", fusion_genes_table, reactive(input$load_session_btn))
-      # # ## Expression
-      # add_dataset_tabs(session, confirmed_paths, "expression", shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
-      ## Summary
+      if (length(somatic_patients) > 0)  add_dataset_tabs(session, confirmed_paths, "somatic", somatic_patients, shared_data, added_tab_values, "somatic_tabset", "som_", somatic_var_call_table)
+        # # # ## Germline
+      if (length(germline_patients) > 0) add_dataset_tabs(session, confirmed_paths, "germline", germline_patients, shared_data, added_tab_values, "germline_tabset", "germ_", germline_var_call_table)
+        ## Fusion
+      if (length(fusion_patients) > 0) add_dataset_tabs(session, confirmed_paths, "fusion", fusion_patients, shared_data, added_tab_values, "fusion_tabset", "fus_", fusion_genes_table, reactive(input$load_session_btn))
+        # # ## Expression & network graph
+      if (length(expression_patients) > 0) {
+        # add_dataset_tabs(session, confirmed_paths, "expression", expression_patients, shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
+        add_dataset_tabs(session, confirmed_paths, "network", expression_patients, shared_data, added_tab_values, "network_graph", "net_", networkGraph_cytoscape)
+      }
+        
+        ## Summary
       add_summary_boxes(session, output, shared_data, "summary_table", summary, mounted_summary)
-    
-      
-      # ##################
-      # #### run network graph module
-
-      networkGraph_cytoscape$server("network_graph", shared_data)
-      
+  
 
       # ## IGV + static server mount (ONCE)
-      if (is.null(shared_data$igv_server_started)) shared_data$igv_server_started <- reactiveVal(FALSE)
-      if (is.null(shared_data$igv_root)) shared_data$igv_root <- reactiveVal(NULL)
-      
-      if (!isTRUE(shared_data$igv_server_started())) {
-
-        root_path <- unique(confirmed_paths$root_path)
-        root_path <- sub("/+$", "", root_path)
-
-        start_static_server(root_path)
+      if (length(somatic_patients) > 0 || length(germline_patients) > 0 || length(fusion_patients) > 0){
+        if (is.null(shared_data$igv_server_started)) shared_data$igv_server_started <- reactiveVal(FALSE)
+        if (is.null(shared_data$igv_root)) shared_data$igv_root <- reactiveVal(NULL)
         
-        shared_data$igv_root(root_path)  
-        shared_data$igv_server_started(TRUE)
-    
-        session$onSessionEnded(function() {
-          stop_static_server()
-        })
-      }
+        if (!isTRUE(shared_data$igv_server_started())) {
+  
+          root_path <- unique(confirmed_paths$root_path)
+          root_path <- sub("/+$", "", root_path)
+  
+          start_static_server(root_path)
+          
+          shared_data$igv_root(root_path)  
+          shared_data$igv_server_started(TRUE)
       
+          session$onSessionEnded(function() {
+            stop_static_server()
+          })
+        }
+        
         IGV$igv_server("igv", shared_data, root_path)
-        
+    }
       
       observeEvent(input$save_session_btn, {
         shinyalert(

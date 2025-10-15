@@ -6,6 +6,7 @@ box::use(
   openxlsx[read.xlsx,getSheetNames],
   readxl[read_xls],
   VariantAnnotation[readVcf],
+  matrixStats[rowRanges]
 )
 
 box::use(
@@ -23,7 +24,7 @@ read_by_extension <- function(file_path) {
   } else if (ext == "xls") {
     return(as.data.table(read_xls(file_path)))
     vcf <- readVcf(file_path)
-    return(as.data.table(info(vcf)))
+    return(as.data.table(rowRanges(vcf)))
   } else {
     stop(paste("Nepodporovaný formát:", ext))
   }
@@ -41,7 +42,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     dt <- read_by_extension(input_var)
     dt[, sample := sample]
     
-    # Add in_library if cache exists
+    # # Add in_library if cache exists
     if (!is.null(session_dir) && dir.exists(session_dir)) {
       dt <- add_in_library_from_session(dt, session_dir, "somatic")
     }
@@ -59,6 +60,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     # Add in_library if cache exists
     if (!is.null(session_dir) && dir.exists(session_dir)) {
       dt <- add_in_library_from_session(dt, session_dir, "germline")
+
     }
     
     return(dt)
@@ -97,6 +99,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     combined_dt$sample <- NULL
     combined_dt[, sample := sample]
     setnames(combined_dt, "all_kegg_paths_name", "pathway", skip_absent = TRUE)
+
     return(combined_dt)
     
     # ============ GOI (Genes of Interest) ============

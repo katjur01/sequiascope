@@ -31,7 +31,6 @@ box::use(
   app/logic/session_utils[create_session_handlers, register_module, safe_extract, nz, ch]
 )
 
-
 ui <- function(id, tissue_list, goi = FALSE) {
   ns <- NS(id)
   useShinyjs()
