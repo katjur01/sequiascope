@@ -16,8 +16,24 @@ box::use(
 )
 
 
+
+#' Format column name for display (replace . and _ with space)
+format_column_name <- function(col_name) {
+  gsub("[._]", " ", col_name)
+}
+
+#' Find columns that exist in data but are not in map_list
 #' @export
-map_checkbox_names <- function(map_list){
+find_extra_columns <- function(actual_columns, map_list) {
+  mapped_columns <- names(map_list)
+  extra_cols <- setdiff(actual_columns, mapped_columns)
+  return(extra_cols)
+}
+
+#' @export
+map_checkbox_names <- function(map_list, all_actual_columns = NULL){
+  
+  # Získej display names z map_list
   map_display_names <- sapply(map_list, function(x) {
     if (!is.null(x$name)) {
       x$name
@@ -29,13 +45,45 @@ map_checkbox_names <- function(map_list){
   })
   
   map_display_names <- map_display_names[!is.na(map_display_names)]
-  choices <- setNames(names(map_display_names), map_display_names)
+  
+  # Pokud jsou poskytnuty skutečné sloupce, přidej extra sloupce
+  if (!is.null(all_actual_columns)) {
+    mapped_columns <- names(map_display_names)
+    extra_columns <- setdiff(all_actual_columns, mapped_columns)
+    
+    if (length(extra_columns) > 0) {
+      # Pro extra sloupce: formátuj název (. a _ → mezera)
+      extra_display_names <- sapply(extra_columns, format_column_name)
+      names(extra_display_names) <- extra_columns
+      
+      # Zkombinuj mapované a extra sloupce
+      all_display_names <- c(map_display_names, extra_display_names)
+    } else {
+      all_display_names <- map_display_names
+    }
+  } else {
+    all_display_names <- map_display_names
+  }
+  
+  # Vytvoř choices: setNames(internal_name, display_name)
+  choices <- setNames(names(all_display_names), all_display_names)
+  
   return(choices)
 }
-
-#' @export
-# getColFilterValues <- function(flag, all_column_var, tissues = NULL) {
-#   colFilter(flag, all_column_var, tissues)
+# map_checkbox_names <- function(map_list){
+#   map_display_names <- sapply(map_list, function(x) {
+#     if (!is.null(x$name)) {
+#       x$name
+#     } else if (!is.null(x$header)) {
+#       x$header
+#     } else {
+#       NA_character_
+#     }
+#   })
+#   
+#   map_display_names <- map_display_names[!is.na(map_display_names)]
+#   choices <- setNames(names(map_display_names), map_display_names)
+#   return(choices)
 # }
 
 
@@ -46,6 +94,7 @@ generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
   hide <- switch(tag,
                  "fusion" = c("sample", "png_path", "svg_path"),
                  "germline" = c("sample"),
+                 "somatic" = c("sample"),
                  "expression" = c("sample"),
                  character(0))
   
@@ -63,26 +112,28 @@ generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
     # 2️⃣ Pokud je sloupec vybrán uživatelem
     if (col %in% selected_columns) {
       
-      # Získat definici z map_list
+      # Získej definici z map_list (může být NULL pro extra sloupce)
       map_def <- map_list[[col]]
       
-      # Nastavit header z map_def$name nebo map_def$header, fallback na col
-      header_name <- if (!is.null(map_def$name)) {
-        map_def$name
-      } else if (!is.null(map_def$header)) {
-        map_def$header
-      } else {
-        col
-      }
-      
-      # Pokud je definice v map_list, využij ji, doplň header pokud chybí
+      # Nastavit header
       if (!is.null(map_def)) {
+        # Sloupec je v map_list - použij jeho definici
+        header_name <- if (!is.null(map_def$name)) {
+          map_def$name
+        } else if (!is.null(map_def$header)) {
+          map_def$header
+        } else {
+          format_column_name(col)  # fallback
+        }
+        
         map_def$header <- header_name
         return(do.call(colDef, map_def))
+        
+      } else {
+        # Extra sloupec (není v map_list)
+        header_name <- format_column_name(col)
+        return(colDef(show = TRUE, header = header_name))
       }
-      
-      # Fallback: není v map_list, ale je vybrán uživatelem
-      return(colDef(show = TRUE, header = header_name))
     }
     
     # 3️⃣ Pokud není vybrán uživatelem, skryj
@@ -92,6 +143,58 @@ generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
   names(column_defs) <- column_names
   return(column_defs)
 }
+# generate_columnsDef <- function(column_names, selected_columns, tag, map_list) {
+#   
+#   # Definuj permanentně skryté sloupce podle tagu
+#   hide <- switch(tag,
+#                  "fusion" = c("sample", "png_path", "svg_path"),
+#                  "germline" = c("sample"),
+#                  "expression" = c("sample"),
+#                  character(0))
+#   
+#   if (length(hide) == 0) {
+#     message("No column has been selected for permanent hiding")
+#   }
+#   
+#   column_defs <- lapply(column_names, function(col) {
+#     
+#     # 1️⃣ Permanentně skryté sloupce
+#     if (col %in% hide) {
+#       return(colDef(show = FALSE))
+#     }
+#     
+#     # 2️⃣ Pokud je sloupec vybrán uživatelem
+#     if (col %in% selected_columns) {
+#       
+#       # Získat definici z map_list
+#       map_def <- map_list[[col]]
+#       
+#       # Nastavit header z map_def$name nebo map_def$header, fallback na col
+#       header_name <- if (!is.null(map_def$name)) {
+#         map_def$name
+#       } else if (!is.null(map_def$header)) {
+#         map_def$header
+#       } else {
+#         col
+#       }
+#       
+#       # Pokud je definice v map_list, využij ji, doplň header pokud chybí
+#       if (!is.null(map_def)) {
+#         map_def$header <- header_name
+#         return(do.call(colDef, map_def))
+#       }
+#       
+#       # Fallback: není v map_list, ale je vybrán uživatelem
+#       return(colDef(show = TRUE, header = header_name))
+#     }
+#     
+#     # 3️⃣ Pokud není vybrán uživatelem, skryj
+#     colDef(show = FALSE)
+#   })
+#   
+#   names(column_defs) <- column_names
+#   return(column_defs)
+# }
 
 #' @export
 colnames_map_list <- function(tag, all_columns = NULL, session = NULL){

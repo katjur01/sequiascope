@@ -3,8 +3,8 @@
 box::use(
   data.table[fread,as.data.table,rbindlist,tstrsplit,setcolorder,setnames,fwrite],
   tools[file_ext],
-  openxlsx[read.xlsx,getSheetNames],
-  readxl[read_xls],
+  openxlsx[getSheetNames],
+  readxl[read_xls, read_xlsx],
   VariantAnnotation[readVcf],
   matrixStats[rowRanges]
 )
@@ -13,14 +13,63 @@ box::use(
   app/logic/session_utils[add_in_library_from_session]
 )
 
+# Helper function to read HEADER of files based on extension
+#' @export
+read_file_header <- function(file_path) {
+  tryCatch({
+    if (!file.exists(file_path)) return(NULL)
+    
+    file_name <- basename(file_path)
+    
+    # ---- VCF / VCF.GZ ----
+    if (grepl("\\.vcf(\\.gz)?$", file_name, ignore.case = TRUE)) {
+      is_gz <- grepl("\\.gz$", file_name, ignore.case = TRUE)
+      con <- if (is_gz) gzfile(file_path, "rt") else file(file_path, "r")
+      on.exit(close(con), add = TRUE)
+      
+      header <- NULL
+      repeat {
+        line <- readLines(con, n = 1, warn = FALSE)
+        if (length(line) == 0) break
+        if (startsWith(line, "#CHROM")) {
+          header <- strsplit(sub("^#", "", line), "\t")[[1]]
+          break
+        }
+      }
+      
+      if (is.null(header)) {
+        warning("Soubor neobsahuje řádek s #CHROM – není to validní VCF: ", file_path)
+        return(NULL)
+      }
+      return(header)
+    }
+    
+    # ---- XLS / XLSX ----
+    if (grepl("\\.xls$", file_name, ignore.case = TRUE)) {
+      return(names(read_xls(file_path, n_max = 0)))
+    }
+    # ---- XLS / XLSX ----
+    if (grepl("\\.xlsx$", file_name, ignore.case = TRUE)) {
+      return(names(read_xlsx(file_path, n_max = 0)))
+    }
+    # ---- CSV / TSV ----
+    return(names(fread(file_path, nrows = 0, showProgress = FALSE)))
+    
+  }, error = function(e) {
+    message("Error reading header from ", file_path, ": ", e$message)
+    return(NULL)
+  })
+}
+
 # Helper function to read file based on extension
+#' @export
 read_by_extension <- function(file_path) {
   ext <- tolower(file_ext(file_path))
   
   if (ext %in% c("tsv", "txt")) {
     return(fread(file_path))
   } else if (ext == "xlsx") {
-    return(as.data.table(read.xlsx(file_path)))
+    return(as.data.table(read_xlsx(file_path)))
   } else if (ext == "xls") {
     return(as.data.table(read_xls(file_path)))
     vcf <- readVcf(file_path)
@@ -29,6 +78,27 @@ read_by_extension <- function(file_path) {
     stop(paste("Nepodporovaný formát:", ext))
   }
 }
+
+# Required columns are defined here
+#' @export
+get_required_columns <- function(dataset_type) {
+  required_cols <- list(
+    somatic = c("var_name", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE", "CGC_Somatic", 
+                "fOne", "Consequence", "HGVSc", "HGVSp", "all_full_annot_name", "variant_type"),
+    germline = c("var_name","variant_freq","Gene_symbol","coverage_depth","gene_region","gnomAD_NFE","clinvar_sig","CGC_Germline",
+                 "trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name","variant_type"),
+    fusion = c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","position1","strand1",
+               "position2","strand2","arriba.site1","arriba.site2"),
+    expression = c("feature_name", "geneid", "pathway","log2FC","p_value","p_adj")
+  )
+  
+  return(required_cols[[dataset_type]])
+}
+
+
+
+
+
 # sample <- "DZ1601"
 # input_files <- fusion_genes_filenames
 #' @export

@@ -5,18 +5,19 @@ box::use(
   shiny[observe],
   openxlsx[read.xlsx],
   scales[scientific_format],
-  stats[setNames]
+  stats[setNames],
+  stringi[stri_trans_totitle],
 )
 box::use(
   app/logic/load_data[load_data],
   app/logic/prepare_arriba_pictures[pdf2png],
-  stringi[stri_trans_totitle]
+  app/logic/filter_columns[colnames_map_list]
 )
+
 #' @export
 get_tissue_list <- function(){
   
 }
-
 
 #' @export
 prepare_somatic_table <- function(dt, all_colNames){
@@ -28,8 +29,13 @@ prepare_somatic_table <- function(dt, all_colNames){
   fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
   
   cols <- colFilter("somatic",all_colNames)
-  setcolorder(dt,cols$default_columns)
-  
+  cols <- filter_existing_columns(cols, names(dt))
+
+  # Teď můžeme bezpečně použít setcolorder - všechny sloupce v default_columns existují
+  if (length(cols$default_columns) > 0) {
+    setcolorder(dt, cols$default_columns)
+  }
+  # setcolorder(dt,cols$default_columns)
   message(paste0("Somatic varcall, pacient ",unique(dt$sample)," (prepare_table script)"))
   # vrátíme list: tabulka + sloupce
   list(
@@ -176,46 +182,152 @@ prepare_goi_table <- function(dt, goi) {
 
 
 #' @export
-colFilter <- function(flag, all_column_var,tissues = NULL){
+colFilter <- function(flag, all_column_var, tissues = NULL){
+  
   if (flag == "somatic"){
-    all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
-    default_selection <- c("var_name","in_library","Gene_symbol","tumor_variant_freq","tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
-                           "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD","Consequence","HGVSc", "HGVSp","all_full_annot_name")
+    # Permanentně skryté sloupce
+    hidden_columns <- c("sample")
+    
+    # Default selection (povinné + další důležité sloupce)
+    default_selection <- c("var_name","in_library","Gene_symbol","tumor_variant_freq",
+                           "tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
+                           "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD",
+                           "Consequence","HGVSc", "HGVSp","all_full_annot_name")
+    
+    # Získej map_list pro zjištění mapovaných sloupců
+    map_list <- colnames_map_list(flag)
+    mapped_columns <- names(map_list)
+    
+    # Najdi extra sloupce (existují v datech, ale nejsou v map_list)
+    extra_columns <- setdiff(all_column_var, c(mapped_columns, hidden_columns))
+    
+    # Všechny sloupce = mapované + extra (bez hidden)
+    all_column_names <- c(mapped_columns, extra_columns)
+    all_column_names <- setdiff(all_column_names, hidden_columns)
+    
+    # Seřaď podle abecedy (extra sloupce se zamíchají mezi ostatní)
+    all_column_names <- sort(all_column_names)
+    
   } else if (flag == "germline"){
-    all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
-    default_selection <- c("var_name","variant_freq","in_library","Gene_symbol","coverage_depth","gene_region",
-                           "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name")
+    hidden_columns <- c("sample")
+    default_selection <- c("var_name","variant_freq","in_library","Gene_symbol",
+                           "coverage_depth","gene_region","gnomAD_NFE","clinvar_sig",
+                           "snpDB","CGC_Germline","trusight_genes","fOne","Consequence",
+                           "HGVSc", "HGVSp","all_full_annot_name")
+    
+    map_list <- colnames_map_list(flag)
+    mapped_columns <- names(map_list)
+    extra_columns <- setdiff(all_column_var, c(mapped_columns, hidden_columns))
+    all_column_names <- sort(c(mapped_columns, extra_columns))
+    all_column_names <- setdiff(all_column_names, hidden_columns)
     
   } else if (flag == "fusion"){
-    filtered_all_column_var <- setdiff(all_column_var, c("chr1", "chr2", "pos1", "pos2"))
-    all_column_names <- c(filtered_all_column_var,"Visual_Check","Notes","position1","position2")
-    default_selection <- c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","Visual_Check","Notes","position1","strand1","position2","strand2",
-                           "arriba.site1","arriba.site2","starfus.splice_type","DB_count","DB_list")
-
-  } else if (flag == "expression"){
-    filtered_all_column_var <- setdiff(all_column_var, c("log2FC","p_value","p_adj","sample","all_kegg_paths_name","counts_tpm_round","fc","size","mu","lower_than_p","higher_than_p"))
+    hidden_columns <- c("sample", "chr1", "chr2", "pos1", "pos2", "png_path", "svg_path")
     
-    # Generování dynamických sloupců pro každou tkáň
+    # Speciální sloupce pro fusion
+    special_columns <- c("Visual_Check","Notes","position1","position2")
+    
+    default_selection <- c("gene1","gene2","arriba.called","starfus.called",
+                           "arriba.confidence","overall_support","Visual_Check","Notes",
+                           "position1","strand1","position2","strand2","arriba.site1",
+                           "arriba.site2","starfus.splice_type","DB_count","DB_list")
+    
+    map_list <- colnames_map_list(flag)
+    mapped_columns <- names(map_list)
+    extra_columns <- setdiff(all_column_var, c(mapped_columns, hidden_columns))
+    
+    # Pro fusion: všechny sloupce včetně speciálních
+    all_column_names <- sort(c(mapped_columns, extra_columns, special_columns))
+    all_column_names <- setdiff(all_column_names, hidden_columns)
+    
+  } else if (flag == "expression"){
+    hidden_columns <- c("log2FC","p_value","p_adj","sample","all_kegg_paths_name",
+                        "counts_tpm_round","fc","size","mu","lower_than_p","higher_than_p")
+    
+    # Dynamické sloupce pro každou tkáň
     log2FC_cols <- paste0("log2FC_", tissues)
     p_value_cols <- paste0("p_value_", tissues)
     p_adj_cols <- paste0("p_adj_", tissues)
+    tissue_cols <- as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols))
     
-    # # Kombinace do finálního pořadí sloupců
-    all_column_names <- c(filtered_all_column_var, as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
-    default_selection <- c("sample", "feature_name", "geneid", "pathway", "mean_log2FC", as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
+    default_selection <- c("sample", "feature_name", "geneid", "pathway", 
+                           "mean_log2FC", tissue_cols)
+    
+    map_list <- colnames_map_list(flag)
+    mapped_columns <- names(map_list)
+    extra_columns <- setdiff(all_column_var, c(mapped_columns, hidden_columns))
+    
+    # Kombinace mapovaných, tkáňových a extra sloupců
+    all_column_names <- sort(c(mapped_columns, tissue_cols, extra_columns))
+    all_column_names <- setdiff(all_column_names, hidden_columns)
     
   } else {
-    print("NOT germline, expression or fusion")
+    stop("Unknown flag: ", flag)
   }
-
-  ordered_columns <- factor(all_column_names, levels = default_selection)
-  all_column_names_sorted <- all_column_names[order(ordered_columns)]
-
-  return(list(all_columns = all_column_names_sorted, default_columns = default_selection))
+  
+  # ⚠️ DŮLEŽITÉ: Vrátíme RAW hodnoty - filtrování na existující sloupce 
+  # se musí udělat v prepare_*_table funkci, která má přístup ke skutečným datům
+  return(list(
+    all_columns = all_column_names, 
+    default_columns = default_selection,
+    mapped_columns = mapped_columns,
+    extra_columns = extra_columns
+  ))
 }
+# colFilter <- function(flag, all_column_var,tissues = NULL){
+#   if (flag == "somatic"){
+#     all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
+#     default_selection <- c("var_name","tumor_variant_freq","in_library","Gene_symbol","tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
+#                            "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD","Consequence","HGVSc", "HGVSp","all_full_annot_name")
+#   } else if (flag == "germline"){
+#     all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
+#     default_selection <- c("var_name","variant_freq","in_library","Gene_symbol","coverage_depth","gene_region",
+#                            "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name")
+#     
+#   } else if (flag == "fusion"){
+#     filtered_all_column_var <- setdiff(all_column_var, c("chr1", "chr2", "pos1", "pos2"))
+#     all_column_names <- c(filtered_all_column_var,"Visual_Check","Notes","position1","position2")
+#     default_selection <- c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","Visual_Check","Notes","position1","strand1","position2","strand2",
+#                            "arriba.site1","arriba.site2","starfus.splice_type","DB_count","DB_list")
+# 
+#   } else if (flag == "expression"){
+#     filtered_all_column_var <- setdiff(all_column_var, c("log2FC","p_value","p_adj","sample","all_kegg_paths_name","counts_tpm_round","fc","size","mu","lower_than_p","higher_than_p"))
+#     
+#     # Generování dynamických sloupců pro každou tkáň
+#     log2FC_cols <- paste0("log2FC_", tissues)
+#     p_value_cols <- paste0("p_value_", tissues)
+#     p_adj_cols <- paste0("p_adj_", tissues)
+#     
+#     # # Kombinace do finálního pořadí sloupců
+#     all_column_names <- c(filtered_all_column_var, as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
+#     default_selection <- c("sample", "feature_name", "geneid", "pathway", "mean_log2FC", as.vector(rbind(log2FC_cols, p_value_cols, p_adj_cols)))
+#     
+#   } else {
+#     print("NOT germline, expression or fusion")
+#   }
+# 
+#   ordered_columns <- factor(all_column_names, levels = default_selection)
+#   all_column_names_sorted <- all_column_names[order(ordered_columns)]
+# 
+#   return(list(all_columns = all_column_names_sorted, default_columns = default_selection))
+# }
 
 
-
+filter_existing_columns <- function(cols, actual_columns) {
+  
+  # Filtruj all_columns - ponech jen ty, co skutečně existují
+  cols$all_columns <- intersect(cols$all_columns, actual_columns)
+  
+  # Filtruj default_columns - ponech jen ty, co skutečně existují
+  cols$default_columns <- intersect(cols$default_columns, actual_columns)
+  
+  # Aktualizuj extra_columns (ty které jsou navíc oproti mapovaným)
+  if (!is.null(cols$mapped_columns)) {
+    cols$extra_columns <- setdiff(actual_columns, cols$mapped_columns)
+  }
+  
+  return(cols)
+}
 capitalize_first_letter <- function(x) {
   ifelse(
     is.na(x),

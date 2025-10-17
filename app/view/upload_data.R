@@ -47,13 +47,13 @@
      # normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
      # tissues <- reactiveVal(NULL)
      #####
-     patients <- reactiveVal(c("DZ1601","MR1507"))
+     # patients <- reactiveVal(c("DZ1601","MR1507"))
      # path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
-     path     <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
-     datasets <- reactiveVal(c("somatic","germline","fusion","expression")) #
-     tumor_pattern <- reactiveValues(somatic = NULL, fusion = "fuze", chimeric = "chimeric", arriba = NULL)
-     normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
-     tissues <- reactiveVal(c("Blood","Blood_Vessel"))
+     # # path     <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
+     # datasets <- reactiveVal(c("somatic","germline","fusion","expression")) #
+     # tumor_pattern <- reactiveValues(somatic = NULL, fusion = "fuze", chimeric = "chimeric", arriba = NULL)
+     # normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
+     # tissues <- reactiveVal(c("Blood","Blood_Vessel"))
      #####
      # patients <- reactiveVal("DZ1601")
      # # patients <- reactiveVal(c("DZ1601","MR1507"))
@@ -62,14 +62,24 @@
      # tumor_pattern <- reactiveValues(somatic = NULL, fusion = NULL, chimeric = NULL, arriba = NULL)
      # normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
      # tissues <- reactiveVal(c("blood","blood_vessel"))
+     #####
+     patients <- reactiveVal("DZ1601")
+     # patients <- reactiveVal(c("DZ1601","MR1507"))
+     path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
+     datasets <- reactiveVal("somatic")
+     tumor_pattern <- reactiveValues(somatic = NULL, fusion = NULL, chimeric = NULL, arriba = NULL)
+     normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
+     tissues <- reactiveVal(NULL)
+     
      
      confirmed_paths_state <- reactiveVal(NULL)
      
      step1 <- upload_data_step1$step1_server("first_step",  path, patients, datasets, tumor_pattern, normal_pattern, tissues)
      # step2 <- upload_data_step2$step2_server("second_step", path, patients, datasets, tumor_pattern, normal_pattern, tissues)
-     step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("somatic","germline","fusion","expression")), tumor_pattern=reactiveValues(chimeric = "chimeric",fusion = "fuze"), normal_pattern=NULL, tissues = reactiveVal(c("Blood","Blood_Vessel")))
+     # step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("somatic","germline","fusion","expression")), tumor_pattern=reactiveValues(chimeric = "chimeric",fusion = "fuze"), normal_pattern=NULL, tissues = reactiveVal(c("Blood","Blood_Vessel")))
      # step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("expression")), tumor_pattern=NULL, normal_pattern=NULL, tissues = reactiveVal(c("blood","blood_vessel")))
-     
+     step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("somatic")), tumor_pattern=NULL, normal_pattern=NULL, tissues = NULL)
+
      output$step <- renderText(step())
      outputOptions(output, "step", suspendWhenHidden = FALSE) # zajistí, že inputy běží i když jsou skryté
 

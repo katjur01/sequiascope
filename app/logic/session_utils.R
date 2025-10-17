@@ -330,7 +330,7 @@ register_module <- function(shared_data, module_type, module_id, methods) {
 
 
 # ====================================================
-# CREATE CACHE WITH var_name + full_annot_name columns
+# CREATE CACHE WITH var_name + all_full_annot_name columns
 # ====================================================
 
 #' @export
@@ -345,14 +345,14 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
   message("Creating in_library cache for ", variant_type, " from ", length(all_patients), " samples...")
   start_time <- Sys.time()
 
-  # LOAD ONLY var_name a full_annot_name columns
+  # LOAD ONLY var_name a all_full_annot_name columns
   dt_list <- lapply(all_patients, function(patient) {
     tryCatch({
     
       var_file <- all_files[[patient]]$variant
       
       # Načti POUZE tyto 2 sloupce
-      dt <- read_by_extension(var_file, select = c("var_name", "full_annot_name"))
+      dt <- read_by_extension(var_file, select = c("var_name", "all_full_annot_name"))
       sample_name <- patient
       dt[, sample := sample_name]
 
@@ -376,13 +376,13 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
   # Sloučím všechny
   dt_all <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
   
-  # Počítej výskyty podle full_annot_name (UNIKÁTNÍ identifikátor)
+  # Počítej výskyty podle all_full_annot_name (UNIKÁTNÍ identifikátor)
   variant_counts <- dt_all[, .(
     in_library = paste0(.N, "/", length(all_patients)),
     sample_count = .N,
     samples = paste(unique(sample), collapse = ";"),
     var_name = first(var_name)  # Zachovej var_name pro display
-  ), by = full_annot_name]
+  ), by = all_full_annot_name]
   
   # Seřaď podle nejčastějších variant
   variant_counts <- variant_counts[order(-sample_count)]
@@ -401,7 +401,7 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
   
   elapsed <- round(difftime(Sys.time(), start_time, units = "secs"), 2)
   message("✓ Cache vytvořen: ", 
-          nrow(variant_counts), " unique variants (full_annot_name), ",
+          nrow(variant_counts), " unique variants (all_full_annot_name), ",
           cache_metadata$n_unique_var_names, " unique genes (var_name) ",
           "z ", length(all_patients), " samples (", elapsed, "s)")
   
@@ -440,8 +440,8 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
     return(dt)
   }
   
-  if (!"full_annot_name" %in% colnames(dt)) {
-    warning("Data nemají sloupec full_annot_name! Nelze přidat in_library.")
+  if (!"all_full_annot_name" %in% colnames(dt)) {
+    warning("Data nemají sloupec all_full_annot_name! Nelze přidat in_library.")
     dt[, `:=`(in_library = "1/1", sample_count = 1L)]
     return(dt)
   }
@@ -453,11 +453,11 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
           cache_metadata$n_variants, " unique variants, ",
           format(cache_metadata$created, "%Y-%m-%d %H:%M"))
   
-  # Merge podle full_annot_name
+  # Merge podle all_full_annot_name
   dt <- merge(
     dt, 
-    cache_data[, .(full_annot_name, in_library, sample_count)], 
-    by = "full_annot_name", 
+    cache_data[, .(all_full_annot_name, in_library, sample_count)], 
+    by = "all_full_annot_name", 
     all.x = TRUE
   )
   

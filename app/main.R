@@ -405,9 +405,9 @@ server <- function(id) {
         # # ## Expression & network graph
       if (length(expression_patients) > 0) {
         add_dataset_tabs(session, confirmed_paths, "expression", expression_patients, shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
-        add_dataset_tabs(session, confirmed_paths, "network", expression_patients, shared_data, added_tab_values, "network_graph", "net_", networkGraph_cytoscape)
+        # add_dataset_tabs(session, confirmed_paths, "network", expression_patients, shared_data, added_tab_values, "network_graph", "net_", networkGraph_cytoscape)
       }
-        
+
         ## Summary
       add_summary_boxes(session, output, shared_data, "summary_table", summary, mounted_summary)
   

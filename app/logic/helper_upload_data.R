@@ -1,10 +1,16 @@
 # app/logic/helper_upload_data.R
 box::use(
+  shiny[isTruthy],
   htmltools[tags,HTML,div,span,h2,h4,h5,br],
   stringr[str_detect,regex,str_replace,str_remove],
   reactable[reactable,colDef],
-  data.table[rbindlist],
+  data.table[fread,rbindlist],
   stats[setNames],
+  readxl[read_xls,read_xlsx],
+)
+
+box::use(
+  app/logic/load_data[read_file_header,read_by_extension,get_required_columns]
 )
 
 get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
@@ -259,7 +265,8 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
   dataset_columns <- get_dataset_columns(dataset_type)
   column_names <- names(dataset_columns)
   
-  patient_results <- lapply(patients, function(patient) {
+  patient_results <- setNames(
+    lapply(patients, function(patient) {
     
     if (dataset_type == "somatic") {
       list(
@@ -316,7 +323,9 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
         goi = goi_result
       )
     }
-  })
+  }),
+  patients
+  )
   
   patient_data <- data.frame(
     patient = patients,
@@ -870,3 +879,164 @@ build_confirmed_paths <- function(dataset_objects, root_path) {
     as.data.frame(rbindlist(result_rows, use.names = TRUE, fill = FALSE))
   }
 }
+
+
+
+
+
+
+# ============================================================================
+# VALIDACE POVINNÝCH SLOUPCŮ
+# ============================================================================
+
+validate_file_columns <- function(file_path, dataset_type, patient_id) {
+  
+  required_cols <- get_required_columns(dataset_type)
+  if (is.null(required_cols) || length(required_cols) == 0) {
+    return(list(valid = TRUE, dataset = dataset_type, patient = patient_id))
+  }
+  
+  # Rozděl vícenásobné cesty
+  if (length(file_path) == 1 && grepl(",", file_path)) {
+    file_path <- trimws(unlist(strsplit(file_path, ",")))
+  }
+  
+  # Ověř každý soubor
+  for (fp in file_path) {
+    if (is.null(fp) || is.na(fp) || fp == "") next
+    
+    actual_cols <- read_file_header(fp)
+    if (is.null(actual_cols)) {
+      return(list(
+        valid = FALSE,
+        error_type = "read_error",
+        dataset = dataset_type,
+        patient = patient_id,
+        file_path = fp
+      ))
+    }
+    
+    missing_cols <- setdiff(required_cols, actual_cols)
+    if (length(missing_cols) > 0) {
+      return(list(
+        valid = FALSE,
+        error_type = "missing_columns",
+        missing = missing_cols,
+        dataset = dataset_type,
+        patient = patient_id,
+        file_path = fp
+      ))
+    }
+  }
+  
+  return(list(valid = TRUE, dataset = dataset_type, patient = patient_id))
+}
+
+
+
+# ============================================================================
+# VALIDACE VŠECH DATASETŮ
+# ============================================================================
+
+#' Validate columns for all datasets and patients
+#' @param datasets_data Output from create_dataset_data() - list of datasets
+#' @return List with validation results and error details
+#' @export
+validate_all_columns <- function(datasets_data) {
+  
+  validation_errors <- list()
+  
+  for (dataset in names(datasets_data)) {
+
+    patient_tab <- datasets_data[[dataset]]$patient_tab
+    data <- datasets_data[[dataset]]$raw_results
+    
+    if (is.null(patient_tab)) next
+    
+    for (i in 1:nrow(patient_tab)) {
+      patient <- patient_tab$patient[i]
+
+      file_path <- switch(dataset,
+                          somatic = data[[patient]]$variant$files,
+                          germline = data[[patient]]$variant$files,
+                          fusion = data[[patient]]$fusion$files,
+                          expression = data[[patient]]$expression$files,
+                          NULL
+      )
+
+      # Rozděl vícenásobné cesty a ořež mezery
+      if (is.null(file_path) || all(is.na(file_path)) || all(file_path == "")) next
+      
+      # Pokud je to jediný string s čárkami, rozděl ho
+      if (length(file_path) == 1 && grepl(",", file_path)) {
+        file_path <- trimws(unlist(strsplit(file_path, ",")))
+      }
+      
+      # Validuj sloupce
+      validation <- validate_file_columns(file_path, dataset, patient)
+      message("validation: ", paste0(validation,collapse = ", "))
+      if (!validation$valid) {
+        validation_errors <- c(validation_errors, list(validation))
+      }
+    }
+  }
+  
+  return(list(
+    has_errors = length(validation_errors) > 0,
+    errors = validation_errors
+  ))
+}
+
+
+# ============================================================================
+# VYTVOŘENÍ HTML CHYBOVÉ ZPRÁVY
+# ============================================================================
+
+#' Create HTML error message for shinyalert
+#' @param validation_result Output from validate_all_columns()
+#' @return HTML formatted string
+#' @export
+create_column_error_message <- function(validation_result) {
+  
+  if (!validation_result$has_errors) {
+    return(NULL)
+  }
+  
+  error_lines <- lapply(validation_result$errors, function(err) {
+    
+    if (err$error_type == "read_error") {
+      sprintf(
+        "<li style='text-align: left; margin-bottom: 8px;'><b>%s</b> (<i>%s</i>) – <span style='color: #d32f2f;'>Cannot read file</span></li>",
+        err$patient, err$dataset
+      )
+    } else if (err$error_type == "missing_columns") {
+      # Formátuj každý chybějící sloupec jako samostatný badge
+      missing_badges <- sapply(err$missing, function(col) {
+        sprintf("<span style='background-color: #fff3e0; color: #e65100; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 0.9em;'>%s</span>", col)
+      })
+      missing_html <- paste(missing_badges, collapse = " ")
+      
+      sprintf(
+        "<li style='text-align: left; margin-bottom: 12px;'><b>%s</b> (<i>%s</i>)<br><span style='margin-left: 1em; color: #666;'>Missing columns:</span> %s</li>",
+        err$patient, err$dataset, missing_html
+      )
+    } else {
+      sprintf(
+        "<li style='text-align: left; margin-bottom: 8px;'><b>%s</b> (<i>%s</i>) – <span style='color: #d32f2f;'>Unknown error</span></li>",
+        err$patient, err$dataset
+      )
+    }
+  })
+  
+  html_text <- paste0(
+    "<div style='text-align: center;'><strong style='color: #d32f2f; font-size: 1.1em;'>❌ Required columns are missing in the following files:</strong></div><br>",
+    "<ul style='text-align: left; margin-left: 1.5em; list-style-type: none; padding-left: 0;'>",
+    paste(error_lines, collapse = ""),
+    "</ul>",
+    "<br><div style='text-align: center; color: #666; font-size: 0.95em;'>Please upload correct files or remove affected patients from the analysis.</div>"
+  )
+  
+  return(html_text)
+}
+
+

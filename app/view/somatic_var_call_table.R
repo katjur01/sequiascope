@@ -2,7 +2,7 @@
 
 box::use(
   shiny[NS, sliderInput, fluidRow, column, tagList, br, uiOutput, plotOutput, downloadButton, actionButton, numericInput, renderPlot, fluidPage, selectInput,
-        icon,div,tabPanel,moduleServer,downloadHandler,observe, observeEvent,reactive,renderUI,updateSliderInput,updateNumericInput,req,isolate,
+        icon,div,tabPanel,moduleServer,downloadHandler,observe, observeEvent,reactive,renderUI,updateSliderInput,updateNumericInput,req,isolate,is.reactive,
         reactiveVal,showModal,modalDialog,modalButton,isTruthy],
   reactable[colDef,reactableOutput,renderReactable,reactable,getReactableState,JS],
   bs4Dash[box,tabsetPanel,updateTabItems,updateNavbarTabs],
@@ -127,11 +127,21 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
     })
     
     data <- reactive(prepare_data()$dt)
-    colnames_list <- prepare_data()$columns
+    # colnames_list <- prepare_data()$columns
+    colnames_list_A <- reactive({
+      req(prepare_data())
+      prepare_data()$columns
+    })
+
     
     map_list <- colnames_map_list("somatic") # gives list of all columns with their column definitions
-    mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
+    # mapped_checkbox_names <- map_checkbox_names(map_list) # gives list of all columns with their display names for checkbox
+    mapped_checkbox_names <- reactive({
+      req(data())
+      map_checkbox_names(map_list, names(data()))
+    })
     
+    colnames_list <- colnames_list_A()
     
     filter_state <- filterTab_server("filterTab_dropdown",colnames_list, data(),mapped_checkbox_names, is_restoring_session)
     
@@ -548,6 +558,21 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
     # Flag pro inicializaci
     initialized <- reactiveVal(FALSE)
     
+    get_checkbox_names <- reactive({
+      if (is.reactive(mapped_checkbox_names)) {
+        mapped_checkbox_names()
+      } else {
+        mapped_checkbox_names
+      }
+    })
+    
+    get_colnames_list <- reactive({
+      if (is.reactive(colnames_list)) {
+        colnames_list()
+      } else {
+        colnames_list
+      }
+    })
     # ===== HELPER FUNCTIONS =====
     
     # Funkce pro normalizaci column selection
@@ -627,8 +652,15 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
     
     # Funkce pro update column choices
     update_column_choices <- function() {
+      req(get_checkbox_names())
+      req(get_colnames_list())
+      
+      checkbox_names <- get_checkbox_names()
+      cols_list <- get_colnames_list()
+      
       # Seřaď choices podle názvů
-      col_choices_ordered <- mapped_checkbox_names[order(names(mapped_checkbox_names))]
+      col_choices_ordered <- checkbox_names[order(names(checkbox_names))]
+      # col_choices_ordered <- mapped_checkbox_names[order(names(mapped_checkbox_names))]
       
       # Normalizuj current selection
       current_selection <- isolate(input$colFilter_checkBox)
@@ -641,7 +673,8 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
       selected_values <- normalize_column_selection(
         selection = default_selection,
         choices_map = col_choices_ordered,
-        default_cols = colnames_list$default_columns
+        # default_cols = colnames_list$default_columns
+        default_cols = cols_list$default_columns
       )
       
       updatePrettyCheckboxGroup(
@@ -685,15 +718,29 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
     # ===== EVENT HANDLERS =====
     
     observeEvent(input$show_all, {
-      all_values <- ch(unname(mapped_checkbox_names))
+      req(get_checkbox_names())
+      
+      checkbox_names <- get_checkbox_names()
+      
+      all_values <- ch(unname(checkbox_names))
+      # all_values <- ch(unname(mapped_checkbox_names))
       updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = all_values)
     })
     
     observeEvent(input$show_default, {
+      req(get_checkbox_names())
+      req(get_colnames_list())
+      
+      checkbox_names <- get_checkbox_names()
+      cols_list <- get_colnames_list()
+      
       default_values <- normalize_column_selection(
-        selection = colnames_list$default_columns,
-        choices_map = mapped_checkbox_names,
-        default_cols = colnames_list$default_columns
+        selection = cols_list$default_columns,
+        choices_map = checkbox_names,
+        default_cols = cols_list$default_columns
+        # selection = colnames_list$default_columns,
+        # choices_map = mapped_checkbox_names,
+        # default_cols = colnames_list$default_columns
       )
       updatePrettyCheckboxGroup(session, "colFilter_checkBox", selected = default_values)
     })
@@ -731,10 +778,15 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
         wanted <- ch(safe_extract(state$selected_cols))
         message(sprintf("Restoring selected_cols: %s", paste(wanted, collapse = ", ")))
         
+        checkbox_names <- get_checkbox_names()
+        cols_list <- get_colnames_list()
+        
         wanted_values <- normalize_column_selection(
           selection = wanted,
-          choices_map = mapped_checkbox_names,
-          default_cols = colnames_list$default_columns
+          # choices_map = mapped_checkbox_names,
+          # default_cols = colnames_list$default_columns
+          choices_map = checkbox_names,
+          default_cols = cols_list$default_columns
         )
         
         message(sprintf("Final selected values: %s", paste(wanted_values, collapse = ", ")))

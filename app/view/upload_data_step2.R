@@ -12,7 +12,7 @@ box::use(
 )
 
 box::use(
-  app/logic/helper_upload_data[create_dataset_data,create_reactable,validate_datasets_status,build_confirmed_paths]
+  app/logic/helper_upload_data[create_dataset_data,create_reactable,validate_datasets_status,build_confirmed_paths, validate_all_columns, create_column_error_message]
 )
 
 # DZ1601,MR1507,P001
@@ -124,6 +124,30 @@ step2_ui <- function(id) {
         req(datasets(), patients(), all_files())
         
         data <- datasets_data()
+        
+      # ==========================================
+      
+        column_validation <- validate_all_columns(data)
+        
+        if (column_validation$has_errors) {
+          confirmed_paths_state(NULL)
+          
+          error_html <- create_column_error_message(column_validation)
+          
+          shinyalert(
+            title = "Missing Required Columns",
+            text = HTML(error_html),
+            type = "error",
+            showConfirmButton = TRUE,
+            confirmButtonText = "OK",
+            html = TRUE
+          )
+          return()
+        }
+        
+      
+      # ==========================================
+      
         validation <- validate_datasets_status(data)
 
         # Pokud jsou červené stavy - blokovat postup

@@ -1,39 +1,33 @@
+remotes::install_version("rhino", version = "1.11.0")
+# remotes::install_version("shiny", version = "1.11.1")
+remotes::install_version("reactable", version = "0.4.4")
+remotes::install_version("shinyjs", version = "2.1.0")
+remotes::install_version("bs4Dash", version = "2.3.5")
+remotes::install_version("htmltools", version = "0.5.8.1")
+remotes::install_version("BiocManager", version = "1.30.26")
+remotes::install_version("devtools", version = "2.4.5")
+remotes::install_version("plotly", version = "4.11.0")
+remotes::install_version("shinyWidgets", version = "0.9.0")
+remotes::install_version("networkD3", version = "0.4.1")
+remotes::install_version("ggplot2", version = "4.0.0")
+remotes::install_version("dplyr", version = "1.1.4")
+remotes::install_version("data.table", version = "1.17.8")
+remotes::install_version("openxlsx", version = "4.2.8")
+remotes::install_version("billboarder", version = "0.5.0")
+remotes::install_version("webshot", version = "0.5.5")
+remotes::install_version("webshot2", version = "0.1.2")
+remotes::install_version("shinycssloaders", version = "1.1.0")
+remotes::install_version("processx", version = "3.8.6")
+remotes::install_version("future", version = "1.67.0")
+remotes::install_version("shinyalert", version = "3.1.0")
+remotes::install_version("shinyFiles", version = "0.9.3")
+remotes::install_version("pheatmap", version = "1.0.13")
+remotes::install_version("flextable", version = "0.9.10")
+remotes::install_version("readxl", version = "1.4.5")
+remotes::install_version("matrixStats", version = "1.5.0")
+remotes::install_version("jsonlite", version = "2.0.0")
+remotes::install_version("httr", version = "1.4.7")
 
-# classic installation of required packages
-install.packages(c(
-  "rhino", "shiny", "reactable", "shinyjs", "bs4Dash", "htmltools", "BiocManager","devtools","plotly","shinyWidgets", "networkD3", "ggplot2", "dplyr",
-  "data.table","openxlsx", "billboarder", "webshot", "shinycssloaders", "processx","future","shinyalert","shinyFiles","pheatmap","flextable","readxl",
-  "matrixStats","stats","jsonlite","httr","utils"
+BiocManager::install(c(
+    "tools", "VariantAnnotation"
 ))
-
-# installation of specific versions which were used during development
-# install.packages("remotes")
-# remotes::install_version("shiny", version = "1.10.0")
-# remotes::install_version("rhino", version = "1.11.0")
-# remotes::install_version("reactable", version = "0.4.4")
-# remotes::install_version("shinyjs", version = "2.1.0")
-# remotes::install_version("bs4Dash", version = "2.3.4")
-# remotes::install_version("htmltools", version = "0.5.8.1")
-# remotes::install_version("shinyWidgets", version = "0.9.0")
-# remotes::install_version("networkD3", version = "0.4.1")
-# remotes::install_version("ggplot2", version = "3.5.2")
-# remotes::install_version("dplyr", version = "1.1.4")
-# remotes::install_version("data.table", version = "1.17.0")
-# remotes::install_version("openxlsx", version = "4.2.8")
-# remotes::install_version("billboarder", version = "0.5.0")
-# remotes::install_version("webshot", version = "0.5.5")
-# remotes::install_version("shinycssloaders", version = "1.1.0")
-# remotes::install_version("processx", version = "3.8.6")
-
-remotes::install_version("BiocManager", version = "")
-remotes::install_version("devtools", version = "")
-remotes::install_version("webshot2", version = "")
-remotes::install_version("plotly", version = "")
-remotes::install_version("tools", version = "")
-remotes::install_version("VariantAnnotation", version = "")
-
-
-
-# wget https://data.broadinstitute.org/igv/projects/downloads/2.19/IGV_Linux_2.19.5_WithJava.zip
-
-#renv::snapshot()
