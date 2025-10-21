@@ -167,6 +167,7 @@ add_dataset_tabs <- function(session,
       tissues <- unique(tissues)
       tissues <- tissues[!is.na(tissues) & tissues != "none"]
       ui_args$tissue_list <- tissues
+      ui_args$patient <- patient_id
     }
     
     # Start UI for this patient
@@ -179,6 +180,12 @@ add_dataset_tabs <- function(session,
       ),
       select = FALSE
     )
+    
+    # Create reactive to track if THIS specific tab is active
+    is_active <- reactive({
+      input[[tabset_input_id]] == tab_value
+    })
+    
     # Start server for this patient
     if (identical(dataset_name, "fusion") && !is.null(load_session_btn)) { # just for fusion dataset
       module_obj$server(
@@ -188,6 +195,15 @@ add_dataset_tabs <- function(session,
         patient_files, 
         file_list,
         load_session_btn)
+    } else if (identical(dataset_name, "network")) {
+      module_obj$server(
+        paste0(dataset_name, "_tab_", patient_id),
+        patient_id, 
+        shared_data, 
+        patient_files,
+        file_list,
+        tabset_input_id,
+        tab_value)
     } else {
       module_obj$server(paste0(dataset_name, "_tab_", patient_id),
                         patient_id, 

@@ -9,20 +9,10 @@ box::use(
   app/logic/load_data[get_inputs]
 )
 
-string_cache <- new.env(parent = emptyenv())
-
 # Funkce pro získání interakcí mezi proteiny z STRING API
 #' @export
 get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, delay = 0.2) {
   # Funkce pro odesílání jednotlivých požadavků
-  
-  cache_key <- paste(sort(proteins), collapse = "|")
-  if (exists(cache_key, envir = string_cache)) {
-    message("Using cached STRING interactions")
-    return(get(cache_key, envir = string_cache))
-  }
-  
-  
   fetch_interactions <- function(protein_chunk) {
     base_url <- "https://string-db.org/api/json/network?"
     query <- paste0("identifiers=", paste(protein_chunk, collapse = "%0D"), "&species=", species)
@@ -42,8 +32,6 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
   # Rozdělení proteinů na bloky podle chunk_size (občas je proteinů moc)
   protein_chunks <- split(proteins, ceiling(seq_along(proteins) / chunk_size))
   all_interactions <- do.call(rbind, lapply(protein_chunks, fetch_interactions))
-  
-  assign(cache_key, all_interactions, envir = string_cache)
   
   return(all_interactions)
 }

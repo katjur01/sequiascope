@@ -204,7 +204,6 @@ ui <- function(id){
                   fluidPage(
                     div(class = "patient-tabs",
                         tabsetPanel(id = ns("network_graph"))),
-                    # uiOutput(ns("network_graph"))
                     ))
         ),
         tabItem(tabName = ns("hidden_igv"),
@@ -276,8 +275,9 @@ server <- function(id) {
     shared_data$expression_modules <- reactiveVal(list())
     shared_data$expression_pending <- reactiveVal(list()) 
     
-    shared_data$run <- reactiveVal("docker")
-        
+    # shared_data$run <- reactiveVal("docker")
+    shared_data$run <- reactiveVal("local")
+    
     # Track which tab values were added per dataset (so we can remove/replace on reconfirm)
     added_tab_values <- reactiveValues(
       somatic  = character(0),
@@ -407,7 +407,7 @@ server <- function(id) {
         # # ## Expression & network graph
       if (length(expression_patients) > 0) {
         add_dataset_tabs(session, confirmed_paths, "expression", expression_patients, shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
-        # add_dataset_tabs(session, confirmed_paths, "network", expression_patients, shared_data, added_tab_values, "network_graph", "net_", networkGraph_cytoscape)
+        add_dataset_tabs(session, confirmed_paths, "network", expression_patients, shared_data, added_tab_values, "network_graph", "net_", networkGraph_cytoscape)
       }
 
         ## Summary

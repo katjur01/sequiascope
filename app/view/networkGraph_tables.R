@@ -23,6 +23,9 @@ selectedTab_UI <- function(id){
         border: none;
         height: 155px;
       }
+      .row-highlighted {
+          background-color: #FFFF99 !important;
+      }
     "))),
     
     div(
@@ -36,13 +39,15 @@ selectedTab_UI <- function(id){
 
 tab_UI <- function(id){
   ns <- NS(id)
-  fluidRow(
-    column(6,reactableOutput(ns("network_tab"))),
-    column(1,),
-    column(5,reactableOutput(ns("subNetwork_tab")))
-  )
+  tagList(
+    tags$head(tags$style(HTML(".row-highlighted { background-color: #FFFF99 !important; }"))),
+    fluidRow(
+      column(6,reactableOutput(ns("network_tab"))),
+      column(1,),
+      column(5,reactableOutput(ns("subNetwork_tab")))
+    ))
 }
-tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt) {
+tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,patient) {
   moduleServer(id, function(input, output, session) {
     
     
@@ -50,7 +55,6 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt) 
     ##### reactable calling #####
     output$network_tab <- renderReactable({
       message("Rendering Reactable for network")
-      message("#########   tissue_dt    ######šš   ",colnames(tissue_dt()))
       reactable(as.data.frame(tissue_dt()),
                 columns = list(
                   feature_name = colDef(name = "Gene name", maxWidth = 100, filterable = TRUE),
@@ -81,7 +85,7 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt) 
       selectedRow <- input$selected_row
       message("Vybraný gen z tabulky: ", selectedRow)
       
-      session$sendCustomMessage("cy-add-node-selection", list(gene = selectedRow))
+      session$sendCustomMessage("cy-add-node-selection", list(gene = selectedRow, patientId = patient))
       session$sendCustomMessage("highlight-row", list(gene = selectedRow))
     })
     

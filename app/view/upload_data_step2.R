@@ -245,7 +245,6 @@ step2_ui <- function(id) {
             callbackR = function(user_confirmed) {
               if (isTRUE(user_confirmed)) {
                 confirmed_paths_state(build_confirmed_paths(data, path()))
-                showModal(modalDialog("Your selection has been confirmed!", easyClose = TRUE))
               } else {
                 confirmed_paths_state(NULL)
               }

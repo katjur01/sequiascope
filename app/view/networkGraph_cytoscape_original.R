@@ -31,19 +31,16 @@ box::use(
 
 )
 
-ui <- function(id, tissue_list, patient) {
+ui <- function(id, tissue_list, patient_id) {
   ns <- NS(id)
   useShinyjs()
-
   tagList(
     tags$head(
       tags$script(src = "static/js/app.min.js"),
       tags$script(src = "static/js/cytoscape_init.js"),
-      # tags$script(HTML(sprintf("var cyContainerId_%s = '%s'; var cySubsetContainerId_%s = '%s';",
-      #                          patient, cy_container_id, patient, cy_subset_container_id)))
-      tags$script(HTML(sprintf("var cyContainerId = '%s'; var cySubsetContainerId = '%s';",
-                               ns("cyContainer"), ns("cySubsetContainer"))))
-      ),
+      tags$script(HTML(sprintf("var cyContainerId = '%s'; var cySubsetContainerId = '%s'; var cySelectedNodesInputId = '%s';", 
+                               ns("cyContainer"), ns("cySubsetContainer"), ns("cySelectedNodes"))))
+    ),
     fluidRow(
       column(8,
         fluidRow(
@@ -118,9 +115,6 @@ ui <- function(id, tissue_list, patient) {
 server <- function(id, patient, shared_data, patient_files, file_list, tabset_input_id = NULL, tab_value = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
-    cy_container_id <- paste0(ns("cyContainer"))
-    cy_subset_container_id <- paste0(ns("cySubsetContainer"))
 
     active <- reactive({
       if (is.null(tabset_input_id) || is.null(tab_value)) {
@@ -230,25 +224,9 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       req(active(), input$selected_pathway, input$selected_tissue, network_json())
       
       tryCatch({
-        # json_data <- network_json()
-        # json_data$containerId <- cy_container_id
-        # json_data$patientId <- patient
-        network_data <- network_json()
-        
-        # Pokud je to JSON string, parsuj ho zpět
-        if (is.character(network_data)) {
-          network_data <- fromJSON(network_data)
-        }
-        
-        # Vytvoř nový list s přidanými parametry
-        json_data <- list(
-          elements = network_data$elements,
-          containerId = cy_container_id,
-          patientId = patient
-        )
-
-      
-        message("Initializing cytoscape for patient: ", patient)
+        json_data <- network_json()
+        message("Initializing cytoscape with pathway: ", input$selected_pathway, 
+                ", tissue: ", input$selected_tissue)
         session$sendCustomMessage("cy-init", json_data)
       }, error = function(e) {
         message("Error initializing cytoscape: ", e$message)
@@ -265,27 +243,20 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       req(active())
       
       current_nodes <- synchronized_nodes()
-      
+      message("current_nodes v cy-subset eventu: ", paste(current_nodes, collapse = ", "))
+
       if (length(current_nodes) == 0) {
-        empty_json <- list(
-          elements = list(nodes = list(), edges = list()),
-          containerId = cy_subset_container_id,
-          patientId = patient
-        )
+        message("Žádné uzly nejsou vybrány. Odesílám prázdný podgraf.")
+        empty_json <- toJSON(list(elements = list(nodes = list(), edges = list())), auto_unbox = TRUE)
         session$sendCustomMessage("cy-subset", empty_json)
-        session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
+        session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list()))
       } else {
-        subnetwork_json <- prepare_cytoscape_network(
-          sub_interactions(), 
-          unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2FC)]), 
-          current_nodes
-        )
-        subnetwork_json$containerId <- cy_subset_container_id
-        subnetwork_json$patientId <- patient
-        
+        message("Aktualizace podgrafu pro uzly: ", paste(current_nodes, collapse = ", "))
+        subnetwork_json <- prepare_cytoscape_network(sub_interactions(), unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name,log2FC)]), current_nodes)
         session$sendCustomMessage("cy-subset", subnetwork_json)
-        session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = current_nodes, patientId = patient))
+        session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = current_nodes))
       }
+      message("# konec cy-subset eventu.")
     })
 
 
@@ -367,17 +338,18 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     ########################
 
     observeEvent(input$selected_layout, {
-      session$sendCustomMessage("cy-layout",list(layout = input$selected_layout, patientId = patient))
+      session$sendCustomMessage("cy-layout",input$selected_layout)
     })
 
     observeEvent(input$clearSelection_btn, {
+      # Nastavíme proměnné na výchozí hodnoty
       clear_all(TRUE)
       new_genes_var(NULL)
       remove_genes_var(NULL)
       synchronized_nodes(character(0))  # Jasně nastaví stav synchronizovaných uzlů
 
       # Explicitní aktualizace UI komponent
-      session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
+      session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list()))
       session$sendCustomMessage("cy-subset", toJSON(list(elements = list(nodes = list(), edges = list())), auto_unbox = TRUE))
       updatePickerInput(session, "remove_genes", choices = character(0), selected = NULL)
       updateTextAreaInput(session, "new_genes", value = "")
@@ -387,15 +359,19 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
 
     observeEvent(input$selectNeighbors_btn, {
       selected_gene <- input$selected_row
-      session$sendCustomMessage("select-first-neighbors", list(gene = selected_gene, patientId = patient))
+      session$sendCustomMessage("select-first-neighbors", list(gene = selected_gene))
     })
 
     observeEvent(input$fitGraph_btn, {
       selected_genes <- input$cySelectedNodes
-      
-      session$sendCustomMessage("fit-selected-nodes", list(
-        nodes = if (length(selected_genes) > 0) selected_genes else NULL,
-        patientId = patient))
+
+      if (!is.null(selected_genes) && length(selected_genes) > 0) {
+        message("Fitting view to selected nodes: ", paste(selected_genes, collapse = ", "))
+        session$sendCustomMessage("fit-selected-nodes", list(nodes = selected_genes))
+      } else {
+        message("No nodes selected, fitting view to all nodes.")
+        session$sendCustomMessage("fit-selected-nodes", list(nodes = NULL)) # NULL znamená vycentrování na celý graf
+      }
     })
 
     #################################################
@@ -512,7 +488,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
                                 }
                               )
                             }
-                            session$sendCustomMessage("variant-border", list(type = type, nodes = character(0), patientId = patient))
+                            session$sendCustomMessage("variant-border", list(type = type, nodes = character(0)))
                             return()
                           }
                           
@@ -540,11 +516,11 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
                               )
                             } else {
                               message("Adding ", type, " border for ", length(nodes), " nodes")
-                              session$sendCustomMessage("variant-border", list(type = type, nodes = as.list(nodes), patientId = patient))
+                              session$sendCustomMessage("variant-border", list(type = type, nodes = as.list(nodes)))
                             }
                           } else {
                             message("Removing ", type, " border")
-                            session$sendCustomMessage("variant-border", list(type = type, nodes = character(0), patientId = patient))
+                            session$sendCustomMessage("variant-border", list(type = type, nodes = character(0)))
                           }
                         })
     })
@@ -555,7 +531,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     ### others ###
     ##############
 
-    networkGraph_tables$tab_server("tab", tissue_dt, subTissue_dt, selected_nodes = synchronized_nodes, selected_dt, patient) # tissue_dt = reactive(result_dt())
+    networkGraph_tables$tab_server("tab", tissue_dt, subTissue_dt, selected_nodes = synchronized_nodes, selected_dt) # tissue_dt = reactive(result_dt())
 
     addPopover(id = "helpPopover_addGene",options = list(title = "Write comma-separated text:",content = "example: BRCA1, TP53, FOXO3",placement = "right",trigger = "hover"))
     addPopover(id = "helpPopover_layout",options = list(title = "Layout options:",placement = "right",trigger = "hover",
