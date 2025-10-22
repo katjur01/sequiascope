@@ -36,14 +36,8 @@ ui <- function(id, tissue_list, patient) {
   useShinyjs()
 
   tagList(
-    tags$head(
-      tags$script(src = "static/js/app.min.js"),
-      tags$script(src = "static/js/cytoscape_init.js"),
-      # tags$script(HTML(sprintf("var cyContainerId_%s = '%s'; var cySubsetContainerId_%s = '%s';",
-      #                          patient, cy_container_id, patient, cy_subset_container_id)))
-      tags$script(HTML(sprintf("var cyContainerId = '%s'; var cySubsetContainerId = '%s';",
-                               ns("cyContainer"), ns("cySubsetContainer"))))
-      ),
+    # tags$head(tags$script(HTML(sprintf("var cyContainerId = '%s'; var cySubsetContainerId = '%s';",
+    #                                     ns("cyContainer"), ns("cySubsetContainer"))))),
     fluidRow(
       column(8,
         fluidRow(
@@ -207,19 +201,33 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     ## Network node synchronization ##
     ##################################
 
-    sync_nodes <- memoise(function(nodes_from_graph, current_genes, add_genes = NULL, remove_genes = NULL, clear_all) {
+    # sync_nodes <- memoise(function(nodes_from_graph, current_genes, add_genes = NULL, remove_genes = NULL, clear_all) {
+    #   
+    #   ifelse(clear_all, combined <- character(0), combined <- unique(c(nodes_from_graph, current_genes)))
+    # 
+    #   if (!is.null(add_genes) && length(add_genes) > 0) combined <- unique(c(combined, add_genes))  # Přidání nových genů
+    #   if (!is.null(remove_genes) && length(remove_genes) > 0) combined <- setdiff(combined, remove_genes)  # Odebrání genů
+    # 
+    #   combined <- combined[!is.na(combined) & combined != ""]  # Odstranění prázdných hodnot
+    #   changed <- !setequal(synchronized_nodes(), combined)  # Kontrola změny
+    # 
+    #   return(list(updated_nodes = combined, changed = changed))  # Návrat aktualizovaných uzlů a informace o změně
+    # })
+
+    sync_nodes_impl <- function(nodes_from_graph, current_genes, add_genes = NULL, remove_genes = NULL, clear_all) {
       
       ifelse(clear_all, combined <- character(0), combined <- unique(c(nodes_from_graph, current_genes)))
+      
+      if (!is.null(add_genes) && length(add_genes) > 0) combined <- unique(c(combined, add_genes))
+      if (!is.null(remove_genes) && length(remove_genes) > 0) combined <- setdiff(combined, remove_genes)
+      
+      combined <- combined[!is.na(combined) & combined != ""]
+      changed <- !setequal(synchronized_nodes(), combined)
+      
+      return(list(updated_nodes = combined, changed = changed))
+    }
 
-      if (!is.null(add_genes) && length(add_genes) > 0) combined <- unique(c(combined, add_genes))  # Přidání nových genů
-      if (!is.null(remove_genes) && length(remove_genes) > 0) combined <- setdiff(combined, remove_genes)  # Odebrání genů
-
-      combined <- combined[!is.na(combined) & combined != ""]  # Odstranění prázdných hodnot
-      changed <- !setequal(synchronized_nodes(), combined)  # Kontrola změny
-
-      return(list(updated_nodes = combined, changed = changed))  # Návrat aktualizovaných uzlů a informace o změně
-    })
-
+    sync_nodes <- sync_nodes_impl
 
     ########################
     ## Network UI buttons ##
@@ -235,21 +243,25 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         # json_data$patientId <- patient
         network_data <- network_json()
         
-        # Pokud je to JSON string, parsuj ho zpět
-        if (is.character(network_data)) {
-          network_data <- fromJSON(network_data)
-        }
+        network_data$containerId <- cy_container_id
+        network_data$patientId <- patient
         
-        # Vytvoř nový list s přidanými parametry
-        json_data <- list(
-          elements = network_data$elements,
-          containerId = cy_container_id,
-          patientId = patient
-        )
+        # # Pokud je to JSON string, parsuj ho zpět
+        # if (is.character(network_data)) {
+        #   network_data <- fromJSON(network_data)
+        # }
+        # 
+        # # Vytvoř nový list s přidanými parametry
+        # json_data <- list(
+        #   elements = network_data$elements,
+        #   containerId = cy_container_id,
+        #   patientId = patient
+        # )
 
       
         message("Initializing cytoscape for patient: ", patient)
-        session$sendCustomMessage("cy-init", json_data)
+        # session$sendCustomMessage("cy-init", json_data)
+        session$sendCustomMessage("cy-init", network_data)
       }, error = function(e) {
         message("Error initializing cytoscape: ", e$message)
       })
@@ -261,76 +273,191 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       get_string_interactions(unique(subTissue_dt()[feature_name %in% synchronized_nodes(), feature_name]))
     }) %>% debounce(500)
  
+    # observeEvent(list(active(), synchronized_nodes(), sub_interactions()), {
+    #   req(active())
+    #   
+    #   current_nodes <- synchronized_nodes()
+    #   
+    #   if (length(current_nodes) == 0) {
+    #     empty_json <- list(
+    #       elements = list(nodes = list(), edges = list()),
+    #       containerId = cy_subset_container_id,
+    #       patientId = patient
+    #     )
+    #     session$sendCustomMessage("cy-subset", empty_json)
+    #     session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
+    #   } else {
+    #     subnetwork_data <- prepare_cytoscape_network(
+    #       sub_interactions(), 
+    #       unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2FC)]), 
+    #       current_nodes
+    #     )
+    #     subnetwork_data$containerId <- cy_subset_container_id
+    #     subnetwork_data$patientId <- patient
+    #     
+    #     session$sendCustomMessage("cy-subset", subnetwork_data)
+    #     session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = current_nodes, patientId = patient))
+    #   }
+    # })
     observeEvent(list(active(), synchronized_nodes(), sub_interactions()), {
       req(active())
       
       current_nodes <- synchronized_nodes()
       
+      # Pokud nejsou žádné uzly, poslat clear signál
       if (length(current_nodes) == 0) {
+        message("🧹 Clearing subset graph - no nodes selected")
+        
         empty_json <- list(
           elements = list(nodes = list(), edges = list()),
           containerId = cy_subset_container_id,
-          patientId = patient
+          patientId = patient,
+          clear = TRUE
         )
+        
         session$sendCustomMessage("cy-subset", empty_json)
-        session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
-      } else {
-        subnetwork_json <- prepare_cytoscape_network(
-          sub_interactions(), 
+        session$sendCustomMessage("update-selected-from-gene-list", 
+                                  list(selected_nodes = list(), patientId = patient))
+        return()
+      }
+      
+      # Získat sub-interakce
+      sub_ints <- sub_interactions()
+      
+      # Validace dat
+      if (is.null(sub_ints) || (!is.data.frame(sub_ints) && !is.list(sub_ints))) {
+        message("⏳ Waiting for valid sub-interactions data...")
+        return()
+      }
+      
+      message("📊 Preparing subnetwork for ", length(current_nodes), " nodes")
+      
+      # Připravit data pro subgraf
+      subnetwork_data <- tryCatch({
+        prepare_cytoscape_network(
+          sub_ints, 
           unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2FC)]), 
           current_nodes
         )
-        subnetwork_json$containerId <- cy_subset_container_id
-        subnetwork_json$patientId <- patient
-        
-        session$sendCustomMessage("cy-subset", subnetwork_json)
-        session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = current_nodes, patientId = patient))
+      }, error = function(e) {
+        message("❌ Error preparing subnetwork: ", e$message)
+        return(NULL)
+      })
+      
+      if (is.null(subnetwork_data)) {
+        message("❌ Failed to prepare subnetwork data")
+        return()
       }
-    })
+      
+      # Přidat metadata
+      subnetwork_data$containerId <- cy_subset_container_id
+      subnetwork_data$patientId <- patient
+      subnetwork_data$clear <- FALSE
+      
+      # Debug výpis
+      message("✅ Sending subnetwork with ", 
+              length(subnetwork_data$elements$nodes), " nodes and ",
+              length(subnetwork_data$elements$edges), " edges")
+      
+      # Odeslat data
+      session$sendCustomMessage("cy-subset", subnetwork_data)
+      session$sendCustomMessage("update-selected-from-gene-list", 
+                                list(selected_nodes = current_nodes, patientId = patient))
+    }, priority = 10)
 
-
-    observeEvent(list(input$cySelectedNodes, input$confirm_new_genes_btn, input$confirm_remove_genes_btn, input$clearSelection_btn, new_genes_var(),remove_genes_var()), {
-
-      message("nodes_from_graph: ", paste(input$cySelectedNodes, collapse = ", "))
-      message("current_genes: ", paste(synchronized_nodes(), collapse = ", "))
-      message("new_genes: ", paste(new_genes_var(), collapse = ", "))
-      message("remove_genes: ", paste(remove_genes_var(), collapse = ", "))
-      message("clear_all: ", clear_all())
-
-      result <- sync_nodes(
-        nodes_from_graph = input$cySelectedNodes,
-        current_genes = synchronized_nodes(),
-        add_genes = new_genes_var(),
-        remove_genes = remove_genes_var(),
-        clear_all = clear_all()
-      )
-
-      updated_nodes <- result$updated_nodes
-      changed <- result$changed
-      message("updated_nodes: ", paste(updated_nodes, collapse = ", "))
-
-      if (changed) {
-        synchronized_nodes(updated_nodes) # Synchronizace uzlů
-        message("Synchronizované uzly byly aktualizovány: ", paste(updated_nodes, collapse = ", "))
-      } else {
-        message("Uzly se nezměnily, žádná aktualizace není potřeba.")
-      }
-
-      # Reset vstupů pro přidání a odebrání genů
-      updateTextAreaInput(session, "new_genes", value = "")
-      updatePickerInput(session, "remove_genes", choices = synchronized_nodes(), selected = NULL)
-
-      if (clear_all()) {
-        if (length(updated_nodes) == 0 && length(input$cySelectedNodes) == 0 && length(synchronized_nodes()) == 0 ) {
-          clear_all(FALSE)
-          message("Clear selection completed. Resetting clear_all to FALSE.")
-        }
-      }
-
-      message("# konec hlavního observeEventu.")
-    })
-
-
+#     
+#     observeEvent(list(input$cySelectedNodes, input$confirm_new_genes_btn, input$confirm_remove_genes_btn, input$clearSelection_btn, new_genes_var(),remove_genes_var()), {
+# 
+#       message("nodes_from_graph: ", paste(input$cySelectedNodes, collapse = ", "))
+#       message("current_genes: ", paste(synchronized_nodes(), collapse = ", "))
+#       message("new_genes: ", paste(new_genes_var(), collapse = ", "))
+#       message("remove_genes: ", paste(remove_genes_var(), collapse = ", "))
+#       message("clear_all: ", clear_all())
+# 
+#       result <- sync_nodes(
+#         nodes_from_graph = input$cySelectedNodes,
+#         current_genes = synchronized_nodes(),
+#         add_genes = new_genes_var(),
+#         remove_genes = remove_genes_var(),
+#         clear_all = clear_all()
+#       )
+# 
+#       updated_nodes <- result$updated_nodes
+#       changed <- result$changed
+#       message("updated_nodes: ", paste(updated_nodes, collapse = ", "))
+# 
+#       if (changed) {
+#         synchronized_nodes(updated_nodes) # Synchronizace uzlů
+#         message("Synchronizované uzly byly aktualizovány: ", paste(updated_nodes, collapse = ", "))
+#       } else {
+#         message("Uzly se nezměnily, žádná aktualizace není potřeba.")
+#       }
+# 
+#       # Reset vstupů pro přidání a odebrání genů
+#       updateTextAreaInput(session, "new_genes", value = "")
+#       updatePickerInput(session, "remove_genes", choices = synchronized_nodes(), selected = NULL)
+# 
+#       if (clear_all()) {
+#         if (length(updated_nodes) == 0 && length(input$cySelectedNodes) == 0 && length(synchronized_nodes()) == 0 ) {
+#           clear_all(FALSE)
+#           message("Clear selection completed. Resetting clear_all to FALSE.")
+#         }
+#       }
+# 
+#       message("# konec hlavního observeEventu.")
+#     })
+# 
+    observeEvent(list(input$cySelectedNodes, input$confirm_new_genes_btn, 
+                      input$confirm_remove_genes_btn, input$clearSelection_btn, 
+                      new_genes_var(), remove_genes_var()), {
+                        
+                        message("=== SYNC NODES START ===")
+                        message("nodes_from_graph: ", paste(input$cySelectedNodes, collapse = ", "))
+                        message("current_genes: ", paste(synchronized_nodes(), collapse = ", "))
+                        message("new_genes: ", paste(new_genes_var(), collapse = ", "))
+                        message("remove_genes: ", paste(remove_genes_var(), collapse = ", "))
+                        message("clear_all: ", clear_all())
+                        
+                        result <- sync_nodes(
+                          nodes_from_graph = input$cySelectedNodes,
+                          current_genes = synchronized_nodes(),
+                          add_genes = new_genes_var(),
+                          remove_genes = remove_genes_var(),
+                          clear_all = clear_all()
+                        )
+                        
+                        updated_nodes <- result$updated_nodes
+                        changed <- result$changed
+                        
+                        message("updated_nodes: ", paste(updated_nodes, collapse = ", "))
+                        message("changed: ", changed)
+                        
+                        if (changed) {
+                          synchronized_nodes(updated_nodes)
+                          message("✅ Synchronized nodes updated: ", paste(updated_nodes, collapse = ", "))
+                        } else {
+                          message("ℹ️ Nodes unchanged, no update needed")
+                        }
+                        
+                        # Reset vstupů
+                        updateTextAreaInput(session, "new_genes", value = "")
+                        updatePickerInput(session, "remove_genes", choices = synchronized_nodes(), selected = NULL)
+                        
+                        # Reset clear_all flagu po úspěšném vyčištění
+                        if (clear_all()) {
+                          if (length(updated_nodes) == 0 && length(input$cySelectedNodes) == 0) {
+                            clear_all(FALSE)
+                            message("✅ Clear completed, resetting clear_all flag")
+                          }
+                        }
+                        
+                        # Reset proměnných pro přidání/odebrání
+                        new_genes_var(NULL)
+                        remove_genes_var(NULL)
+                        
+                        message("=== SYNC NODES END ===")
+                      })
+    
     # Přidání nových genů do pickerInput po stisknutí tlačítka "Add Genes"
       observeEvent(input$confirm_new_genes_btn, {
         new_genes <- input$new_genes
@@ -362,6 +489,22 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         message("# konec eventu confirm_remove_genes_btn.")
       })
 
+      
+      observeEvent(list(input$selected_pathway, input$selected_tissue), {
+        # Když se změní pathway nebo tissue, vyčistit subset graf
+        message("🔄 Pathway/tissue changed, clearing subset")
+        
+        empty_data <- list(
+          elements = list(nodes = list(), edges = list()),
+          containerId = cy_subset_container_id,
+          patientId = patient,
+          clear = TRUE
+        )
+        
+        session$sendCustomMessage("cy-subset", empty_data)
+        
+        # NEMAZAT synchronized_nodes! - hlavní graf si je pamatuje správně
+      }, priority = 20)  # Vyšší priorita, aby se provedlo před ostatními
     ########################
     #### Network buttons ###
     ########################
@@ -370,21 +513,65 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       session$sendCustomMessage("cy-layout",list(layout = input$selected_layout, patientId = patient))
     })
 
-    observeEvent(input$clearSelection_btn, {
-      clear_all(TRUE)
-      new_genes_var(NULL)
-      remove_genes_var(NULL)
-      synchronized_nodes(character(0))  # Jasně nastaví stav synchronizovaných uzlů
-
-      # Explicitní aktualizace UI komponent
-      session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
-      session$sendCustomMessage("cy-subset", toJSON(list(elements = list(nodes = list(), edges = list())), auto_unbox = TRUE))
-      updatePickerInput(session, "remove_genes", choices = character(0), selected = NULL)
-      updateTextAreaInput(session, "new_genes", value = "")
-
-      message("All selections cleared.")
-    })
-
+    # observeEvent(input$clearSelection_btn, {
+    #   clear_all(TRUE)
+    #   new_genes_var(NULL)
+    #   remove_genes_var(NULL)
+    #   synchronized_nodes(character(0))  # Jasně nastaví stav synchronizovaných uzlů
+    # 
+    #   # Explicitní aktualizace UI komponent
+    #   session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
+    #   session$sendCustomMessage("cy-subset", toJSON(list(elements = list(nodes = list(), edges = list())), auto_unbox = TRUE))
+    #   updatePickerInput(session, "remove_genes", choices = character(0), selected = NULL)
+    #   updateTextAreaInput(session, "new_genes", value = "")
+    # 
+    #   message("All selections cleared.")
+    # })
+      # observeEvent(input$clearSelection_btn, {
+      #   clear_all(TRUE)
+      #   new_genes_var(NULL)
+      #   remove_genes_var(NULL)
+      #   synchronized_nodes(character(0))
+      #   
+      #   empty_data <- list(
+      #     elements = list(nodes = list(), edges = list()),
+      #     containerId = cy_subset_container_id,
+      #     patientId = patient
+      #   )
+      #   
+      #   session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
+      #   session$sendCustomMessage("cy-subset", empty_data)  # ✅ Poslat list
+      #   updatePickerInput(session, "remove_genes", choices = character(0), selected = NULL)
+      #   updateTextAreaInput(session, "new_genes", value = "")
+      #   
+      #   message("All selections cleared.")
+      # })
+      
+      observeEvent(input$clearSelection_btn, {
+        message("🗑️ Clear selection button clicked")
+        
+        # 1. Reset všech reaktivních proměnných
+        clear_all(TRUE)
+        new_genes_var(NULL)
+        remove_genes_var(NULL)
+        synchronized_nodes(character(0))
+        
+        # 2. Poslat clear pro subset graf
+        empty_data <- list(
+          elements = list(nodes = list(), edges = list()),
+          containerId = cy_subset_container_id,
+          patientId = patient,
+          clear = TRUE
+        )
+        
+        session$sendCustomMessage("cy-subset", empty_data)
+        session$sendCustomMessage("update-selected-from-gene-list", list(selected_nodes = list(), patientId = patient))
+        updatePickerInput(session, "remove_genes", choices = character(0), selected = NULL)
+        updateTextAreaInput(session, "new_genes", value = "")
+        
+        message("✅ All selections cleared")
+      })
+      
     observeEvent(input$selectNeighbors_btn, {
       selected_gene <- input$selected_row
       session$sendCustomMessage("select-first-neighbors", list(gene = selected_gene, patientId = patient))

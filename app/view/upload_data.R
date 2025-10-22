@@ -57,15 +57,15 @@
      # normal_pattern  <- reactiveValues(somatic = "krev", germline = "krev")
      # tissues <- reactiveVal(c("Blood","Blood_Vessel"))
      #####
-     patients <- reactiveVal("DZ1601")
-     # patients <- reactiveVal(c("DZ1601","MR1507"))
-     # path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
-     path <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
+     # patients <- reactiveVal("DZ1601")
+     patients <- reactiveVal(c("DZ1601","MR1507"))
+     path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
+     # path <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
      datasets <- reactiveVal("expression")
      tissues <- reactiveVal(c("blood","blood_vessel"))
      tumor_pattern <- reactiveValues(somatic = NULL, fusion = NULL, chimeric = NULL, arriba = NULL)
      normal_pattern <- reactiveValues(somatic = NULL, germline = NULL)
-     #####
+     ####
      # patients <- reactiveVal("DZ1601")
      # # patients <- reactiveVal(c("DZ1601","MR1507"))
      # path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")

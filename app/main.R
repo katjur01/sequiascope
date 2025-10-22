@@ -103,6 +103,8 @@ ui <- function(id){
         tags$li(class = "dropdown", actionButton(ns("save_session_btn"), label = NULL, icon = icon("save"), title = "Save session",class = "session-btn")))),
     sidebar = dashboardSidebar(disable = TRUE),
     body = dashboardBody(#style = "background-color: white;",
+      tags$head(tags$script(src = "static/js/app.min.js"),
+                tags$script(src = "static/js/cytoscape_init.js")),
       tabItems(
         tabItem(tabName = ns("upload_data"),
           fluidPage(
