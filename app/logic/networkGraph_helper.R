@@ -113,6 +113,20 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL) {
   node_data <- node_data[match(proteins, node_data$id, nomatch = 0), ]
   edges <- edges[edges$source %in% proteins & edges$target %in% proteins, ]
   
+  # json_data <- list(
+  #   elements = list(
+  #     nodes = lapply(seq_len(nrow(node_data)), function(i) {
+  #       list(data = as.list(node_data[i, ]))
+  #     }),
+  #     edges = lapply(seq_len(nrow(edges)), function(i) {
+  #       list(data = as.list(edges[i, ]))
+  #     })
+  #   )
+  # )
+  # 
+  # network_json <- toJSON(json_data, auto_unbox = TRUE)
+  # return(network_json)
+  
   json_data <- list(
     elements = list(
       nodes = lapply(seq_len(nrow(node_data)), function(i) {
@@ -123,10 +137,8 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL) {
       })
     )
   )
-  
-  network_json <- toJSON(json_data, auto_unbox = TRUE)
 
-  return(network_json)
+  return(json_data)
 }
 
 #' @export
