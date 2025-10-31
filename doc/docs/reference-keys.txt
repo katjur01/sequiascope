@@ -1,3 +1,0 @@
-filtering-menu
-variant-selection
-data-export

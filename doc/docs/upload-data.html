@@ -47,8 +47,12 @@
 <li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
 <li><a class="" href="data-requirements.html">Data requirements</a></li>
 <li><a class="active" href="upload-data.html">Upload data</a></li>
+<li><a class="" href="core-module-features.html">Core Module Features</a></li>
 <li><a class="" href="summary-and-report.html">Summary and Report</a></li>
 <li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
 </ul>
 
         <div class="book-extra">
@@ -59,7 +63,7 @@
   </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="upload-data" class="section level1 unnumbered">
 <h1>Upload data<a class="anchor" aria-label="anchor" href="#upload-data"><i class="fas fa-link"></i></a>
 </h1>
-<p>This module serves as the starting point for the SequiaViz application. Before uploading data, ensure that your input files and directories are properly formatted according to the specifications outlined in section Data requirements and below.</p>
+<p>This module serves as the starting point for the SequiaViz application. Before uploading data, ensure that your input files and directories are properly formatted according to the specifications outlined in chapter <a href="data-requirements.html#data-requirements">Data Requirements</a> and section below.</p>
 <div id="step-1-directory-patient-and-dataset-selection" class="section level2 unnumbered">
 <h2>Step 1: Directory, patient and dataset selection<a class="anchor" aria-label="anchor" href="#step-1-directory-patient-and-dataset-selection"><i class="fas fa-link"></i></a>
 </h2>
@@ -146,53 +150,62 @@
 <h4>
 <strong>“Required file missing”</strong><a class="anchor" aria-label="anchor" href="#required-file-missing"><i class="fas fa-link"></i></a>
 </h4>
-<p><strong>Cause</strong>: A required file for the selected analysis type is missing.<br><strong>Solution</strong>:
-- Verify that the file exists in the patient directory.
-- Check the file name to ensure it includes the patient ID (pay special attention to case sensitivity).
-- Confirm that the file has the correct extension (e.g., <code>.tsv</code>, <code>.xlsx</code>).</p>
+<p><strong>Cause</strong>: A required file for the selected dataset type is missing.<br><strong>Solution</strong>:</p>
+<ul>
+<li>Verify that the file exists in the patient directory.</li>
+<li>Check the file name to ensure it includes the patient ID (pay special attention to case sensitivity).</li>
+<li>Confirm that the file has the correct extension (e.g., <code>.tsv</code>, <code>.xlsx</code>).</li>
+</ul>
 </div>
 <div id="multiple-files-found" class="section level4 unnumbered">
 <h4>
 <strong>“Multiple files found”</strong><a class="anchor" aria-label="anchor" href="#multiple-files-found"><i class="fas fa-link"></i></a>
 </h4>
-<p><strong>Cause</strong>: Multiple files of the same type were found for a single patient.<br><strong>Solution</strong>:
-- Remove or rename duplicate files.
-- Ensure that each patient has only one file of each type.
-- Review BAM file patterns to ensure they are not too general.</p>
+<p><strong>Cause</strong>: Multiple files of the same type were found for a single patient.<br><strong>Solution</strong>:</p>
+<ul>
+<li>Remove or rename duplicate files.</li>
+<li>Ensure that each patient has only one file of each type.</li>
+<li>Review BAM file patterns to ensure they are not too general.</li>
+</ul>
 </div>
 <div id="missing-bam-or-bai" class="section level4 unnumbered">
 <h4>
 <strong>“Missing BAM or BAI”</strong><a class="anchor" aria-label="anchor" href="#missing-bam-or-bai"><i class="fas fa-link"></i></a>
 </h4>
-<p><strong>Cause</strong>: A BAM file is missing its corresponding index file (.bai).<br><strong>Solution</strong>:
-- Generate the missing <code>.bai</code> file using the command <code>samtools index</code>.
-- Ensure that the <code>.bai</code> file is named correctly.
-- For example, if the BAM file is <code>file.bam</code>, the index file must be <code>file.bam.bai</code> or <code>file.bai</code>.</p>
+<p><strong>Cause</strong>: A BAM file is missing its corresponding index file (.bai).<br><strong>Solution</strong>:</p>
+<ul>
+<li>Generate the missing <code>.bai</code> file using the command <code>samtools index</code>.</li>
+<li>Ensure that the <code>.bai</code> file is named correctly.</li>
+<li>For example, if the BAM file is <code>file.bam</code>, the index file must be <code>file.bam.bai</code> or <code>file.bai</code>.</li>
+</ul>
 </div>
 <div id="missing-pdf-or-tsv" class="section level4 unnumbered">
 <h4>
 <strong>“Missing PDF or TSV”</strong><a class="anchor" aria-label="anchor" href="#missing-pdf-or-tsv"><i class="fas fa-link"></i></a>
 </h4>
-<p><strong>Cause</strong>: The output from the Arriba analysis is incomplete.<br><strong>Solution</strong>:
-- Ensure that both the <code>.pdf</code> and <code>.tsv</code> files from the Arriba analysis are present.
-- Verify that both files include the string “arriba” in their names and have the correct extensions (<code>.tsv</code>, <code>.pdf</code>).</p>
+<p><strong>Cause</strong>: The output from the Arriba analysis is incomplete.<br><strong>Solution</strong>:</p>
+<ul>
+<li>Ensure that both the <code>.pdf</code> and <code>.tsv</code> files from the Arriba analysis are present.</li>
+<li>Verify that both files include the string “arriba” in their names and have the correct extensions (<code>.tsv</code>, <code>.pdf</code>).</li>
+</ul>
 <p><strong>FILL ALSO USE CASE FOR EXPRESSION FILES - MORE TISSUES THAN FILES OR MORE FILES THEN TISSUES –&gt; TROUBLES WITH MATCHING TISSUE NAMES</strong> {-}</p>
 </div>
 <div id="section" class="section level4 unnumbered">
 <h4>
 <strong>” “</strong><a class="anchor" aria-label="anchor" href="#section"><i class="fas fa-link"></i></a>
 </h4>
-<p><strong>Cause</strong>: The number of tissues does not match the number of expression files found, or the tissue names cannot be matched to the files.<br><strong>Solution</strong>:
-- Verify that each tissue has a corresponding expression file.
-- Ensure that tissue names in the configuration match the file names (use underscores instead of spaces, e.g., <code>blood_vessel</code> instead of <code>blood vessel</code>).
-- Double-check the pairing of tissues and files during the validation step.</p>
-
+<p><strong>Cause</strong>: The number of tissues does not match the number of expression files found, or the tissue names cannot be matched to the files.<br><strong>Solution</strong>:</p>
+<ul>
+<li>Verify that each tissue has a corresponding expression file.</li>
+<li>Ensure that tissue names in the configuration match the file names (use underscores instead of spaces, e.g., <code>blood_vessel</code> instead of <code>blood vessel</code>).</li>
+<li>Double-check the pairing of tissues and files during the validation step.</li>
+</ul>
 </div>
 </div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="data-requirements.html">Data requirements</a></div>
-<div class="next"><a href="summary-and-report.html">Summary and Report</a></div>
+<div class="next"><a href="core-module-features.html">Core Module Features</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -216,7 +229,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-16.</p>
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

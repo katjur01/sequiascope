@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Network Graph | SequiaViz Documentation</title>
+<meta name="author" content="Kateřina Jurásková">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Network Graph | SequiaViz Documentation">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Network Graph | SequiaViz Documentation">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0.9000/transition.js"></script><script src="libs/bs3compat-0.9.0.9000/tabs.js"></script><script src="libs/bs3compat-0.9.0.9000/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="custom-styles.css">
+<meta name="description" content="The Network Graph module provides an interactive visualization of protein-protein interactions and pathway-level insights using patient-specific gene data. This module leverages Cytoscape.js for...">
+<meta property="og:description" content="The Network Graph module provides an interactive visualization of protein-protein interactions and pathway-level insights using patient-specific gene data. This module leverages Cytoscape.js for...">
+<meta name="twitter:description" content="The Network Graph module provides an interactive visualization of protein-protein interactions and pathway-level insights using patient-specific gene data. This module leverages Cytoscape.js for...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">SequiaViz Documentation</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
+<li><a class="" href="data-requirements.html">Data requirements</a></li>
+<li><a class="" href="upload-data.html">Upload data</a></li>
+<li><a class="" href="core-module-features.html">Core Module Features</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="active" href="network-graph.html">Network Graph</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="network-graph" class="section level1 unnumbered">
+<h1>Network Graph<a class="anchor" aria-label="anchor" href="#network-graph"><i class="fas fa-link"></i></a>
+</h1>
+<p>The <strong>Network Graph</strong> module provides an interactive visualization of protein-protein interactions and pathway-level insights using patient-specific gene data. This module leverages Cytoscape.js for dynamic graph rendering and integrates <a href="https://string-db.org/">STRING DB</a> interactions with pathway annotations from <a href="https://www.genome.jp/kegg/">KEGG DB</a> .</p>
+<div id="overview-of-features-4" class="section level2 unnumbered">
+<h2>Overview of Features<a class="anchor" aria-label="anchor" href="#overview-of-features-4"><i class="fas fa-link"></i></a>
+</h2>
+<div id="interactive-network-visualization" class="section level3 unnumbered">
+<h3>Interactive Network Visualization<a class="anchor" aria-label="anchor" href="#interactive-network-visualization"><i class="fas fa-link"></i></a>
+</h3>
+<p>The network graph displays interactions between patient genes and their associated pathways.</p>
+<ul>
+<li>
+<strong>Nodes</strong>: Represent genes, colored by fold-change values.</li>
+<li>
+<strong>Edges</strong>: Represent STRING DB interactions, with adjustable confidence thresholds.</li>
+<li>
+<strong>Dynamic Layout</strong>: Nodes and edges can be repositioned for better visualization.</li>
+</ul>
+<div class="alert alert-success">
+<p><strong>Tip:</strong> Use the drag-and-drop functionality to rearrange nodes for a clearer view of pathway interactions.</p>
+</div>
+<p>There are two types of graphs available:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Main Graph</strong><br>
+This graph visualizes interactions among genes within a selected pathway. You can customize the graph using the following options located above the graph:</p>
+<ul>
+<li>
+<strong>Pathway</strong>: Select a pathway to display interactions among genes within it.</li>
+<li>
+<strong>Layout Algorithms</strong>: Choose from multiple layout algorithms to optimize graph readability:
+<ul>
+<li>
+<strong>cola</strong>: Ideal for hierarchical structures and smaller graphs.</li>
+<li>
+<strong>FCoSE</strong>: Best for large and complex networks.</li>
+</ul>
+</li>
+<li>
+<strong>Add Selected</strong>: Highlight marked variants or fusions from previous modules (somatic, germline, fusion) in the network.</li>
+<li>
+<strong>Tissue</strong>: Choose a reference tissue to color the network accordingly.</li>
+</ul>
+<p><strong>Node Interaction:</strong></p>
+<ul>
+<li>Select nodes by clicking on them. Hold the <code>Shift</code> key to select multiple nodes.<br>
+</li>
+<li>Drag selected nodes to reposition them within the graph.<br>
+</li>
+<li>Unselect nodes by clicking on the same node again or clicking on an empty space in the graph area.</li>
+</ul>
+<p><strong>Graph Controls:</strong></p>
+<ul>
+<li>
+<strong>Clear Selection</strong>: Unselect all selected nodes.<br>
+</li>
+<li>
+<strong>Select First Neighbors</strong>: Select all nodes directly connected to the currently selected nodes.<br>
+</li>
+<li>
+<strong>Fit Graph</strong>: Automatically adjust the view to fit all nodes within the visible area.</li>
+</ul>
+<p>For more information about the layout algorithms, refer to the <a href="https://blog.js.cytoscape.org/2020/05/11/layouts/">Cytoscape.js Layouts Blog</a>.</p>
+</li>
+<li>
+<p><strong>Sub Graph</strong><br>
+This graph is displayed when you select nodes from the main graph, allowing you to focus on specific genes and their interactions. Additional features include:</p>
+<ul>
+<li>
+<strong>Add Genes</strong>: Include genes not present in the pathway selected in the main graph. Nodes with a gray color indicate genes not part of the patient’s dataset or unrecognized gene names.</li>
+<li>
+<strong>Remove Nodes</strong>: Exclude nodes from the sub graph as needed.</li>
+</ul>
+<p><strong>Tables Under Graphs:</strong></p>
+<ul>
+<li>Tables provide detailed information about the nodes present in the graphs, including gene names, fold-change values, p-values, pathway names, and the number of pathways the gene is present in.<br>
+</li>
+<li>Sort tables by clicking on column names or search for specific nodes using the search box.</li>
+<li>By clicking on a row in the table, the corresponding node in the graph will be highlighted as yellow.</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="customization-options" class="section level3 unnumbered">
+<h3>Customization Options<a class="anchor" aria-label="anchor" href="#customization-options"><i class="fas fa-link"></i></a>
+</h3>
+<p>The module allows users to customize the network graph:</p>
+<ul>
+<li>
+<strong>Add/Remove Nodes</strong>: Include or exclude genes to refine the network.</li>
+<li>
+<strong>Confidence Thresholds</strong>: Adjust STRING DB confidence levels to filter edges.</li>
+<li>
+<strong>Filter by Evidence Type</strong>: Display edges based on specific evidence types (e.g., experimental, text mining).</li>
+</ul>
+<div class="alert alert-warning">
+<p><strong>Note:</strong> Adjusting confidence thresholds may significantly alter the network structure. Use this feature to focus on high-confidence interactions.</p>
+</div>
+<div class="alert alert-warning">
+<p><strong>Note:</strong> When adding genes not present in the original pathway, ensure that the gene names are correctly formatted to avoid unrecognized entries.</p>
+</div>
+</div>
+<div id="pathway-integration" class="section level3 unnumbered">
+<h3>Pathway Integration<a class="anchor" aria-label="anchor" href="#pathway-integration"><i class="fas fa-link"></i></a>
+</h3>
+<p>The module integrates KEGG pathway data to contextualize gene interactions:</p>
+<ul>
+<li>
+<strong>Pathway Highlighting</strong>: Highlight nodes and edges associated with specific pathways.</li>
+<li>
+<strong>Oncogenic and Pathogenic Genes</strong>: Highlight genes flagged in previous modules (e.g., somatic, germline, fusion).</li>
+</ul>
+<div class="alert alert-success">
+<p><strong>Tip:</strong> Use pathway highlighting to identify disrupted interactions within key biological processes.</p>
+</div>
+</div>
+<div id="tumor-normal-comparisons" class="section level3 unnumbered">
+<h3>Tumor-Normal Comparisons<a class="anchor" aria-label="anchor" href="#tumor-normal-comparisons"><i class="fas fa-link"></i></a>
+</h3>
+<p>For tumor-normal comparisons, node colors represent the log2 fold-change between tumor and matched healthy control tissues:</p>
+<ul>
+<li>
+<strong>Upregulated Genes</strong> (fold-change &gt; 1): Nodes are colored red, with intensity increasing as the fold-change value increases.</li>
+<li>
+<strong>No Change</strong> (fold-change ≈ 0): Nodes are colored white or light gray.</li>
+<li>
+<strong>Downregulated Genes</strong> (fold-change &lt; -1): Nodes are colored blue, with intensity increasing as the fold-change value becomes more negative.</li>
+</ul>
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="expression-profile-1.html">Expression Profile</a></div>
+<div class="empty"></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#network-graph">Network Graph</a></li>
+<li>
+<a class="nav-link" href="#overview-of-features-4">Overview of Features</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#interactive-network-visualization">Interactive Network Visualization</a></li>
+<li><a class="nav-link" href="#customization-options">Customization Options</a></li>
+<li><a class="nav-link" href="#pathway-integration">Pathway Integration</a></li>
+<li><a class="nav-link" href="#tumor-normal-comparisons">Tumor-Normal Comparisons</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

@@ -47,8 +47,12 @@
 <li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
 <li><a class="" href="data-requirements.html">Data requirements</a></li>
 <li><a class="" href="upload-data.html">Upload data</a></li>
+<li><a class="" href="core-module-features.html">Core Module Features</a></li>
 <li><a class="" href="summary-and-report.html">Summary and Report</a></li>
 <li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
 </ul>
 
         <div class="book-extra">
@@ -59,14 +63,60 @@
   </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="introduction" class="section level1 unnumbered">
 <h1>Introduction<a class="anchor" aria-label="anchor" href="#introduction"><i class="fas fa-link"></i></a>
 </h1>
-<p>Welcome to SequiaViz documentation…</p>
+<p>SequiaViz is an open-source platform for patient-centric integration and visualization of multi-omics data in clinical oncology diagnostics. It combines results from variant calling, fusion detection, and expression profiling with embedded genome browsing, dynamic pathway visualization, and automated clinical reporting—all within a secure, locally deployable framework.</p>
+<div id="key-features" class="section level2 unnumbered">
+<h2>Key features<a class="anchor" aria-label="anchor" href="#key-features"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li>
+<strong>Multi-Omics Integration</strong>: Unified interface for variants, fusions, and expression data with multi-site comparisons</li>
+<li>
+<strong>Interactive Variant Analysis</strong>: Filterable tables, Variant Allele Frequency (VAF) and Sankey visualization</li>
+<li>
+<strong>Fusion Gene Validation</strong>: IGV snapshots with supporting evidence and confidence metrics</li>
+<li>
+<strong>Embedded Genome Browsing</strong>: Integrated IGV viewer for read-level validation without leaving the application</li>
+<li>
+<strong>Dynamic Pathway Visualization</strong>: Interactive networks using Cytoscape with STRING DB and KEGG pathway integration</li>
+<li>
+<strong>Expression Analysis</strong>: Tissue-matched reference data and volcano plots for deregulated genes</li>
+<li>
+<strong>Clinical Reporting</strong>: Automated draft generation from predefined or custom templates</li>
+<li>
+<strong>Session Management</strong>: Save and load analysis sessions for reproducible workflows</li>
+<li>
+<strong>Secure Deployment</strong>: Docker containerization for local, data-secure infrastructure</li>
+<li>
+<strong>User-Friendly Interface</strong>: Guided workflow, real-time tables, and downloadable results</li>
+</ul>
+</div>
+<div id="live-demo" class="section level2 unnumbered">
+<h2>Live demo<a class="anchor" aria-label="anchor" href="#live-demo"><i class="fas fa-link"></i></a>
+</h2>
+<p>We are hosting a live demo of SequiaViz to showcase its capabilities and allow users to explore the platform in action.
+<strong>Access the demo at: <a href="http://your-demo-link.com">Live Demo</a></strong></p>
+<div class="alert alert-warning" style="margin-top: 0.5rem;">
+<p><strong>Important Notes:</strong></p>
+<ul>
+<li>Demo data is anonymized and does not represent real clinical cases</li>
+<li>Some features may have limited functionality due to data sensitivity requirements</li>
+<li>Session data is not persisted between visits</li>
+<li>While the demo runs the full version of SequiaViz, uploading your own data is not supported. We strongly discourage uploading sensitive or personal data to the demo environment. For production use with your own data, deploy SequiaViz locally using Docker.</li>
+<li>For production use with sensitive data, deploy SequiaViz locally using Docker</li>
+</ul>
+</div>
+</div>
 </div>
   <div class="chapter-nav">
 <div class="empty"></div>
 <div class="next"><a href="how-to-install-and-run.html">How to install and run</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#introduction">Introduction</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#introduction">Introduction</a></li>
+<li><a class="nav-link" href="#key-features">Key features</a></li>
+<li><a class="nav-link" href="#live-demo">Live demo</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
@@ -82,7 +132,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-16.</p>
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

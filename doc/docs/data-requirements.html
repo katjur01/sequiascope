@@ -19,9 +19,9 @@
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
 <link rel="stylesheet" href="custom-styles.css">
-<meta name="description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor samples...">
-<meta property="og:description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor samples...">
-<meta name="twitter:description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor samples...">
+<meta name="description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor-normal paired...">
+<meta property="og:description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor-normal paired...">
+<meta name="twitter:description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor-normal paired...">
 </head>
 <body data-spy="scroll" data-target="#toc">
 
@@ -47,8 +47,12 @@
 <li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
 <li><a class="active" href="data-requirements.html">Data requirements</a></li>
 <li><a class="" href="upload-data.html">Upload data</a></li>
+<li><a class="" href="core-module-features.html">Core Module Features</a></li>
 <li><a class="" href="summary-and-report.html">Summary and Report</a></li>
 <li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
 </ul>
 
         <div class="book-extra">
@@ -69,13 +73,13 @@
 <h3>
 <strong>1. Somatic Variant Calling</strong><a class="anchor" aria-label="anchor" href="#somatic-variant-calling"><i class="fas fa-link"></i></a>
 </h3>
-<p>Exploration and visualization of somatic mutations in tumor samples</p>
+<p>Exploration and visualization of somatic mutations in tumor-normal paired samples</p>
 <ul>
 <li>
 <strong>Required files</strong>:
 <ul>
 <li>
-<code>.tsv</code> | <code>.vcf</code> file with annotated variants (<code>.vcf</code> is not implemented yet)</li>
+<code>.tsv</code> | <code>.vcf</code> file with annotated variants</li>
 </ul>
 </li>
 <li>
@@ -89,7 +93,8 @@
 </ul>
 </div>
 <div id="germline-variant-calling" class="section level3 unnumbered">
-<h3>2. <strong>Germline Variant Calling</strong><a class="anchor" aria-label="anchor" href="#germline-variant-calling"><i class="fas fa-link"></i></a>
+<h3>
+<strong>2. Germline Variant Calling</strong><a class="anchor" aria-label="anchor" href="#germline-variant-calling"><i class="fas fa-link"></i></a>
 </h3>
 <p>Exploration and visualization of germline mutations in normal samples</p>
 <ul>
@@ -97,7 +102,7 @@
 <strong>Required files</strong>:
 <ul>
 <li>
-<code>.tsv</code> | <code>.vcf</code> file with annotated variants (<code>.vcf</code> is not implemented yet)</li>
+<code>.tsv</code> | <code>.vcf</code> file with annotated variants</li>
 </ul>
 </li>
 <li>
@@ -109,9 +114,10 @@
 </ul>
 </div>
 <div id="fusion-genes-detection" class="section level3 unnumbered">
-<h3>3. <strong>Fusion Genes Detection</strong><a class="anchor" aria-label="anchor" href="#fusion-genes-detection"><i class="fas fa-link"></i></a>
+<h3>
+<strong>3. Fusion Genes Detection</strong><a class="anchor" aria-label="anchor" href="#fusion-genes-detection"><i class="fas fa-link"></i></a>
 </h3>
-<p>Exploration and visualization of gene fusions from RNA-seq data</p>
+<p>Exploration and visualization of gene fusions from RNA-seq tumor samples</p>
 <ul>
 <li>
 <strong>Required files</strong>:
@@ -151,7 +157,7 @@
 </li>
 </ul>
 <div class="alert alert-success">
-<p><strong>Tip:</strong> If you can choose, <strong>always</strong> prioritize <code>.tsv</code> files over <code>.xlsx</code> or <code>vcf</code> files because they are faster to load and process.</p>
+<p><strong>Tip:</strong> If you can choose, <strong>always</strong> prioritize <strong><code>.tsv</code></strong> files over <code>.xlsx</code> or <code>vcf</code> files because they are faster to load and process.</p>
 </div>
 <hr>
 </div>
@@ -323,15 +329,16 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>project_root/patient_001/<span style="font-weight:bold;">somatic</span>_variants.tsv</code></td>
-<td><code>project_root/<span style="font-weight:bold;">somatic</span>_data/patient_001_variants.tsv</code></td>
+<td><code style="color: #000000;">project_root/patient_001/<span style="font-weight:bold; color: #D63384;">somatic</span>_variants.tsv</code></td>
+<td><code style="color: #000000;">project_root/<span style="font-weight:bold; color: #D63384;">somatic</span>_data/patient_001_variants.tsv</code></td>
 </tr>
 <tr class="even">
-<td><code>project_root/patient_001/<span style="font-weight:bold;">expression</span>.tsv</code></td>
-<td><code>project_root/<span style="font-weight:bold;">RNAseq</span>/patient_001.tsv</code></td>
+<td><code style="color: #000000;">project_root/patient_001/<span style="font-weight:bold; color: #D63384;">expression</span>.tsv</code></td>
+<td><code style="color: #000000;">project_root/<span style="font-weight:bold; color: #D63384;">RNAseq</span>/patient_001.tsv</code></td>
 </tr>
 </tbody>
 </table></div>
+<p><br></p>
 <div class="alert alert-info">
 <p><strong>Note:</strong> GOI and TMB files are not considered per-patient files because they contain information about all samples</p>
 </div>
@@ -404,7 +411,8 @@
 │   └── expression.tsv 
 └── patient_N/
         └── ...</code></pre>
-<p>or</p>
+<p><br>
+or</p>
 <pre><code>project_root/                       
 ├── somatic_data/                             # root directory for somatic data
 │   ├── mutation_loads.tsv                    # tumor mutational burden table
@@ -747,7 +755,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-16.</p>
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

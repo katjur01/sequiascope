@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Core Module Features | SequiaViz Documentation</title>
+<meta name="author" content="Kateřina Jurásková">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Core Module Features | SequiaViz Documentation">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Core Module Features | SequiaViz Documentation">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0.9000/transition.js"></script><script src="libs/bs3compat-0.9.0.9000/tabs.js"></script><script src="libs/bs3compat-0.9.0.9000/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="custom-styles.css">
+<meta name="description" content="The following features are common across multiple analysis modules: Variant Calling, Fusion Genes, and Expression Profile. These shared functionalities provide a consistent and intuitive user...">
+<meta property="og:description" content="The following features are common across multiple analysis modules: Variant Calling, Fusion Genes, and Expression Profile. These shared functionalities provide a consistent and intuitive user...">
+<meta name="twitter:description" content="The following features are common across multiple analysis modules: Variant Calling, Fusion Genes, and Expression Profile. These shared functionalities provide a consistent and intuitive user...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">SequiaViz Documentation</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
+<li><a class="" href="data-requirements.html">Data requirements</a></li>
+<li><a class="" href="upload-data.html">Upload data</a></li>
+<li><a class="active" href="core-module-features.html">Core Module Features</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="core-module-features" class="section level1 unnumbered">
+<h1>Core Module Features<a class="anchor" aria-label="anchor" href="#core-module-features"><i class="fas fa-link"></i></a>
+</h1>
+<p>The following features are common across multiple analysis modules: <strong>Variant Calling</strong>, <strong>Fusion Genes</strong>, and <strong>Expression Profile</strong>. These shared functionalities provide a consistent and intuitive user experience throughout the application.</p>
+<div id="interactive-data-tables" class="section level2 unnumbered">
+<h2>Interactive Data Tables<a class="anchor" aria-label="anchor" href="#interactive-data-tables"><i class="fas fa-link"></i></a>
+</h2>
+<p>All data in the analysis modules are displayed using the <code>reactable</code> package, providing fully interactive tables with real-time responsiveness.</p>
+<ul>
+<li>
+<strong>Sorting:</strong> Click any column header to sort data in ascending or descending order</li>
+<li>
+<strong>Built-in filtering:</strong> Use the search boxes within each column to filter data on-the-fly</li>
+<li>
+<strong>Resizable columns:</strong> Adjust column widths by dragging the column borders</li>
+<li>
+<strong>Multi-column operations:</strong> Combine filters and sorts across multiple columns simultaneously</li>
+</ul>
+<div class="alert alert-success">
+<p><strong>Tip:</strong> Hold the <code>Shift</code> key while clicking column headers to sort by multiple columns simultaneously.
+To clear sorting, hold <code>Shift</code> and click again — the order cycles through <strong>ascending → descending → unsorted</strong>.</p>
+</div>
+</div>
+<div id="filtering-menu" class="section level2 unnumbered">
+<h2>Filtering Menu<a class="anchor" aria-label="anchor" href="#filtering-menu"><i class="fas fa-link"></i></a>
+</h2>
+<p>While the interactive table provides basic filtering capabilities, the dedicated filtering menu offers more sophisticated filtering options for parameters that require specific logic:</p>
+<ul>
+<li>
+<strong>Custom Column Selection:</strong> Show or hide columns to focus on relevant data</li>
+<li>
+<strong>Module-Specific Filters:</strong> Each module provides specialized filtering options tailored to its data type</li>
+</ul>
+<div class="inline-figure"><img src="screenshots/variant-calling-filter.png" width="100%"></div>
+<div class="alert alert-success">
+<p><strong>Performance Tip:</strong>
+Apply filters <strong>before</strong> reviewing or marking items. Working with a filtered subset significantly <strong>reduces</strong> data reload times and keeps the application responsive.</p>
+</div>
+</div>
+<div id="review-and-selection" class="section level2 unnumbered">
+<h2>Review and Selection<a class="anchor" aria-label="anchor" href="#review-and-selection"><i class="fas fa-link"></i></a>
+</h2>
+<p>All analysis modules allow you to curate variants, fusions, or genes through an intuitive selection:</p>
+<ul>
+<li>
+<strong>Mark Items:</strong> Select variants, fusions, or genes directly from the interactive table</li>
+<li>
+<strong>Clinical Significance:</strong> Assign relevant clinical classifications based on the module type</li>
+<li>
+<strong>Review Panel:</strong> Selected variants, fusions, or genes appear in a dedicated table for easy review</li>
+<li>
+<strong>Edit Selection:</strong> Remove variants, fusions, or genes from your selection if needed</li>
+</ul>
+<div class="inline-figure"><img src="screenshots/variant-calling-pathogenic.png" width="100%"></div>
+<div class="alert alert-warning">
+<p><strong>Note:</strong> Only selected variants, fusions, or genes will be included in the final report. For modules with IGV integration, only selected variants, fusions, or genes can be inspected in IGV.</p>
+</div>
+</div>
+<div id="integrated-genome-viewer-igv" class="section level2 unnumbered">
+<h2>Integrated Genome Viewer (IGV)<a class="anchor" aria-label="anchor" href="#integrated-genome-viewer-igv"><i class="fas fa-link"></i></a>
+</h2>
+<p>Validate findings at the read level with seamless IGV integration.</p>
+<ul>
+<li>
+<strong>Multi-Patient Analysis:</strong> Select multiple patients simultaneously for comparative viewing</li>
+<li>
+<strong>Direct Launch:</strong> Open IGV directly from the module with pre-loaded data</li>
+<li>
+<strong>Read-Level Validation:</strong> Inspect sequencing reads, coverage, and alignment quality</li>
+<li>
+<strong>Context Visualization:</strong> View findings in their genomic context with annotations</li>
+</ul>
+<div class="inline-figure"><img src="screenshots/variant-calling-igv.png" width="100%"></div>
+<div class="alert alert-danger">
+<p>The IGV functionality relies on the availability of <strong>BAM/BAI files</strong>. Ensure these files are loaded during data import to enable IGV data exploration.</p>
+</div>
+</div>
+<div id="data-export" class="section level2 unnumbered">
+<h2>Data Export<a class="anchor" aria-label="anchor" href="#data-export"><i class="fas fa-link"></i></a>
+</h2>
+<p>Export your data in multiple formats for downstream analysis or reporting:</p>
+<ul>
+<li>
+<strong>Supported Formats:</strong> TSV, XLSX, CSV</li>
+<li>
+<strong>Export Options:</strong>
+<ul>
+<li>Export the currently <strong>filtered table</strong> (only visible items)</li>
+<li>Export the <strong>complete dataset</strong> (all items)</li>
+<li>Export visualizations as images</li>
+</ul>
+</li>
+</ul>
+<div class="inline-figure"><img src="screenshots/variant-calling-download.png" width="100%"></div>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="upload-data.html">Upload data</a></div>
+<div class="next"><a href="summary-and-report.html">Summary and Report</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#core-module-features">Core Module Features</a></li>
+<li><a class="nav-link" href="#interactive-data-tables">Interactive Data Tables</a></li>
+<li><a class="nav-link" href="#filtering-menu">Filtering Menu</a></li>
+<li><a class="nav-link" href="#review-and-selection">Review and Selection</a></li>
+<li><a class="nav-link" href="#integrated-genome-viewer-igv">Integrated Genome Viewer (IGV)</a></li>
+<li><a class="nav-link" href="#data-export">Data Export</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

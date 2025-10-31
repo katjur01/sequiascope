@@ -47,8 +47,12 @@
 <li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
 <li><a class="" href="data-requirements.html">Data requirements</a></li>
 <li><a class="" href="upload-data.html">Upload data</a></li>
+<li><a class="" href="core-module-features.html">Core Module Features</a></li>
 <li><a class="active" href="summary-and-report.html">Summary and Report</a></li>
 <li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
 </ul>
 
         <div class="book-extra">
@@ -65,14 +69,14 @@
 </h2>
 <p>Each dataset type is color-coded for easy identification:</p>
 <ul>
-<li>
-<strong>Somatic variants</strong>: Light green</li>
-<li>
-<strong>Germline variants</strong>: Dark green</li>
-<li>
-<strong>Fusion genes</strong>: Yellow</li>
-<li>
-<strong>RNA expression profiles</strong>: Blue</li>
+<li>Somatic variants: <code style="color: #7ac143; background-color: #f8fcf6ff; border: 1.5px solid #7ac143; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Light green</code>
+</li>
+<li>Germline variants: <code style="color: #45818e; background-color: #f1f8f9ff; border: 1.5px solid #45818e; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Dark green</code>
+</li>
+<li>Fusion genes: <code style="color: #f1c232; background-color: #fffdf7ff; border: 1.5px solid #f1c232; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Yellow</code>
+</li>
+<li>RNA expression profiles: <code style="color: #3c78d8ff; background-color: #f2f6fcff; border: 1.5px solid #3c78d8ff; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Blue</code>
+</li>
 </ul>
 <div id="info-boxes" class="section level3 unnumbered">
 <h3>Info Boxes<a class="anchor" aria-label="anchor" href="#info-boxes"><i class="fas fa-link"></i></a>
@@ -93,29 +97,32 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><strong>Somatic Variant Calling</strong></td>
+<td>Somatic Variant Calling</td>
 <td>Tumor mutational burden (TMB)</td>
 <td>Value taken from <code>mutation_loads.tsv</code> file, if available.</td>
 </tr>
 <tr class="even">
 <td></td>
 <td>Variants for review</td>
-<td>Number of somatic variants after applying filters: <code>gnomAD_NFE &lt;= 0.01</code>, <code>coverage_depth &gt; 10</code>, <code>Consequence != "synonymous_variant"</code>, <code>gene_region == "exon" or "splice"</code>.</td>
+<td>Number of somatic variants after applying filters: <br> • <code>gnomAD_NFE &lt;= 0.01</code> <br> • <code>coverage_depth &gt; 10</code> <br> • <code>Consequence != "synonymous_variant"</code> <br> • <code>gene_region == "exon" or "splice"</code>
+</td>
 </tr>
 <tr class="odd">
-<td><strong>Germline Variant Calling</strong></td>
+<td>Germline Variant Calling</td>
 <td>Variants for review</td>
-<td>Number of germline variants after applying filters: <code>gnomAD_NFE &lt;= 0.01</code>, <code>coverage_depth &gt; 10</code>, <code>Consequence != "synonymous_variant"</code>, <code>gene_region == "exon" or "splice"</code>.</td>
+<td>Number of germline variants after applying filters: <br> • <code>gnomAD_NFE &lt;= 0.01</code> <br> • <code>coverage_depth &gt; 10</code> <br> • <code>Consequence != "synonymous_variant"</code> <br> • <code>gene_region == "exon" or "splice"</code>
+</td>
 </tr>
 <tr class="even">
 <td></td>
 <td>Pathogenic and likely-pathogenic variants</td>
-<td>Number of germline variants classified by CLINVAR as “Pathogenic”, “Likely_pathogenic”, etc.</td>
+<td>Number of germline variants classified by <code>CLINVAR</code> as <code>Pathogenic</code>, <code>Likely_pathogenic</code>, <code>Pathogenic/Likely_pathogenic</code>, <code>Pathogenic_(VUS)</code>,<code>Likely_pathogenic (VUS)</code>,<code>Pathogenic_(VUS)</code>
+</td>
 </tr>
 <tr class="odd">
-<td><strong>Fusion Genes Detection</strong></td>
+<td>Fusion Genes Detection</td>
 <td>Fused genes with high confidence</td>
-<td>Number of fusion genes classified by Arriba as “high” confidence.</td>
+<td>Number of fusion genes classified by Arriba as <code>high</code> confidence.</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -123,20 +130,20 @@
 <td>Number of fusion genes present in the table.</td>
 </tr>
 <tr class="odd">
-<td><strong>RNA Expression Profile</strong></td>
+<td>RNA Expression Profile</td>
 <td>Tissue comparison</td>
 <td>Number of tissues used as reference.</td>
 </tr>
 <tr class="even">
 <td></td>
 <td>Deregulated genes for review</td>
-<td>Number of deregulated genes after applying filters: <code>|log2FC| &gt; 2</code>, <code>FDR &lt; 0.05</code>, <code>expression_level &gt; 10 TPM</code>. <strong>(Currently not implemented)</strong>
+<td>Number of deregulated genes after applying filters: <br> • <code>log2FC &gt; 1</code> <br> • <code>log2FC &lt; -1</code> <br> • <code>p-value &lt; 0.05</code> <br> • <code>coverage &gt; 30 TPM</code> <br><strong>(Currently not implemented)</strong>
 </td>
 </tr>
 <tr class="odd">
 <td></td>
 <td>Altered pathways</td>
-<td>Number of altered pathways with <code>FDR &lt; 0.05</code>. <strong>(Currently not implemented)</strong>
+<td>Number of altered pathways with <code>p-value &lt; 0.05</code>. <strong>(Currently not implemented)</strong>
 </td>
 </tr>
 </tbody>
@@ -220,43 +227,43 @@
 </tr>
 <tr class="even">
 <td><code>&lt;&lt;summary_somatic&gt;&gt;</code></td>
-<td>Lists oncogenic and pathogenic somatic variants flagged during the review process.</td>
+<td>List of oncogenic somatic variants flagged during the review process.</td>
 </tr>
 <tr class="odd">
 <td><code>&lt;&lt;summary_germline&gt;&gt;</code></td>
-<td>Lists pathogenic and likely-pathogenic germline variants flagged during the review process.</td>
+<td>Lists of pathogenic germline variants flagged during the review process.</td>
 </tr>
 <tr class="even">
 <td><code>&lt;&lt;summary_fusion&gt;&gt;</code></td>
-<td>Lists true-positive gene fusions flagged during the review process.</td>
+<td>Lists of true-positive gene fusions flagged during the review process.</td>
 </tr>
 <tr class="odd">
 <td><code>&lt;&lt;somatic_table&gt;&gt;</code></td>
-<td>A detailed table of somatic variants, including gene, transcript, variant, VAF, consequence, and classification.</td>
+<td>A detailed table of somatic variants informations, including gene, transcript, variant, VAF, consequence, and classification.</td>
 </tr>
 <tr class="even">
 <td><code>&lt;&lt;germline_table&gt;&gt;</code></td>
-<td>A detailed table of germline variants, including gene, transcript, variant, MAF, consequence, phenotype, zygosity, inheritance, and classification.</td>
+<td>A detailed table of germline variants informations, including gene, transcript, variant, MAF, consequence, phenotype, zygosity, inheritance, and classification.</td>
 </tr>
 <tr class="odd">
 <td><code>&lt;&lt;fusion_table&gt;&gt;</code></td>
-<td>A detailed table of gene fusions, including gene pair, transcripts, overall support, and phasing.</td>
+<td>A detailed table of gene fusions informations, including gene pair, transcripts, overall support, and phasing.</td>
 </tr>
 <tr class="even">
 <td><code>&lt;&lt;expression_table&gt;&gt;</code></td>
-<td>A detailed table of deregulated genes, including gene, transcript, expression level, log2FC, and therapeutic options.</td>
+<td>A detailed table of deregulated genes informations, including gene, transcript, expression level, log2FC, and therapeutic options.</td>
 </tr>
 <tr class="odd">
 <td><code>&lt;&lt;mutation_burden&gt;&gt;</code></td>
-<td>Displays the tumor mutation burden (TMB) value for the patient.</td>
+<td>Displays the tumor mutation burden (TMB) value of the patient.</td>
 </tr>
 <tr class="even">
 <td><code>&lt;&lt;somatic_interpretation&gt;&gt;</code></td>
-<td>Provides textual interpretation of somatic variants, including links to external resources.</td>
+<td>Provides textual interpretation of somatic variants list, including links to external resources.</td>
 </tr>
 <tr class="odd">
 <td><code>&lt;&lt;germline_interpretation&gt;&gt;</code></td>
-<td>Provides textual interpretation of germline variants, including links to external resources.</td>
+<td>Provides textual interpretation of germline variants list, including links to external resources.</td>
 </tr>
 </tbody>
 </table></div>
@@ -281,30 +288,27 @@ Detailed Somatic Variant Table:
 </li>
 </ul>
 </li>
-<li><p><strong>Formatting</strong>: Ensure that the placeholders are surrounded by double angle brackets (<code>&lt;&lt; &gt;&gt;</code>) and match the exact keyword names.</p></li>
+<li><p><strong>Formatting</strong>: Ensure that the placeholders are surrounded by double angle brackets
+(<code>&lt;&lt; &gt;&gt;</code>) and match the exact keyword names.</p></li>
 <li><p><strong>Save as <code>.docx</code></strong>: Save your template as a <code>.docx</code> file and upload it using the <strong>Upload custom template</strong> option in the application.</p></li>
 </ol>
 </div>
-<div id="notes-and-best-practices" class="section level3 unnumbered">
-<h3>Notes and Best Practices<a class="anchor" aria-label="anchor" href="#notes-and-best-practices"><i class="fas fa-link"></i></a>
+<div id="notes-1" class="section level3 unnumbered alert alert-info">
+<h3>Notes<a class="anchor" aria-label="anchor" href="#notes-1"><i class="fas fa-link"></i></a>
 </h3>
 <ul>
-<li>
-<strong>Mandatory Placeholders</strong>: Some placeholders, like <code>&lt;&lt;patient_info&gt;&gt;</code>, are essential for generating a meaningful report. Ensure they are included in your template.</li>
-<li>
-<strong>Optional Placeholders</strong>: If certain data (e.g., <code>&lt;&lt;fusion_table&gt;&gt;</code>) is not available for a patient, the placeholder will be replaced with a default message.</li>
-<li>
-<strong>Testing</strong>: Test your template with sample data to ensure all placeholders are replaced correctly.</li>
-<li>
-<strong>Styling</strong>: Use your institution’s branding and formatting guidelines to style the template.</li>
+<li>The placeholder <code>&lt;&lt;patient_info&gt;&gt;</code> is essential for generating a meaningful report. Ensure it is included in your template.</li>
+<li>If certain data (e.g., <code>&lt;&lt;fusion_table&gt;&gt;</code>) is not available for a patient, the placeholder will be replaced with a default message.</li>
+<li>Test your template with sample data to ensure all placeholders are replaced correctly.</li>
+<li>Use your institution’s branding and formatting guidelines to style the template.</li>
 </ul>
+</div>
 <p>This guidance ensures that users can create custom templates tailored to their specific needs while maintaining compatibility with the application’s reporting system.</p>
 
 </div>
 </div>
-</div>
   <div class="chapter-nav">
-<div class="prev"><a href="upload-data.html">Upload data</a></div>
+<div class="prev"><a href="core-module-features.html">Core Module Features</a></div>
 <div class="next"><a href="variant-calling.html">Variant Calling</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
@@ -322,7 +326,7 @@ Detailed Somatic Variant Table:
 <a class="nav-link" href="#creating-custom-templates">Creating Custom Templates</a><ul class="nav navbar-nav">
 <li><a class="nav-link" href="#available-keywords">Available Keywords</a></li>
 <li><a class="nav-link" href="#how-to-use-keywords">How to Use Keywords</a></li>
-<li><a class="nav-link" href="#notes-and-best-practices">Notes and Best Practices</a></li>
+<li><a class="nav-link" href="#notes-1">Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -341,7 +345,7 @@ Detailed Somatic Variant Table:
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-16.</p>
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

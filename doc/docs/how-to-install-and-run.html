@@ -19,9 +19,9 @@
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
 <link rel="stylesheet" href="custom-styles.css">
-<meta name="description" content="To install and run SequiaViz, follow these steps: Install the required R packages. Set up the directory structure. Upload your data files.">
-<meta property="og:description" content="To install and run SequiaViz, follow these steps: Install the required R packages. Set up the directory structure. Upload your data files.">
-<meta name="twitter:description" content="To install and run SequiaViz, follow these steps: Install the required R packages. Set up the directory structure. Upload your data files.">
+<meta name="description" content="SequiaViz is deployed using Docker containers for easy local deployment. The setup consists of two interconnected services managed through Docker Compose. Prerequisites SequiaViz currently...">
+<meta property="og:description" content="SequiaViz is deployed using Docker containers for easy local deployment. The setup consists of two interconnected services managed through Docker Compose. Prerequisites SequiaViz currently...">
+<meta name="twitter:description" content="SequiaViz is deployed using Docker containers for easy local deployment. The setup consists of two interconnected services managed through Docker Compose. Prerequisites SequiaViz currently...">
 </head>
 <body data-spy="scroll" data-target="#toc">
 
@@ -47,8 +47,12 @@
 <li><a class="active" href="how-to-install-and-run.html">How to install and run</a></li>
 <li><a class="" href="data-requirements.html">Data requirements</a></li>
 <li><a class="" href="upload-data.html">Upload data</a></li>
+<li><a class="" href="core-module-features.html">Core Module Features</a></li>
 <li><a class="" href="summary-and-report.html">Summary and Report</a></li>
 <li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
 </ul>
 
         <div class="book-extra">
@@ -59,19 +63,137 @@
   </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="how-to-install-and-run" class="section level1 unnumbered">
 <h1>How to install and run<a class="anchor" aria-label="anchor" href="#how-to-install-and-run"><i class="fas fa-link"></i></a>
 </h1>
-<p>To install and run SequiaViz, follow these steps:</p>
+<p>SequiaViz is deployed using Docker containers for easy local deployment. The setup consists of two interconnected services managed through Docker Compose.</p>
+<div id="prerequisites" class="section level2 unnumbered">
+<h2>Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"><i class="fas fa-link"></i></a>
+</h2>
+<p>SequiaViz currently supports <strong>Linux only</strong>. Before you can run SequiaViz locally, ensure you have the following installed:</p>
+<div id="docker-installation" class="section level3 unnumbered">
+<h3>1. Docker Installation<a class="anchor" aria-label="anchor" href="#docker-installation"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<strong>Linux</strong>: Install Docker using your package manager (e.g., <code>sudo apt-get install docker.io</code> on Ubuntu).</li>
+</ul>
+<p>Verify installation by running:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="how-to-install-and-run.html#cb1-1" tabindex="-1"></a><span class="ex">docker</span> <span class="at">--version</span></span>
+<span id="cb1-2"><a href="how-to-install-and-run.html#cb1-2" tabindex="-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
+</div>
+<div id="docker-compose" class="section level3 unnumbered">
+<h3>2. Docker Compose<a class="anchor" aria-label="anchor" href="#docker-compose"><i class="fas fa-link"></i></a>
+</h3>
+<p>Docker Compose comes bundled with Docker Desktop. Verify it’s installed:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="how-to-install-and-run.html#cb2-1" tabindex="-1"></a><span class="ex">docker-compose</span> <span class="at">--version</span></span></code></pre></div>
+</div>
+<div id="system-requirements" class="section level3 unnumbered">
+<h3>3. System Requirements<a class="anchor" aria-label="anchor" href="#system-requirements"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<strong>Disk Space</strong>: At least 10 GB free space for Docker images and data</li>
+<li>
+<strong>RAM</strong>: Minimum 4 GB, recommended 8 GB or more</li>
+<li>
+<strong>CPU</strong>: Multi-core processor recommended</li>
+<li>
+<strong>Internet Connection</strong>: Required to pull Docker images and for STRING DB API access (needed for dynamic pathway visualization)</li>
+</ul>
+</div>
+<div id="input-files" class="section level3 unnumbered">
+<h3>4. Input Files<a class="anchor" aria-label="anchor" href="#input-files"><i class="fas fa-link"></i></a>
+</h3>
+<p>Prepare your data files in an <code>input_files</code> directory in your project folder. For details on required file formats and specifications, see the <a href="data-requirements.html#data-requirements">Data Requirements</a> chapter.</p>
+</div>
+</div>
+<div id="steps-to-run" class="section level2 unnumbered">
+<h2>Steps to Run<a class="anchor" aria-label="anchor" href="#steps-to-run"><i class="fas fa-link"></i></a>
+</h2>
 <ol style="list-style-type: decimal">
-<li>Install the required R packages.</li>
-<li>Set up the directory structure.</li>
-<li>Upload your data files.</li>
+<li>
+<p><strong>Clone or Download the Repository</strong>:<br>
+Get the project files including the <code>docker-compose.yml</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="how-to-install-and-run.html#cb3-1" tabindex="-1"></a><span class="fu">git</span> clone <span class="op">&lt;</span>repository-url<span class="op">&gt;</span></span>
+<span id="cb3-2"><a href="how-to-install-and-run.html#cb3-2" tabindex="-1"></a><span class="bu">cd</span> sequiaViz</span></code></pre></div>
+</li>
+<li>
+<p><strong>Prepare Your Data</strong>:<br>
+Place your input files in the <code>input_files</code> directory:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="how-to-install-and-run.html#cb4-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> input_files</span>
+<span id="cb4-2"><a href="how-to-install-and-run.html#cb4-2" tabindex="-1"></a><span class="co"># Copy your data files here</span></span></code></pre></div>
+</li>
+<li>
+<p><strong>Start the Application with Docker Compose</strong>:<br>
+From the project directory, run:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="how-to-install-and-run.html#cb5-1" tabindex="-1"></a><span class="ex">docker-compose</span> up <span class="at">-d</span></span></code></pre></div>
+<p>This command pulls the required images and starts both the SequiaViz application and IGV static server in the background.</p>
+</li>
+<li>
+<p><strong>Access the Application</strong>:<br>
+Open your web browser and navigate to:</p>
+<pre><code>http://localhost:8080</code></pre>
+</li>
+<li>
+<p><strong>Verify Services Are Running</strong>:<br>
+Check container status:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="how-to-install-and-run.html#cb7-1" tabindex="-1"></a><span class="ex">docker-compose</span> ps</span></code></pre></div>
+<p>You should see two containers running: <code>sequiaviz-shiny</code> and <code>igv-static</code>.</p>
+</li>
 </ol>
+</div>
+<div id="troubleshooting" class="section level2 unnumbered">
+<h2>Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"><i class="fas fa-link"></i></a>
+</h2>
+<p><strong>Container fails to start:</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="how-to-install-and-run.html#cb8-1" tabindex="-1"></a><span class="ex">docker-compose</span> logs sequiaviz-shiny</span>
+<span id="cb8-2"><a href="how-to-install-and-run.html#cb8-2" tabindex="-1"></a><span class="ex">docker-compose</span> logs igv-static</span></code></pre></div>
+<p><strong>Input files not accessible:</strong>
+Ensure the <code>input_files</code> directory exists and contains your data files. Check file permissions.</p>
+<p><strong>Slow performance:</strong>
+Increase Docker’s allocated CPU and RAM in Docker Desktop settings (Preferences → Resources).</p>
+</div>
+<div id="stopping-and-cleaning-up" class="section level2 unnumbered">
+<h2>Stopping and Cleaning Up<a class="anchor" aria-label="anchor" href="#stopping-and-cleaning-up"><i class="fas fa-link"></i></a>
+</h2>
+<p>Stop the application:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="how-to-install-and-run.html#cb9-1" tabindex="-1"></a><span class="ex">docker-compose</span> down</span></code></pre></div>
+<p>Remove all containers and images:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="how-to-install-and-run.html#cb10-1" tabindex="-1"></a><span class="ex">docker-compose</span> down <span class="at">-v</span></span>
+<span id="cb10-2"><a href="how-to-install-and-run.html#cb10-2" tabindex="-1"></a><span class="ex">docker</span> image prune <span class="at">-a</span></span></code></pre></div>
+</div>
+<div id="notes" class="section level2 unnumbered alert alert-info" style="margin-top: 0.5rem;">
+<h2>Notes<a class="anchor" aria-label="anchor" href="#notes"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li>The <code>input_files</code> directory is mounted as read-only for the IGV server and read-write for SequiaViz</li>
+<li>Both services communicate via the internal Docker network — no manual network configuration needed</li>
+<li>Session data is stored within the containers; use Docker volumes for persistence if needed</li>
+<li>All data remains on your local machine; nothing is sent to external servers</li>
+<li>
+<strong>For organizational deployment</strong>: If you’re interested in using SequiaViz but don’t have Docker expertise, contact your bioinformatics team or IT department. They can help set up and maintain SequiaViz in your organization’s infrastructure.</li>
+</ul>
+</div>
+
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="index.html">Introduction</a></div>
 <div class="next"><a href="data-requirements.html">Data requirements</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#how-to-install-and-run">How to install and run</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#how-to-install-and-run">How to install and run</a></li>
+<li>
+<a class="nav-link" href="#prerequisites">Prerequisites</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#docker-installation">1. Docker Installation</a></li>
+<li><a class="nav-link" href="#docker-compose">2. Docker Compose</a></li>
+<li><a class="nav-link" href="#system-requirements">3. System Requirements</a></li>
+<li><a class="nav-link" href="#input-files">4. Input Files</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#steps-to-run">Steps to Run</a></li>
+<li><a class="nav-link" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="nav-link" href="#stopping-and-cleaning-up">Stopping and Cleaning Up</a></li>
+<li><a class="nav-link" href="#notes">Notes</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
@@ -87,7 +209,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-16.</p>
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

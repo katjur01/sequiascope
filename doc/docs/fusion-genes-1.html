@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Fusion Genes | SequiaViz Documentation</title>
+<meta name="author" content="Kateřina Jurásková">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Fusion Genes | SequiaViz Documentation">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fusion Genes | SequiaViz Documentation">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0.9000/transition.js"></script><script src="libs/bs3compat-0.9.0.9000/tabs.js"></script><script src="libs/bs3compat-0.9.0.9000/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="custom-styles.css">
+<meta name="description" content="The Fusion Genes module enables users to review, validate, and select causal gene fusions for inclusion in clinical reports. This module integrates supporting evidence, visualization tools, and...">
+<meta property="og:description" content="The Fusion Genes module enables users to review, validate, and select causal gene fusions for inclusion in clinical reports. This module integrates supporting evidence, visualization tools, and...">
+<meta name="twitter:description" content="The Fusion Genes module enables users to review, validate, and select causal gene fusions for inclusion in clinical reports. This module integrates supporting evidence, visualization tools, and...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">SequiaViz Documentation</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
+<li><a class="" href="data-requirements.html">Data requirements</a></li>
+<li><a class="" href="upload-data.html">Upload data</a></li>
+<li><a class="" href="core-module-features.html">Core Module Features</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="active" href="fusion-genes-1.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="fusion-genes-1" class="section level1 unnumbered">
+<h1>Fusion Genes<a class="anchor" aria-label="anchor" href="#fusion-genes-1"><i class="fas fa-link"></i></a>
+</h1>
+<p>The <strong>Fusion Genes</strong> module enables users to review, validate, and select causal gene fusions for inclusion in clinical reports. This module integrates supporting evidence, visualization tools, and filtering options to streamline the review process.</p>
+<p>For information about core features shared across analysis modules (interactive tables, filtering, data selection, IGV integration, and data export), please refer to the <strong>Core Module Features</strong> chapter.</p>
+<div id="overview-of-features-2" class="section level2 unnumbered">
+<h2>Overview of Features<a class="anchor" aria-label="anchor" href="#overview-of-features-2"><i class="fas fa-link"></i></a>
+</h2>
+<div id="fusion-specific-table-features" class="section level3 unnumbered">
+<h3>Fusion-Specific Table Features<a class="anchor" aria-label="anchor" href="#fusion-specific-table-features"><i class="fas fa-link"></i></a>
+</h3>
+<p>The interactive fusion table includes specialized features tailored for fusion analysis:</p>
+<ul>
+<li>
+<strong>Expandable Rows</strong>: Expand rows to view detailed annotations and supporting evidence, including the Arriba report and IGV snapshot in split-view mode.</li>
+<li>
+<strong>Visual Check Column</strong>: Use the ✔️ and ✖️ buttons to mark fusions as true-positive or false-positive. This helps track which fusions have been manually reviewed.</li>
+<li>
+<strong>Notes Column</strong>: Add custom notes for each fusion, such as reasons for marking it as false-positive, observations about low coverage, or other case-specific details.</li>
+</ul>
+<div class="alert alert-success">
+<p><strong>Tip:</strong> Use the <strong>expandable rows</strong> to quickly review Arriba annotations and IGV snapshots. This helps <strong>identify obvious false positives</strong>, such as cases where no signal is visible at one of the gene positions.</p>
+</div>
+<div id="expanded-rows" class="section level4 unnumbered">
+<h4>
+<strong>Expanded Rows</strong><a class="anchor" aria-label="anchor" href="#expanded-rows"><i class="fas fa-link"></i></a>
+</h4>
+<p>The expanded row functionality provides a detailed view of each fusion, helping users quickly assess its validity:</p>
+<ul>
+<li>
+<strong>Arriba Report</strong>: Displays the full Arriba report for the selected fusion. The report includes:
+<ul>
+<li>Fusion partners and their respective orientation.</li>
+<li>Exons retained within the fusion transcript.</li>
+<li>Number of supporting read counts.</li>
+<li>A snippet of the sequence surrounding the breakpoint.</li>
+</ul>
+</li>
+<li>
+<strong>IGV Snapshot</strong>: Shows a split-view layout of the fusion breakpoint, with both gene positions displayed side by side. This visualization helps users quickly identify false positives, such as cases where no signal is visible at one of the gene positions.</li>
+</ul>
+<div class="alert alert-danger">
+<p>The <strong>expanded row</strong> functionality relies on the availability of <strong>Arriba TSV</strong> and <strong>PNG files</strong> for the report, as well as <strong>BAM/BAI files</strong> and <strong>chimeric BAM/BAI files</strong> for IGV snapshots. Ensure these files are loaded during data import to enable these features.</p>
+</div>
+</div>
+</div>
+<div id="fusion-specific-filtering" class="section level3 unnumbered">
+<h3>Fusion-Specific Filtering<a class="anchor" aria-label="anchor" href="#fusion-specific-filtering"><i class="fas fa-link"></i></a>
+</h3>
+<p>In addition to core filtering capabilities, the Fusion Genes module provides specialized filtering:</p>
+<ul>
+<li>
+<strong>Tissues:</strong> Hide or show specific tissue comparisons</li>
+<li>
+<strong>Pathways:</strong> Filter data by pathway classifications</li>
+</ul>
+</div>
+<div id="fusion-specific-igv-integration" class="section level3 unnumbered">
+<h3>Fusion-Specific IGV Integration<a class="anchor" aria-label="anchor" href="#fusion-specific-igv-integration"><i class="fas fa-link"></i></a>
+</h3>
+<p>The IGV integration in this module is optimized for fusion breakpoint validation:</p>
+<ul>
+<li>
+<strong>Breakpoint Visualization</strong>: Inspect fusion breakpoints in tumor BAM files.</li>
+<li>
+<strong>Chimeric Reads</strong>: View chimeric BAM files (if available) alongside tumor BAM files for additional evidence.</li>
+<li>
+<strong>Split-View Layout</strong>: Display both fusion breakpoints side by side for simultaneous comparison.</li>
+</ul>
+<p>For more details on working with chimeric reads in IGV, refer to the <a href="https://github.com/suhrig/arriba/wiki/06-Visualization">Arriba Visualization Guide</a>.</p>
+<div class="alert alert-warning">
+<p><strong>Note:</strong> The IGV integration in this module uses <code>igv.js</code>, a web-based implementation of IGV. While it provides essential functionalities for read-level validation, it may not include all advanced features available in the IGV desktop application.</p>
+</div>
+
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="variant-calling.html">Variant Calling</a></div>
+<div class="next"><a href="expression-profile-1.html">Expression Profile</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#fusion-genes-1">Fusion Genes</a></li>
+<li>
+<a class="nav-link" href="#overview-of-features-2">Overview of Features</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#fusion-specific-table-features">Fusion-Specific Table Features</a></li>
+<li><a class="nav-link" href="#fusion-specific-filtering">Fusion-Specific Filtering</a></li>
+<li><a class="nav-link" href="#fusion-specific-igv-integration">Fusion-Specific IGV Integration</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-10-31.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>
