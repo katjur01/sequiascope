@@ -13,7 +13,8 @@ string_cache <- new.env(parent = emptyenv())
 
 # Funkce pro získání interakcí mezi proteiny z STRING API
 #' @export
-get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, delay = 0.2) {
+get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, delay = 0.2, 
+                                    required_score = NULL, filter_sources = NULL) {
   # 🔑 VALIDACE: Zkontrolovat, že proteins je validní
   if (is.null(proteins) || length(proteins) == 0) {
     message("⚠️ get_string_interactions: No proteins provided, returning empty data.frame")
@@ -29,7 +30,8 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
   }
   
   # Funkce pro odesílání jednotlivých požadavků
-  cache_key <- paste(sort(proteins), collapse = "|")
+  # 🔑 CACHE KEY: Zahrnout i parametry filtru
+  cache_key <- paste(c(sort(proteins), species, required_score, sort(filter_sources)), collapse = "|")
   
   # 🔑 BEZPEČNÁ KONTROLA cache - zkontrolovat, že cache_key je validní string
   if (!is.character(cache_key) || length(cache_key) != 1 || cache_key == "") {
@@ -43,6 +45,17 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
   fetch_interactions <- function(protein_chunk) {
     base_url <- "https://string-db.org/api/json/network?"
     query <- paste0("identifiers=", paste(protein_chunk, collapse = "%0D"), "&species=", species)
+    
+    # 🔑 NEPOUŽÍVÁME required_score pokud filtrujeme podle sources
+    # required_score filtruje combined_score, ale my chceme filtrovat podle individuálních skóre
+    # Použijeme required_score jen když jsou vybrané ALL sources
+    if (is.null(filter_sources) || length(filter_sources) == 0 || ("all" %in% filter_sources)) {
+      if (!is.null(required_score)) {
+        score_value <- as.numeric(required_score) * 1000
+        query <- paste0(query, "&required_score=", score_value)
+      }
+    }
+    
     url <- paste0(base_url, query)
     
     Sys.sleep(delay)
@@ -50,6 +63,14 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
     
     if (status_code(response) == 200) {
       content <- fromJSON(content(response, as = "text"))
+      
+      # 🔑 FILTROVAT podle sources a required_score
+      if (!is.null(filter_sources) && length(filter_sources) > 0 && !("all" %in% filter_sources)) {
+        if (nrow(content) > 0) {
+          content <- filter_by_sources(content, filter_sources, required_score)
+        }
+      }
+      
       return(content)
     } else {
       stop("Request failed with status: ", status_code(response))
@@ -63,6 +84,46 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
   assign(cache_key, all_interactions, envir = string_cache)
   
   return(all_interactions)
+}
+
+# 🔑 NOVÁ FUNKCE: Filtrování interakcí podle zdrojů
+filter_by_sources <- function(interactions, sources, required_score = NULL) {
+  # Mapování UI hodnot na STRING score sloupce
+  source_map <- list(
+    "experiments" = "escore",
+    "databases" = "dscore",
+    "textmining" = "tscore",
+    "coexpression" = "ascore",
+    "neighborhood" = "nscore",
+    "gene_fusion" = "fscore",
+    "cooccurrence" = "pscore"
+  )
+  
+  # Získat relevantní score sloupce
+  score_cols <- unlist(source_map[sources])
+  score_cols <- score_cols[!is.na(score_cols)]
+  
+  if (length(score_cols) == 0) {
+    message("⚠️ No valid sources specified for filtering")
+    return(interactions)
+  }
+  
+  # Určit threshold - STRING používá škálu 0-1000, my 0-1
+  threshold <- if (!is.null(required_score)) as.numeric(required_score) * 1000 else 0
+  
+  # Filtrovat: zachovat řádky kde alespoň jeden vybraný score > threshold
+  keep <- rep(FALSE, nrow(interactions))
+  for (col in score_cols) {
+    if (col %in% names(interactions)) {
+      keep <- keep | (interactions[[col]] > threshold)
+    }
+  }
+  
+  filtered <- interactions[keep, ]
+  message("   Filtered interactions: ", nrow(interactions), " → ", nrow(filtered), 
+          " (sources: ", paste(sources, collapse = ", "), ")")
+  
+  return(filtered)
 }
 
 # library(data.table)
@@ -98,7 +159,7 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL) {
 
     names(log2FC_values) <- all_nodes
     
-    # Spočítání stupně (degree) pro každý uzel - singletony mají stupen 0
+    # Spočítání stupně (degree) pro každý uzel
     degrees <- table(c(interactions$preferredName_A, interactions$preferredName_B))
     degree_values <- sapply(all_nodes, function(x) ifelse(x %in% names(degrees), degrees[x], 0))
 

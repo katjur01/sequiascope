@@ -98,7 +98,7 @@ function getCytoscapeStylesheet() {
 function initializeCytoscape(containerId, data, isSubset = false) {
     const container = document.getElementById(containerId);
     if (!container) {
-        console.error(`❌ Kontejner s ID ${containerId} nebyl nalezen.`);
+        // Tichý return - kontejner ještě nemusí být v DOM (timing při startu)
         return null;
     }
     const elementsData = data.elements
@@ -524,5 +524,27 @@ Shiny.addCustomMessageHandler('cy-layout', function(data) {
     
     if (cy) {
         cy.layout({ name: layout }).run();
+    }
+});
+
+// Handler pro skrytí disconnected nodes
+Shiny.addCustomMessageHandler('hide-disconnected-nodes', function(data) {
+    const patientId = data.patientId;
+    const hide = data.hide;
+    const instanceKey = `${patientId}_main`;
+    const cy = cytoscapeInstances[instanceKey];
+    
+    if (cy) {
+        if (hide) {
+            // Skrýt uzly s degree 0 (žádné hrany)
+            cy.nodes().forEach(function(node) {
+                if (node.degree() === 0) {
+                    node.style('display', 'none');
+                }
+            });
+        } else {
+            // Zobrazit všechny uzly
+            cy.nodes().style('display', 'element');
+        }
     }
 });

@@ -45,10 +45,10 @@ ui <- function(id, tissue_list, patient) {
     # tags$head(tags$script(HTML(sprintf("var cyContainerId = '%s'; var cySubsetContainerId = '%s';",
     #                                     ns("cyContainer"), ns("cySubsetContainer"))))),
     fluidRow(
-      column(8,
+      column(6,  # 🔑 Levá polovina - hlavní graf
         fluidRow(
-          column(3,
-                 div(style = "width: 75%;",
+          column(4,
+                 div(style = "width: 90%;",
                    div(style = "display: flex; flex-direction: column; width: 100%; align-items: flex-start;", 
                      tags$label("Pathway:", style = "margin-bottom: 5px; align-self: flex-start;"),
                      pickerInput(inputId=ns("selected_pathway"), NULL, selected = "EGFR tyrosine kinase inhibitor resistance",choices = NULL, options = list(`live-search` = TRUE), width = "100%")),
@@ -56,24 +56,37 @@ ui <- function(id, tissue_list, patient) {
                      tags$label("Choose layout:", style = "align-self: flex-start;"),
                      tags$div(id = ns("helpPopover_layout"),tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
                    selectInput(ns("selected_layout"), NULL, choices = c("cola", "fcose"), selected = "cola", width = "100%"))),
-          column(3.3,
-            div(style = "display: flex; align-items: center; gap: 10px;",
-                prettySwitch(ns("selectedSomVariants"), label = "Add possibly pathogenic somatic variants", status = "primary", slim = TRUE),
-                ),
-            div(style = "display: flex; align-items: center; gap: 10px;",
-                prettySwitch(ns("selectedGermVariants"), label = "Add possibly pathogenic germline variants", status = "primary", slim = TRUE),
-                ),
-            div(style = "display: flex; align-items: center; gap: 10px;",
-                prettySwitch(ns("selectedFusions"), label = "Add selected fusions", status = "primary", slim = TRUE),
-                )), # right = TRUE, #width = "240px"
-         column(6, networkGraph_tables$selectedTab_UI(ns("tab")))
+          column(4,
+                 div(style = "width: 90%;",
+                     div(style = "display: flex; flex-direction: column; width: 100%; align-items: flex-start;", 
+                         tags$label("Interaction sources:", style = "margin-bottom: 5px; align-self: flex-start;"),
+                         pickerInput(inputId=ns("interaction_sources"), NULL, 
+                                     selected = c("experiments","databases","textmining","coexpression","neighborhood","gene_fusion","cooccurrence"),
+                                     choices = c("experiments","databases","textmining","coexpression","neighborhood","gene_fusion","cooccurrence"), 
+                                     multiple = TRUE,
+                                     options = list(`live-search` = TRUE, `actions-box` = TRUE), width = "100%")),
+                    div(style = "display: flex;  flex-direction: column; align-items: flex-start; width: 100%; margin-top: 10px;", 
+                        tags$label("Interaction score:", style = "align-self: flex-start;"),
+                        selectInput(inputId=ns("interaction_score"), NULL, selected = "0.4",
+                                    choices = c("0.9 (highest)" = "0.9", "0.7 (high)" = "0.7", "0.4 (medium)" = "0.4", "0.15 (low)" = "0.15"), 
+                                    width = "100%")),
+                 )),
+          column(4,
+            div(style = "display: flex; flex-direction: column; gap: 5px;",
+                prettySwitch(ns("selectedSomVariants"), label = "Add somatic variants", status = "primary", slim = TRUE),
+                prettySwitch(ns("selectedGermVariants"), label = "Add germline variants", status = "primary", slim = TRUE),
+                prettySwitch(ns("selectedFusions"), label = "Add fusions", status = "primary", slim = TRUE),
+                prettySwitch(ns("hide_nodes"), label = "Hide disconnected nodes", status = "primary", slim = TRUE)
+        ))),
+       fluidRow(
+        column(12, networkGraph_tables$selectedTab_UI(ns("tab")))
        )
       ),
-      # column(1,),
-      column(4,
+      column(1),
+      column(5,  # 🔑 Pravá polovina - podgraf + ovládací prvky
              fluidRow(
                column(6,
-                      div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 75%;",
+                      div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 90%;",
                         div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
                           tags$label("Add new genes:"),
                           tags$div(id = ns("helpPopover_addGene"),
@@ -82,7 +95,7 @@ ui <- function(id, tissue_list, patient) {
                         textAreaInput(ns("new_genes"), NULL, placeholder = "Enter gene names here...", rows = 1, resize = "vertical", width = "100%"), 
                         actionButton(ns("confirm_new_genes_btn"), label = "Add Genes", icon = icon("check"), width = "100%", style = "margin-top: 10px;"))),
                column(6,
-                      div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 75%;",
+                      div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 90%;",
                         tags$label("Remove genes:"),  
                         div(style = "display: flex; flex-direction: column; width: 100%;",
                           pickerInput(inputId=ns("remove_genes"), NULL, 
@@ -197,11 +210,22 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     
     interactions <- reactive({
       req(tissue_dt())
+      req(input$interaction_score)  # 🔑 Vyžadovat score
+      req(input$interaction_sources)  # 🔑 Vyžadovat sources
+      
+      genes <- tissue_dt()[, feature_name]
       
       start_time <- Sys.time()
       message("⏱️ [interactions] START: Fetching STRING interactions for ", nrow(tissue_dt()), " genes")
+      message("   Score threshold: ", input$interaction_score)
+      message("   Sources: ", paste(input$interaction_sources, collapse = ", "))
+      message("   Genes (comma-separated): ", paste(genes, collapse = ", "))
       
-      result <- get_string_interactions(tissue_dt()[, feature_name])
+      result <- get_string_interactions(
+        genes,
+        required_score = as.numeric(input$interaction_score),
+        filter_sources = input$interaction_sources
+      )
       
       end_time <- Sys.time()
       message("⏱️ [interactions] DONE: ", round(difftime(end_time, start_time, units = "secs"), 2), " seconds")
@@ -223,7 +247,10 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       start_time <- Sys.time()
       message("⏱️ [network_json] START: Preparing network JSON for ", nrow(tissue_dt()), " genes")
       
-      result <- prepare_cytoscape_network(ints, unique(tissue_dt()[, .(feature_name, log2FC)]))
+      result <- prepare_cytoscape_network(
+        ints, 
+        unique(tissue_dt()[, .(feature_name, log2FC)])
+      )
       
       end_time <- Sys.time()
       message("⏱️ [network_json] DONE: ", round(difftime(end_time, start_time, units = "secs"), 2), " seconds")
@@ -326,14 +353,18 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       req(tissue_dt())  # 🔑 OPRAVA: Použít tissue_dt() místo subTissue_dt()
       # tissue_dt() závisí na PATHWAY i TISSUE, takže se aktualizuje při změně pathway
       req(length(synchronized_nodes()) > 0)
+      req(input$interaction_score)  # 🔑 Vyžadovat score
+      req(input$interaction_sources)  # 🔑 Vyžadovat sources
       
       start_time <- Sys.time()
       message("⏱️ [sub_interactions] START: Fetching sub-interactions for ", length(synchronized_nodes()), " nodes")
       message("   Pathway: ", input$selected_pathway, ", Tissue: ", input$selected_tissue)
       
-      # Použít tissue_dt() pro správnou pathway
+      # Použít tissue_dt() pro správnou pathway a stejné parametry jako hlavní graf
       result <- get_string_interactions(
-        unique(tissue_dt()[feature_name %in% synchronized_nodes(), feature_name])
+        unique(tissue_dt()[feature_name %in% synchronized_nodes(), feature_name]),
+        required_score = as.numeric(input$interaction_score),
+        filter_sources = input$interaction_sources
       )
       
       end_time <- Sys.time()
