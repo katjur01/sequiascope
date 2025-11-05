@@ -85,10 +85,48 @@ function getCytoscapeStylesheet() {
         {
             selector: 'edge',
             style: {
-                'curve-style': 'bezier',
-                'width': 3,
-                'line-color': '#999',
-                'opacity': 0.7
+                'curve-style': 'bezier',  // 🔑 bezier automaticky separuje parallení hrany!
+                'width': 'mapData(source_score, 0, 1, 0.5, 3)',  // 🔑 Tenčí hrany: 0.5-3px místo 2-10px
+                'line-color': '#999',  // Default barva (pokud source_type není rozpoznán)
+                'opacity': 0.8,
+                'target-arrow-shape': 'none'
+            }
+        },
+        // 🔑 STRING DB oficiální barvy podle source_type
+        {
+            selector: 'edge[source_type="experiments"]',
+            style: { 'line-color': '#a74ac7' }  // Fialová
+        },
+        {
+            selector: 'edge[source_type="databases"]',
+            style: { 'line-color': '#51c7f2' }  // Tyrkysová
+        },
+        {
+            selector: 'edge[source_type="textmining"]',
+            style: { 'line-color': '#9dd866' }  // Světle zelená
+        },
+        {
+            selector: 'edge[source_type="coexpression"]',
+            style: { 'line-color': '#333333' }  // Černá
+        },
+        {
+            selector: 'edge[source_type="neighborhood"]',
+            style: { 'line-color': '#7bc045' }  // Zelená
+        },
+        {
+            selector: 'edge[source_type="gene_fusion"]',
+            style: { 'line-color': '#eb543a' }  // Červená
+        },
+        {
+            selector: 'edge[source_type="cooccurrence"]',
+            style: { 'line-color': '#0b5394' }  // Tmavě modrá
+        },
+        // 🔑 CONFIDENCE MODE: Tmavě šedá hrana s tloušťkou podle combined score
+        {
+            selector: 'edge[source_type="confidence"]',
+            style: { 
+                'line-color': '#4a4a4a',  // Tmavě šedá místo černé
+                'width': 'mapData(score, 0, 1, 0.5, 6)'  // Tenčí: 0.5-6px místo 1-15px
             }
         }
     ];
@@ -159,6 +197,93 @@ function initializeCytoscape(containerId, data, isSubset = false) {
             }, 200);
         });
     }
+    
+    // 🔑 NOVÉ: Event handler pro kliknutí na hranu (zobrazení edge info)
+    cytoscapeInstance.on('tap', 'edge', function(evt) {
+        const edge = evt.target;
+        const edgeData = edge.data();
+        
+        console.log("Edge clicked:", edgeData);
+        
+        // Sestavit HTML s edge informacemi
+        const sources = [
+            { name: 'Experiments', value: edgeData.escore, color: '#a74ac7' },
+            { name: 'Databases', value: edgeData.dscore, color: '#51c7f2' },
+            { name: 'Text mining', value: edgeData.tscore, color: '#9dd866' },
+            { name: 'Co-expression', value: edgeData.ascore, color: '#333333' },
+            { name: 'Neighborhood', value: edgeData.nscore, color: '#7bc045' },
+            { name: 'Gene fusion', value: edgeData.fscore, color: '#eb543a' },
+            { name: 'Co-occurrence', value: edgeData.pscore, color: '#0b5394' }
+        ];
+        
+        let scoresHTML = sources
+            .filter(s => s.value > 0)
+            .map(s => `<div style="margin: 5px 0;">
+                <span style="display: inline-block; width: 12px; height: 12px; background-color: ${s.color}; margin-right: 5px; border-radius: 2px;"></span>
+                <strong>${s.name}:</strong> ${s.value.toFixed(3)}
+            </div>`)
+            .join('');
+        
+        if (!scoresHTML) scoresHTML = '<div>No evidence available</div>';
+        
+        // 🔑 Rozlišit mezi evidence a confidence mode
+        let message;
+        if (edgeData.source_type === 'confidence') {
+            // CONFIDENCE MODE: Zobrazit combined score a všechny individual scores
+            message = `
+                <div style="font-family: Arial, sans-serif; padding: 10px;">
+                    <h4 style="margin-top: 0;">Interaction: ${edgeData.source} ↔ ${edgeData.target}</h4>
+                    <div style="margin: 10px 0;">
+                        <strong>Combined confidence score:</strong> ${edgeData.score.toFixed(3)}
+                    </div>
+                    <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
+                    <div style="margin-top: 10px;">
+                        <strong>Individual evidence scores:</strong>
+                        ${scoresHTML}
+                    </div>
+                </div>
+            `;
+        } else {
+            // EVIDENCE MODE: Zobrazit source type a scores
+            message = `
+                <div style="font-family: Arial, sans-serif; padding: 10px;">
+                    <h4 style="margin-top: 0;">Interaction: ${edgeData.source} ↔ ${edgeData.target}</h4>
+                    <div style="margin: 10px 0;">
+                        <strong>Evidence type:</strong> ${edgeData.source_type || 'unknown'}
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <strong>Evidence score:</strong> ${edgeData.source_score.toFixed(3)}
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <strong>Combined score:</strong> ${edgeData.score.toFixed(3)}
+                    </div>
+                    <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
+                    <div style="margin-top: 10px;">
+                        <strong>All evidence scores:</strong>
+                        ${scoresHTML}
+                    </div>
+                </div>
+            `;
+        }
+        
+        console.log("📊 Sending edge info to Shiny:", message);
+        
+        // Použít Shiny alert - získat správný namespace
+        if (typeof Shiny !== 'undefined') {
+            const ns = getNamespaceForContainer(containerId);
+            if (ns) {
+                Shiny.setInputValue(ns + 'edge_info', {
+                    html: message,
+                    timestamp: new Date().getTime()
+                }, { priority: "event" });
+                console.log("✅ Edge info sent with namespace:", ns);
+            } else {
+                console.warn("⚠️ No namespace found for container:", containerId);
+            }
+        } else {
+            console.warn("⚠️ Shiny is not defined");
+        }
+    });
 
     return cytoscapeInstance;
 }
@@ -211,7 +336,14 @@ Shiny.addCustomMessageHandler('cy-init', function(data) {
         const edges = cytoscapeInstances[instanceKey].edges().length;
         console.log(`📊 New instance - Nodes: ${nodes}, Edges: ${edges}`);
         
-        // 🔑 Signal completion after a short delay (layout is running)
+        // � Debug: Zkontrolovat ukázkové edge data
+        const sampleEdges = cytoscapeInstances[instanceKey].edges().slice(0, 3);
+        sampleEdges.forEach((edge, i) => {
+            const data = edge.data();
+            console.log(`🔍 Sample edge ${i + 1}: ${data.source} → ${data.target}, source_type: ${data.source_type}, color: ${edge.style('line-color')}`);
+        });
+        
+        // �🔑 Signal completion after a short delay (layout is running)
         setTimeout(() => {
             signalComplete(performance.now() - startTime);
         }, 100);
@@ -234,17 +366,12 @@ Shiny.addCustomMessageHandler('cy-init', function(data) {
             
             // Přidat nové elementy
             cy.add(data.elements);
-            
-            // 🔑 KRITICKÉ: IHNED nastavit edge styles (UVNITŘ batch!)
-            cy.edges().style({
-                'width': 3,
-                'line-color': '#999',
-                'opacity': 0.7,
-                'curve-style': 'bezier'
-            });
         });
         const batchEnd = performance.now();
         console.log(`⏱️ [cy-init] Batch update completed in ${((batchEnd - batchStart) / 1000).toFixed(2)}s`);
+        
+        // 🔑 KLÍČOVÁ OPRAVA: Po update MUSÍME znovu aplikovat stylesheet!
+        cy.style(getCytoscapeStylesheet());
         
         // 🔑 Spustit layout (bez animace pro rychlost)
         const layoutStart = performance.now();
@@ -263,6 +390,13 @@ Shiny.addCustomMessageHandler('cy-init', function(data) {
         const nodes = cy.nodes().length;
         const edges = cy.edges().length;
         console.log(`📊 Updated instance - Nodes: ${nodes}, Edges: ${edges}, edge styles applied`);
+        
+        // 🔍 Debug: Zkontrolovat ukázkové edge data po update
+        const sampleEdges = cy.edges().slice(0, 3);
+        sampleEdges.forEach((edge, i) => {
+            const data = edge.data();
+            console.log(`🔍 Sample edge ${i + 1}: ${data.source} → ${data.target}, source_type: ${data.source_type}, color: ${edge.style('line-color')}`);
+        });
     }
 
     // 🔑 NEZNOVU vybírat previouslySelectedNodes - R pošle správnou selection!
@@ -524,27 +658,5 @@ Shiny.addCustomMessageHandler('cy-layout', function(data) {
     
     if (cy) {
         cy.layout({ name: layout }).run();
-    }
-});
-
-// Handler pro skrytí disconnected nodes
-Shiny.addCustomMessageHandler('hide-disconnected-nodes', function(data) {
-    const patientId = data.patientId;
-    const hide = data.hide;
-    const instanceKey = `${patientId}_main`;
-    const cy = cytoscapeInstances[instanceKey];
-    
-    if (cy) {
-        if (hide) {
-            // Skrýt uzly s degree 0 (žádné hrany)
-            cy.nodes().forEach(function(node) {
-                if (node.degree() === 0) {
-                    node.style('display', 'none');
-                }
-            });
-        } else {
-            // Zobrazit všechny uzly
-            cy.nodes().style('display', 'element');
-        }
     }
 });

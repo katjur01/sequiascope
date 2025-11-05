@@ -17,7 +17,6 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
                                     required_score = NULL, filter_sources = NULL) {
   # 🔑 VALIDACE: Zkontrolovat, že proteins je validní
   if (is.null(proteins) || length(proteins) == 0) {
-    message("⚠️ get_string_interactions: No proteins provided, returning empty data.frame")
     return(data.frame())
   }
   
@@ -25,7 +24,6 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
   proteins <- proteins[!is.na(proteins) & proteins != ""]
   
   if (length(proteins) == 0) {
-    message("⚠️ get_string_interactions: All proteins were invalid (NA or empty), returning empty data.frame")
     return(data.frame())
   }
   
@@ -35,9 +33,8 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
   
   # 🔑 BEZPEČNÁ KONTROLA cache - zkontrolovat, že cache_key je validní string
   if (!is.character(cache_key) || length(cache_key) != 1 || cache_key == "") {
-    message("⚠️ get_string_interactions: Invalid cache_key, skipping cache check")
+    # Invalid cache key, skip cache
   } else if (exists(cache_key, envir = string_cache)) {
-    message("Using cached STRING interactions")
     return(get(cache_key, envir = string_cache))
   }
   
@@ -64,11 +61,14 @@ get_string_interactions <- function(proteins, species = 9606, chunk_size = 100, 
     if (status_code(response) == 200) {
       content <- fromJSON(content(response, as = "text"))
       
+      # 🔑 VALIDACE: Zkontrolovat že content je data.frame a má řádky
+      if (!is.data.frame(content) || is.null(content) || nrow(content) == 0) {
+        return(data.frame())  # Vrátit prázdný data.frame
+      }
+      
       # 🔑 FILTROVAT podle sources a required_score
       if (!is.null(filter_sources) && length(filter_sources) > 0 && !("all" %in% filter_sources)) {
-        if (nrow(content) > 0) {
-          content <- filter_by_sources(content, filter_sources, required_score)
-        }
+        content <- filter_by_sources(content, filter_sources, required_score)
       }
       
       return(content)
@@ -104,24 +104,22 @@ filter_by_sources <- function(interactions, sources, required_score = NULL) {
   score_cols <- score_cols[!is.na(score_cols)]
   
   if (length(score_cols) == 0) {
-    message("⚠️ No valid sources specified for filtering")
     return(interactions)
   }
   
-  # Určit threshold - STRING používá škálu 0-1000, my 0-1
-  threshold <- if (!is.null(required_score)) as.numeric(required_score) * 1000 else 0
+  # 🔑 FILTROVÁNÍ PODLE SOURCES A SCORE
+  # Určit threshold podle required_score - STRING používá škálu 0-1000, my 0-1
+  threshold <- if (!is.null(required_score)) as.numeric(required_score) else 0
   
-  # Filtrovat: zachovat řádky kde alespoň jeden vybraný score > threshold
+  # Filtrovat: zachovat řádky kde alespoň jeden vybraný source má score > threshold
   keep <- rep(FALSE, nrow(interactions))
   for (col in score_cols) {
     if (col %in% names(interactions)) {
-      keep <- keep | (interactions[[col]] > threshold)
+      keep <- keep | (interactions[[col]] >= threshold)
     }
   }
   
   filtered <- interactions[keep, ]
-  message("   Filtered interactions: ", nrow(interactions), " → ", nrow(filtered), 
-          " (sources: ", paste(sources, collapse = ", "), ")")
   
   return(filtered)
 }
@@ -141,7 +139,7 @@ filter_by_sources <- function(interactions, sources, required_score = NULL) {
 
 
 #' @export
-prepare_cytoscape_network <- function(interactions, tab, proteins = NULL) {
+prepare_cytoscape_network <- function(interactions, tab, proteins = NULL, selected_sources = NULL, required_score = 0.4, edge_mode = "evidence") {
 
     if(is.null(proteins)) proteins <- tab[,feature_name]
 
@@ -179,16 +177,105 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL) {
         interaction = character(0),
         stringsAsFactors = FALSE
       )
+    } else if (edge_mode == "confidence") {
+      # 🔑 CONFIDENCE MODE: Jedna černá hrana s tloušťkou podle combined score
+      edges_list <- list()
+      
+      for (i in 1:nrow(interactions)) {
+        row <- interactions[i, ]
+        
+        # Vytvořit jednu hranu pokud combined score >= threshold
+        if (row$score >= required_score) {
+          edges_list[[length(edges_list) + 1]] <- data.frame(
+            source = row$preferredName_A,
+            target = row$preferredName_B,
+            interaction = "pp",
+            score = row$score,  # combined score (pro tloušťku i filtrování)
+            source_score = row$score,  # stejné jako combined score
+            source_type = "confidence",  # speciální typ pro černou barvu
+            # Všechny individual scores (pro popup)
+            escore = if("escore" %in% names(row)) row$escore else 0,
+            dscore = if("dscore" %in% names(row)) row$dscore else 0,
+            tscore = if("tscore" %in% names(row)) row$tscore else 0,
+            ascore = if("ascore" %in% names(row)) row$ascore else 0,
+            nscore = if("nscore" %in% names(row)) row$nscore else 0,
+            fscore = if("fscore" %in% names(row)) row$fscore else 0,
+            pscore = if("pscore" %in% names(row)) row$pscore else 0,
+            stringsAsFactors = FALSE
+          )
+        }
+      }
+      
+      edges <- do.call(rbind, edges_list)
+      if (is.null(edges)) edges <- data.frame()
+      
     } else {
-      edges <- data.frame(
-        source = interactions$preferredName_A,
-        target = interactions$preferredName_B,
-        interaction = "interaction",
-        stringsAsFactors = FALSE
+      # 🔑 EVIDENCE MODE: Více hran pro každou interakci - jedna hrana pro každý nenulový zdroj
+      source_map <- list(
+        escore = "experiments",
+        dscore = "databases",
+        tscore = "textmining",
+        ascore = "coexpression",
+        nscore = "neighborhood",
+        fscore = "gene_fusion",
+        pscore = "cooccurrence"
       )
-    }
+      
+      edges_list <- list()
+      
+      for (i in 1:nrow(interactions)) {
+        row <- interactions[i, ]
+        
+        # Pro každý nenulový source vytvořit samostatnou hranu
+        for (score_col in names(source_map)) {
+          source_type <- source_map[[score_col]]
+          
+          # 🔑 FILTROVAT: Pouze vybrané sources (pokud jsou specifikované)
+          if (!is.null(selected_sources) && length(selected_sources) > 0) {
+            if (!source_type %in% selected_sources) {
+              next  # Přeskočit tento zdroj
+            }
+          }
+          
+          # 🔑 KLÍČOVÁ OPRAVA: Kontrolovat individual score proti threshold!
+          # Vytvořit hranu pouze pokud individual score >= required_score
+          if (score_col %in% names(row) && row[[score_col]] >= required_score) {
+            edges_list[[length(edges_list) + 1]] <- data.frame(
+              source = row$preferredName_A,
+              target = row$preferredName_B,
+              interaction = "pp",
+              score = row$score,  # combined score (pro tloušťku)
+              source_score = row[[score_col]],  # score konkrétního zdroje
+              source_type = source_type,  # typ zdroje (pro barvu)
+              # Všechny individual scores (pro popup)
+              escore = if("escore" %in% names(row)) row$escore else 0,
+              dscore = if("dscore" %in% names(row)) row$dscore else 0,
+              tscore = if("tscore" %in% names(row)) row$tscore else 0,
+              ascore = if("ascore" %in% names(row)) row$ascore else 0,
+              nscore = if("nscore" %in% names(row)) row$nscore else 0,
+              fscore = if("fscore" %in% names(row)) row$fscore else 0,
+              pscore = if("pscore" %in% names(row)) row$pscore else 0,
+              stringsAsFactors = FALSE
+            )
+          }
+        }
+      }
+      
+      edges <- if (length(edges_list) > 0) {
+        do.call(rbind, edges_list)
+      } else {
+        data.frame(
+          source = character(0),
+          target = character(0),
+          interaction = character(0),
+          stringsAsFactors = FALSE
+        )
+      }
+      
+    }  # Konec else bloku (evidence vs confidence mode)
 
   node_data <- node_data[match(proteins, node_data$id, nomatch = 0), ]
+  
   edges <- edges[edges$source %in% proteins & edges$target %in% proteins, ]
   
   json_data <- list(

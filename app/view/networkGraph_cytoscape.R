@@ -53,30 +53,54 @@ ui <- function(id, tissue_list, patient) {
                      tags$label("Pathway:", style = "margin-bottom: 5px; align-self: flex-start;"),
                      pickerInput(inputId=ns("selected_pathway"), NULL, selected = "EGFR tyrosine kinase inhibitor resistance",choices = NULL, options = list(`live-search` = TRUE), width = "100%")),
                    div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 10px;", 
-                     tags$label("Choose layout:", style = "align-self: flex-start;"),
-                     tags$div(id = ns("helpPopover_layout"),tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
-                   selectInput(ns("selected_layout"), NULL, choices = c("cola", "fcose"), selected = "cola", width = "100%"))),
+                     tags$label("Choose layout", style = "align-self: flex-start;"),
+                     tags$div(id = ns("helpPopover_layout"), style = "position: relative; z-index: 1000; cursor: pointer; padding: 5px;",
+                              `data-toggle` = "popover",`data-placement` = "right",`data-trigger` = "hover",`data-html` = "true",
+                              `data-title` = "Layout options",
+                              `data-content` = "<b>Cola</b>: Ideal for hierarchical structures and smaller graphs.<br><br><b>FCoSE</b>: Best for large and complex networks.",
+                              tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
+                   selectInput(ns("selected_layout"), NULL, choices = c("cola", "fcose"), selected = "cola", width = "100%"),
+                   div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 10px;", 
+                       tags$label("Edge display mode", style = "align-self: flex-start;"),
+                       tags$div(id = ns("helpPopover_edge_mode"), style = "position: relative; z-index: 1000; cursor: pointer; padding: 5px;",
+                                `data-toggle` = "popover",`data-placement` = "right",`data-trigger` = "hover",`data-html` = "true",
+                                `data-title` = "Edge display modes",
+                                `data-content` = "<b>Evidence</b>: Shows multiple colored edges per interaction, one for each source type (experiments, databases, etc.). Each edge displays its individual score.<br><br><b>Confidence</b>: Shows a single dark gray edge per interaction with width representing the combined confidence score from all evidence types.",
+                                tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
+                   radioGroupButtons(inputId=ns("edge_mode"), NULL,
+                                        choices = c("Evidence" = "evidence", "Confidence" = "confidence"),
+                                        selected = "confidence",  # 🔑 Confidence jako výchozí
+                                        justified = TRUE))),
           column(4,
                  div(style = "width: 90%;",
-                     div(style = "display: flex; flex-direction: column; width: 100%; align-items: flex-start;", 
-                         tags$label("Interaction sources:", style = "margin-bottom: 5px; align-self: flex-start;"),
-                         pickerInput(inputId=ns("interaction_sources"), NULL, 
+                     div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;", 
+                         tags$label("Interaction sources", style = "align-self: flex-start;"),
+                         tags$div(id = ns("helpPopover_sources"), style = "position: relative; z-index: 1000; cursor: pointer; padding: 5px;",
+                                 `data-toggle` = "popover",`data-placement` = "right",`data-trigger` = "hover",`data-html` = "true",
+                                  `data-title` = "Interaction evidence sources",
+                                  `data-content` = "Select which types of evidence to include from STRING database:<br>• <b>experiments</b> – Laboratory experiments<br>• <b>databases</b> – Curated databases<br>• <b>textmining</b> – Scientific literature<br>• <b>coexpression</b> – Gene expression patterns<br>• <b>neighborhood</b> – Genomic location<br>• <b>gene_fusion</b> – Fusion genes<br>• <b>cooccurrence</b> – Phylogenetic profiles",
+                                  tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
+                     pickerInput(inputId=ns("interaction_sources"), NULL, 
                                      selected = c("experiments","databases","textmining","coexpression","neighborhood","gene_fusion","cooccurrence"),
                                      choices = c("experiments","databases","textmining","coexpression","neighborhood","gene_fusion","cooccurrence"), 
                                      multiple = TRUE,
-                                     options = list(`live-search` = TRUE, `actions-box` = TRUE), width = "100%")),
-                    div(style = "display: flex;  flex-direction: column; align-items: flex-start; width: 100%; margin-top: 10px;", 
+                                     options = list(`live-search` = TRUE, `actions-box` = TRUE), width = "100%"),
+                    div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 10px;", 
                         tags$label("Interaction score:", style = "align-self: flex-start;"),
-                        selectInput(inputId=ns("interaction_score"), NULL, selected = "0.4",
-                                    choices = c("0.9 (highest)" = "0.9", "0.7 (high)" = "0.7", "0.4 (medium)" = "0.4", "0.15 (low)" = "0.15"), 
-                                    width = "100%")),
+                        tags$div(id = ns("helpPopover_score"), style = "position: relative; z-index: 1000; cursor: pointer; padding: 5px;",
+                                 `data-toggle` = "popover",`data-placement` = "right",`data-trigger` = "hover",`data-html` = "true",
+                                 `data-title` = "Interaction confidence threshold",
+                                 `data-content` = "Minimum confidence score to display interactions (0-1 scale):<br>• <b>0.9</b> – Highest confidence (fewer edges)<br>• <b>0.7</b> – High confidence<br>• <b>0.4</b> – Medium confidence (recommended)<br>• <b>0.15</b> – Low confidence (more edges)<br><br>Higher thresholds = fewer but more reliable interactions.",
+                                 tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
+                    selectInput(inputId=ns("interaction_score"), NULL, selected = "0.4",
+                                    choices = c("highest confidence (0.9)" = "0.9", "high confidence (0.7)" = "0.7", "medium confidence (0.4)" = "0.4", "low confidence (0.15)" = "0.15"), 
+                                    width = "100%")
                  )),
           column(4,
             div(style = "display: flex; flex-direction: column; gap: 5px;",
                 prettySwitch(ns("selectedSomVariants"), label = "Add somatic variants", status = "primary", slim = TRUE),
                 prettySwitch(ns("selectedGermVariants"), label = "Add germline variants", status = "primary", slim = TRUE),
-                prettySwitch(ns("selectedFusions"), label = "Add fusions", status = "primary", slim = TRUE),
-                prettySwitch(ns("hide_nodes"), label = "Hide disconnected nodes", status = "primary", slim = TRUE)
+                prettySwitch(ns("selectedFusions"), label = "Add fusions", status = "primary", slim = TRUE)
         ))),
        fluidRow(
         column(12, networkGraph_tables$selectedTab_UI(ns("tab")))
@@ -89,10 +113,13 @@ ui <- function(id, tissue_list, patient) {
                       div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 90%;",
                         div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
                           tags$label("Add new genes:"),
-                          tags$div(id = ns("helpPopover_addGene"),
+                          tags$div(id = ns("helpPopover_addGene"), style = "position: relative; z-index: 1000; cursor: pointer; padding: 5px;",
+                                   `data-toggle` = "popover",`data-placement` = "right",`data-trigger` = "hover",`data-html` = "true",
+                                   `data-title` = "Add genes",
+                                   `data-content` = "Enter gene names separated by commas or on separate lines.<br><br>Example 1:<br><b>BRCA1, TP53, FOXO3</b><br><br>Example 2: <br><b>BRCA1<br>TP53<br>FOXO3</b>",
                                    tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;")),
                           ),
-                        textAreaInput(ns("new_genes"), NULL, placeholder = "Enter gene names here...", rows = 1, resize = "vertical", width = "100%"), 
+                        textAreaInput(ns("new_genes"), NULL, placeholder = "e.g. BRCA1, TP53\nor\nBRCA1\nTP53", rows = 1, resize = "vertical", width = "100%"), 
                         actionButton(ns("confirm_new_genes_btn"), label = "Add Genes", icon = icon("check"), width = "100%", style = "margin-top: 10px;"))),
                column(6,
                       div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 90%;",
@@ -175,6 +202,9 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     last_button_action <- reactiveVal(0)  # 🔑 Timestamp poslední button akce
     selected_dt <- reactiveVal(NULL)
     
+    # 🔑 DEBOUNCE pro interaction sources (1 sekunda prodleva)
+    interaction_sources_debounced <- debounce(reactive(input$interaction_sources), 1000)
+    
     # Load data
     dt <- reactive({
       req(active())
@@ -211,20 +241,20 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     interactions <- reactive({
       req(tissue_dt())
       req(input$interaction_score)  # 🔑 Vyžadovat score
-      req(input$interaction_sources)  # 🔑 Vyžadovat sources
+      req(interaction_sources_debounced())  # 🔑 ZMĚNA: Použít debounced verzi
       
       genes <- tissue_dt()[, feature_name]
       
       start_time <- Sys.time()
       message("⏱️ [interactions] START: Fetching STRING interactions for ", nrow(tissue_dt()), " genes")
       message("   Score threshold: ", input$interaction_score)
-      message("   Sources: ", paste(input$interaction_sources, collapse = ", "))
+      message("   Sources: ", paste(interaction_sources_debounced(), collapse = ", "))
       message("   Genes (comma-separated): ", paste(genes, collapse = ", "))
       
       result <- get_string_interactions(
         genes,
         required_score = as.numeric(input$interaction_score),
-        filter_sources = input$interaction_sources
+        filter_sources = interaction_sources_debounced()  # 🔑 ZMĚNA: Použít debounced
       )
       
       end_time <- Sys.time()
@@ -236,6 +266,8 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     
     network_json <- reactive({
       req(tissue_dt())
+      req(interaction_sources_debounced())  # 🔑 ZMĚNA: debounced verze
+      req(input$edge_mode)  # 🔑 Vyžadovat edge_mode (triggers re-execution)
       ints <- interactions()
       req(ints)
       
@@ -246,10 +278,15 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       
       start_time <- Sys.time()
       message("⏱️ [network_json] START: Preparing network JSON for ", nrow(tissue_dt()), " genes")
+      message("   Selected sources: ", paste(interaction_sources_debounced(), collapse = ", "))
+      message("   Edge mode: ", input$edge_mode)
       
       result <- prepare_cytoscape_network(
         ints, 
-        unique(tissue_dt()[, .(feature_name, log2FC)])
+        unique(tissue_dt()[, .(feature_name, log2FC)]),
+        selected_sources = interaction_sources_debounced(),  # 🔑 ZMĚNA: debounced
+        required_score = as.numeric(input$interaction_score),  # 🔑 Předat score threshold
+        edge_mode = input$edge_mode  # 🔑 Předat edge mode
       )
       
       end_time <- Sys.time()
@@ -375,8 +412,11 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
 
     observe({
       current_nodes <- synchronized_nodes()
+      req(input$interaction_sources)  # 🔑 Trigger při změně sources
+      
       message("🔄 cy-subset observer triggered - current_nodes: ", paste(current_nodes, collapse = ", "))
       message("   Pathway: ", input$selected_pathway, ", Tissue: ", input$selected_tissue)
+      message("   Selected sources: ", paste(interaction_sources_debounced(), collapse = ", "))
       
       if (length(current_nodes) == 0) {
         message("Žádné uzly nejsou vybrány. Odesílám prázdný podgraf.")
@@ -395,7 +435,10 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         subnetwork_data <- prepare_cytoscape_network(
           sub_interactions(), 
           unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2FC)]),  # 🔑 subTissue_dt pro všechny geny
-          current_nodes
+          current_nodes,
+          selected_sources = interaction_sources_debounced(),  # 🔑 ZMĚNA: debounced
+          required_score = as.numeric(input$interaction_score),  # 🔑 Předat score threshold
+          edge_mode = input$edge_mode  # 🔑 Předat edge mode
         )
         message("#### Podgraf připraven - nodes: ", length(subnetwork_data$elements$nodes), ", edges: ", length(subnetwork_data$elements$edges))
         
@@ -568,7 +611,8 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       new_genes <- input$new_genes
       
       if (!is.null(new_genes) && length(new_genes) > 0 && is.character(new_genes)) {
-        new_genes <- trimws(unlist(strsplit(new_genes, ",")))
+        # 🔑 Rozdělení podle čárek NEBO nových řádků (stejně jako u pacientů)
+        new_genes <- trimws(unlist(strsplit(new_genes, "[,\n\r]+")))
         new_genes <- new_genes[new_genes != ""]
         
         if (length(new_genes) > 0) {
@@ -853,21 +897,41 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     ### others ###
     ##############
     
+    # 🔑 NOVÉ: Handler pro zobrazení edge info
+    observeEvent(input$edge_info, {
+      req(input$edge_info$html)
+      shinyalert(
+        title = NULL,
+        text = input$edge_info$html,
+        html = TRUE,
+        type = "",
+        confirmButtonText = "Close",
+        showCancelButton = FALSE,
+        closeOnClickOutside = TRUE  # Umožní zavření kliknutím mimo okno
+      )
+    })
+    
     networkGraph_tables$tab_server("tab", tissue_dt, subTissue_dt, selected_nodes = synchronized_nodes, selected_dt, patient)
     
-    addPopover(id = "helpPopover_addGene", options = list(
-      title = "Write comma-separated text:",
-      content = "example: BRCA1, TP53, FOXO3",
-      placement = "right",
-      trigger = "hover"
-    ))
-    
-    addPopover(id = "helpPopover_layout", options = list(
-      title = "Layout options:",
-      placement = "right",
-      trigger = "hover",
-      content = "cola – Ideal for hierarchical structures and smaller graphs. FCOSE – Best for large and complex networks."
-    ))
+    # Inicializace Bootstrap popoverů pomocí JavaScriptu + CSS pro z-index
+    shiny::insertUI(
+      selector = "head",
+      where = "beforeEnd",
+      ui = tags$head(
+        tags$style(HTML("
+          .popover {
+            z-index: 999999 !important;
+          }
+        ")),
+        tags$script(HTML("
+          $(document).ready(function(){
+            $('[data-toggle=\"popover\"]').popover({
+              container: 'body'
+            });
+          });
+        "))
+      )
+    )
     
   })
 }
