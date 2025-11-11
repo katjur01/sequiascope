@@ -113,7 +113,7 @@ project_root/
 └── expression_data/
     ├── genes_of_interest.tsv                 # list of genes of interest
     ├── patient_001/
-    ├── blood_expression.tsv                  # expression in blood
+    │   ├── blood_expression.tsv              # expression in blood
     │   └── liver_expression.tsv              # expression in liver
     ├── patient_002/
     │   └── ... (same structure)
