@@ -1,0 +1,14 @@
+# Dockerfile-igv
+
+FROM node:22-alpine
+
+WORKDIR /srv/igv-static
+
+# Nainstaluj jednoduchý server
+RUN npm install -g http-server
+
+# Otevři port 8081
+EXPOSE 8081
+
+# Spusť server (s CORS a bez cache)
+CMD ["http-server", "/srv/igv-static", "-p", "8081", "--cors", "--no-cache"]

@@ -21,7 +21,8 @@ RUN mkdir -p /dist/js && \
 # -----------------------------------------------------------
 FROM rocker/shiny:latest
 
-# Systémové závislosti pro R a kompilaci
+
+# Systémové závislosti pro R, IGV Desktop a snapshoty
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     libssl-dev \
@@ -38,6 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     poppler-utils \
   && rm -rf /var/lib/apt/lists/*
+
 
 # Vytvoř adresář a nastav pracovní prostředí
 RUN mkdir -p /srv/shiny-server/sequiaViz
