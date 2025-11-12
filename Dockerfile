@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     lsof \
     curl \
+    poppler-utils \
   && rm -rf /var/lib/apt/lists/*
 
 # Vytvoř adresář a nastav pracovní prostředí

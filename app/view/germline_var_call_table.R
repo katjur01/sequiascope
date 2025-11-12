@@ -83,7 +83,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         clinvar_N = uniqueN(data()[clinvar_sig %in% c("Pathogenic", "Likely_pathogenic", "Pathogenic/Likely_pathogenic",
                                                       "Pathogenic_(VUS)", "Likely_pathogenic (VUS)", "Pathogenic_(VUS)"), unique(var_name)]),
 
-        for_review = uniqueN(data()[gnomAD_NFE <= 0.01 & coverage_depth > 10 & Consequence != "synonymous_variant" &
+        for_review = uniqueN(data()[gnomAD_NFE <= 0.01 & coverage_depth > 10 & consequence != "synonymous_variant" &
                                       (gene_region == "exon" | gene_region == "splice"), unique(var_name)]))
       # print(overview_dt)
       shared_data$germline.overview[[ selected_samples ]] <- overview_dt
@@ -118,7 +118,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
     selected_clinvar_sig <- reactiveVal(NULL)
     selected_consequence <- reactiveVal(NULL)
     selected_columns <- reactiveVal(colnames_list$default_columns)
-    selected_variants <- reactiveVal(data.frame(patient = character(),var_name = character(), Gene_symbol = character()))
+    selected_variants <- reactiveVal(data.frame(patient = character(),var_name = character(), gene_symbol = character()))
 
     defaults_applied <- reactiveVal(FALSE)
     
@@ -214,10 +214,10 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         defaultSorted = default_sorted,
         rowStyle = if (!is.null(pathogenic_variants) && nrow(pathogenic_variants) > 0) {
             function(index) {
-              gene_in_row <- filtered_data$Gene_symbol[index]
+              gene_in_row <- filtered_data$gene_symbol[index]
               var_in_row <- filtered_data$var_name[index]
                   if (var_in_row %in% pathogenic_variants$var_name &           # Pokud je aktuální řádek v seznamu patogenních variant, zvýrazníme ho
-                      gene_in_row %in% pathogenic_variants$Gene_symbol) {
+                      gene_in_row %in% pathogenic_variants$gene_symbol) {
                     list(backgroundColor = "#B5E3B6",fontWeight = "bold")
                   } else {
                     NULL
@@ -249,13 +249,13 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       selected_rows <- getReactableState("germline_var_call_tab", "selected")
       req(selected_rows)
       
-      new_variants <- filtered_data()[selected_rows, c("var_name", "Gene_symbol","variant_freq","coverage_depth", "Consequence",
+      new_variants <- filtered_data()[selected_rows, c("var_name", "gene_symbol","variant_freq","coverage_depth", "consequence",
                                                        "HGVSc","HGVSp","variant_type","Feature", "clinvar_sig","gnomAD_NFE")]  # Získání vybraných variant
       new_variants$sample <- selected_samples
 
       current_variants <- selected_variants()  # Stávající přidané varianty
       new_unique_variants <- new_variants[!(new_variants$var_name %in% current_variants$var_name &       # Porovnání - přidáme pouze ty varianty, které ještě nejsou v tabulce
-                                              new_variants$Gene_symbol %in% current_variants$Gene_symbol), ]
+                                              new_variants$gene_symbol %in% current_variants$gene_symbol), ]
 
       if (nrow(new_unique_variants) > 0) selected_variants(rbind(current_variants, new_unique_variants))
       
@@ -267,10 +267,10 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         global_data <- data.table(
           sample = character(),
           var_name = character(),
-          Gene_symbol = character(),
+          gene_symbol = character(),
           variant_freq= character(),
           coverage_depth = character(),
-          Consequence = character(),
+          consequence = character(),
           HGVSc = character(),
           HGVSp = character(),
           variant_type = character(),
@@ -299,8 +299,8 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         variants,
         columns = list(
           var_name = colDef(name = "Variant name"),
-          Gene_symbol = colDef(name = "Gene name"),
-          Consequence = colDef(minWidth=160)),
+          gene_symbol = colDef(name = "Gene name"),
+          consequence = colDef(minWidth=160)),
         selection = "multiple", onClick = "select"
       )
     })
@@ -320,10 +320,10 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         global_data <- data.table(
           sample = character(),
           var_name = character(),
-          Gene_symbol = character(),
+          gene_symbol = character(),
           variant_freq= character(),
           coverage_depth = character(),
-          Consequence = character(),
+          consequence = character(),
           HGVSc = character(),
           HGVSp = character(),
           variant_type = character(),

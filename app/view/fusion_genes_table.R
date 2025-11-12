@@ -13,6 +13,7 @@ box::use(
   data.table[data.table,uniqueN,as.data.table,copy,is.data.table,fifelse,setcolorder,fread,setnames,rbindlist],
   shinyWidgets[pickerInput,updatePickerInput,dropdownButton,prettyCheckboxGroup,updatePrettyCheckboxGroup,actionBttn,pickerOptions,dropdown],
   stats[setNames],
+  waiter[waiter_show, waiter_hide, spin_fading_circles]
 )
 box::use(
   app/logic/load_data[load_data],
@@ -36,33 +37,42 @@ ui <- function(id) {
   ns <- NS(id)
   useShinyjs()
   tagList(
-    fluidRow(
-      div(style = "width: 100%; text-align: right;",
-          dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
-                         selectInput(ns("export_data_table"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
-                         selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
-                         downloadButton(ns("Table_download"),"Download")),
-          filterTab_ui(ns("filterTab_dropdown")))),
-    use_spinner(reactableOutput(ns("fusion_genes_tab"))),
-    tags$br(),
-    div(style = "display: flex; justify-content: space-between; align-items: top; width: 100%;",
-      div(
-        tags$br(),
-        actionButton(ns("selectFusion_button"), "Select fusion as causal", status = "info"),
-        tags$br(),
-        fluidRow(
-          column(12,reactableOutput(ns("selectFusion_tab")))),
-        tags$br(),
-        fluidRow(
-          column(3,actionButton(ns("delete_button"),"Delete genes", icon = icon("trash-can"))))
-      ),
-      dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
-               pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
-               div(style = "display: flex; justify-content: center; margin-top: 10px;",
-                   actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
-               )
+    # Wrapper with relative positioning for absolute overlay (no fixed height)
+    div(style = "position: relative;",
+      # Prerun loading UI - absolute overlay across entire card content
+      uiOutput(ns("prerun_loading")),
+      
+      # Main UI - hidden during prerun
+      div(id = ns("main_content"),
+      fluidRow(
+        div(style = "width: 100%; text-align: right;",
+            dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
+                           selectInput(ns("export_data_table"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
+                           selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
+                           downloadButton(ns("Table_download"),"Download")),
+            filterTab_ui(ns("filterTab_dropdown")))),
+      use_spinner(reactableOutput(ns("fusion_genes_tab"))),
+      tags$br(),
+      div(style = "display: flex; justify-content: space-between; align-items: top; width: 100%;",
+        div(
+          tags$br(),
+          actionButton(ns("selectFusion_button"), "Select fusion as causal", status = "info"),
+          tags$br(),
+          fluidRow(
+            column(12,reactableOutput(ns("selectFusion_tab")))),
+          tags$br(),
+          fluidRow(
+            column(3,actionButton(ns("delete_button"),"Delete genes", icon = icon("trash-can"))))
+        ),
+        dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
+                 pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
+                 div(style = "display: flex; justify-content: center; margin-top: 10px;",
+                     actionBttn(ns("go2igv_button"), label = "Go to IGV", style = "stretch", color = "primary", size = "sm", individual = TRUE)
+                 )
+        )
       )
     )
+    ) # end of relative wrapper
   )
 
 }
@@ -84,24 +94,89 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
    
     is_restoring_session <- reactiveVal(FALSE)
     
+    # Check per-patient prerun status
     prerun_ready <- reactive({
-      status <- shared_data$fusion_prerun_status()
-      status %in% c("completed", "not_started")
+      patient_id <- selected_samples
+      
+      # Check if this patient has a status tracker
+      if (patient_id %in% names(shared_data$fusion_prerun_status)) {
+        status <- shared_data$fusion_prerun_status[[patient_id]]()
+        return(status %in% c("completed", "failed"))
+      }
+      
+      # If no tracker exists, assume ready (already processed or no prerun needed)
+      return(TRUE)
     })
     
-    # loading UI během prerunu (zachován tvůj vzhled)
+    # Show/hide main content based on prerun status  
+    observe({
+      if (prerun_ready()) {
+        show("main_content")
+      } else {
+        hide("main_content")
+      }
+    })
+    
+    # Loading UI během prerunu - pokryje celou kartu tmavým overlay
     output$prerun_loading <- renderUI({
       if (!prerun_ready()) {
-        status <- shared_data$fusion_prerun_status()
-        progress <- shared_data$fusion_prerun_progress()
-        div(style = "display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:400px;",
-          div(style = "text-align:center; padding:20px;",
-              h3("Preparing Fusion Data...", style = "margin-bottom: 20px;"),
-              div(style = "width:300px; background-color:#f8f9fa; border-radius:10px; padding:10px; margin:20px 0;",
-                  div(style = paste0("width:", progress, "%; height:20px; background-color:#007bff; border-radius:5px; transition:width 0.3s ease;"))),
-              p(paste0("Processing IGV snapshots and Arriba images... ", progress, "%"), style = "color:#6c757d; margin-top:10px;"),
-              p("You can use other modules while this processes in the background.", style = "color:#6c757d; font-size:0.9em; margin-top:15px;")))
-      } else NULL
+        patient_id <- selected_samples
+        
+        # Get per-patient status and progress
+        status <- if (patient_id %in% names(shared_data$fusion_prerun_status)) {
+          shared_data$fusion_prerun_status[[patient_id]]()
+        } else {
+          "not_started"
+        }
+        
+        progress <- if (patient_id %in% names(shared_data$fusion_prerun_progress)) {
+          shared_data$fusion_prerun_progress[[patient_id]]()
+        } else {
+          0
+        }
+        
+        div(
+          style = "position: absolute;
+                   top: 0;
+                   left: 0;
+                   right: 0;
+                   bottom: 0;
+                   min-height: 1000px;
+                   background: rgba(52, 58, 64, 0.95);
+                   display: flex; 
+                   flex-direction: column;
+                   align-items: center; 
+                   justify-content: center; 
+                   z-index: 1000;
+                   padding: 40px;",
+          div(
+            style = "text-align: center; max-width: 500px;",
+            tags$div(
+              style = "font-size: 48px; color: #74c0fc; margin-bottom: 20px;",
+              HTML('<i class="fas fa-spinner fa-spin"></i>')
+            ),
+            h3(paste0("Preparing Fusion Data for ", patient_id, "..."), 
+               style = "margin-bottom: 30px; color: #fff;"),
+            tags$div(
+              style = "width: 100%; background-color: rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 5px; margin: 20px 0;",
+              tags$div(
+                style = paste0("width: ", progress, "%; height: 30px; background: linear-gradient(90deg, #74c0fc, #4dabf7); 
+                               border-radius: 8px; transition: width 0.3s ease;")
+              )
+            ),
+            tags$p(
+              paste0("Processing IGV snapshots and Arriba images... ", progress, "%"),
+              style = "color: #e9ecef; margin-top: 15px; font-size: 1.1em; font-weight: 500;"
+            ),
+            tags$p(
+              "You can use other modules while this processes in the background.",
+              style = "color: #adb5bd; font-size: 0.95em; margin-top: 20px;"
+            )
+          )
+        )
+      } else {
+        NULL
+      }
     })
     
 

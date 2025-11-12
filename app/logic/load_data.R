@@ -85,12 +85,13 @@ read_by_extension <- function(file_path) {
 #' @export
 get_required_columns <- function(dataset_type) {
   required_cols <- list(
-    somatic = c("var_name", "Gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE",
-                "Consequence", "HGVSc", "HGVSp", "variant_type", "all_full_annot_name"),
-    germline = c("var_name", "Gene_symbol", "variant_freq", "coverage_depth", "gene_region", "gnomAD_NFE", 
-                 "clinvar_sig", "Consequence", "HGVSc", "HGVSp", "variant_type", "all_full_annot_name"),
-    fusion = c("gene1","gene2","arriba.called","starfus.called","arriba.confidence","overall_support","pos1","strand1",
-               "pos2","strand2","arriba.site1","arriba.site2"),
+    somatic = c("var_name", "gene_symbol", "tumor_variant_freq", "tumor_depth", "gene_region", "gnomAD_NFE",
+                "consequence", "HGVSc", "HGVSp", "variant_type", "all_full_annot_name"),
+    germline = c("var_name", "gene_symbol", "variant_freq", "coverage_depth", "gene_region", "gnomAD_NFE", 
+                 "clinvar_sig", "consequence", "HGVSc", "HGVSp", "variant_type", "all_full_annot_name"),
+    # For fusion: chr1/chr2 are required (chrom1/chrom2 will be accepted and renamed during validation)
+    fusion = c("gene1","gene2","chr1","chr2","pos1","pos2","strand1","strand2","arriba.called","starfus.called",
+               "arriba.confidence","overall_support","arriba.site1","arriba.site2"),
     expression = c("sample", "feature_name", "geneid","all_kegg_gene_names", "log2FC", "p_value", "p_adj")
   )
   
@@ -142,6 +143,10 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     if (length(input_var) == 0) stop("Soubor pro vzorek ", sample, " nenalezen")
     
     dt <- read_by_extension(input_var)
+    
+    # Rename chrom1/chrom2 to chr1/chr2 if present
+    if ("chrom1" %in% names(dt)) setnames(dt, c("chrom1", "chrom2"), c("chr1", "chr2"))
+    
     dt[, sample := sample]
     return(dt)
     

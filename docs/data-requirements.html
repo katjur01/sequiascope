@@ -363,6 +363,8 @@
 <strong>Arriba files</strong>:
 <ul>
 <li>For each <code>.pdf</code> arriba report there must be a corresponding <code>.tsv</code> arriba results table</li>
+<li>File name must contain string <strong>arriba</strong>
+</li>
 <li>Files cannot contain the strings <strong>discarded</strong> or <strong>STAR</strong> in their filename. These strings are exclusively reserved for arriba_discarded.tsv and STARfusion files</li>
 </ul>
 </li>
@@ -457,14 +459,111 @@ or</p>
 <td>Variant identifier</td>
 </tr>
 <tr class="even">
-<td><code>sample</code></td>
+<td><code>gene_symbol</code></td>
 <td>char</td>
-<td>Sample ID</td>
+<td>Gene symbol</td>
 </tr>
+<tr class="odd">
+<td><code>tumor_variant_freq</code></td>
+<td>num</td>
+<td>Tumor variant frequency</td>
+</tr>
+<tr class="even">
+<td><code>tumor_depth</code></td>
+<td>int</td>
+<td>Tumor sequencing depth</td>
+</tr>
+<tr class="odd">
+<td><code>gene_region</code></td>
+<td>char</td>
+<td>Gene region (exon, intron, etc.)</td>
+</tr>
+<tr class="even">
+<td><code>gnomAD_NFE</code></td>
+<td>num</td>
+<td>gnomAD Non-Finnish European allele frequency</td>
+</tr>
+<tr class="odd">
+<td><code>consequence</code></td>
+<td>char</td>
+<td>Variant consequence (missense, nonsense, etc.)</td>
+</tr>
+<tr class="even">
+<td><code>HGVSc</code></td>
+<td>char</td>
+<td>HGVS coding sequence notation</td>
+</tr>
+<tr class="odd">
+<td><code>HGVSp</code></td>
+<td>char</td>
+<td>HGVS protein sequence notation</td>
+</tr>
+<tr class="even">
+<td><code>variant_type</code></td>
+<td>char</td>
+<td>Type of variant (SNV, insertion, deletion, etc.)</td>
+</tr>
+<tr class="odd">
+<td><code>all_full_annot_name</code></td>
+<td>char</td>
+<td>Full annotation name</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Optional columns:</strong></li>
+</ul>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="29%">
+<col width="22%">
+<col width="48%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
 <td><code>in_library</code></td>
 <td>num</td>
 <td>Number of times the <code>var_name</code> is observed in the sample cohort (added automatically)</td>
+</tr>
+<tr class="even">
+<td><code>clinvar_sig</code></td>
+<td>char</td>
+<td>ClinVar clinical significance</td>
+</tr>
+<tr class="odd">
+<td><code>clinvar_DBN</code></td>
+<td>char</td>
+<td>ClinVar disease name</td>
+</tr>
+<tr class="even">
+<td><code>CGC_Somatic</code></td>
+<td>char</td>
+<td>Cancer Gene Census somatic annotation</td>
+</tr>
+<tr class="odd">
+<td><code>fOne</code></td>
+<td>char</td>
+<td>fOne database annotation</td>
+</tr>
+<tr class="even">
+<td><code>COSMIC</code></td>
+<td>char</td>
+<td>COSMIC database annotation</td>
+</tr>
+<tr class="odd">
+<td><code>HGMD</code></td>
+<td>char</td>
+<td>HGMD database annotation</td>
+</tr>
+<tr class="even">
+<td><code>snpDB</code></td>
+<td>char</td>
+<td>dbSNP annotation</td>
 </tr>
 </tbody>
 </table></div>
@@ -522,6 +621,11 @@ or</p>
 <li><strong>Required columns:* {-}</strong></li>
 </ul>
 <div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="29%">
+<col width="22%">
+<col width="48%">
+</colgroup>
 <thead><tr class="header">
 <th>Column</th>
 <th>Type</th>
@@ -534,9 +638,106 @@ or</p>
 <td>Variant identifier</td>
 </tr>
 <tr class="even">
-<td><code>sample</code></td>
+<td><code>gene_symbol</code></td>
 <td>char</td>
-<td>Sample ID</td>
+<td>Gene symbol</td>
+</tr>
+<tr class="odd">
+<td><code>variant_freq</code></td>
+<td>num</td>
+<td>Variant frequency</td>
+</tr>
+<tr class="even">
+<td><code>coverage_depth</code></td>
+<td>int</td>
+<td>Sequencing coverage depth</td>
+</tr>
+<tr class="odd">
+<td><code>gene_region</code></td>
+<td>char</td>
+<td>Gene region (exon, intron, etc.)</td>
+</tr>
+<tr class="even">
+<td><code>gnomAD_NFE</code></td>
+<td>num</td>
+<td>gnomAD Non-Finnish European allele frequency</td>
+</tr>
+<tr class="odd">
+<td><code>clinvar_sig</code></td>
+<td>char</td>
+<td>ClinVar clinical significance</td>
+</tr>
+<tr class="even">
+<td><code>consequence</code></td>
+<td>char</td>
+<td>Variant consequence (missense, nonsense, etc.)</td>
+</tr>
+<tr class="odd">
+<td><code>HGVSc</code></td>
+<td>char</td>
+<td>HGVS coding sequence notation</td>
+</tr>
+<tr class="even">
+<td><code>HGVSp</code></td>
+<td>char</td>
+<td>HGVS protein sequence notation</td>
+</tr>
+<tr class="odd">
+<td><code>variant_type</code></td>
+<td>char</td>
+<td>Type of variant (SNV, insertion, deletion, etc.)</td>
+</tr>
+<tr class="even">
+<td><code>all_full_annot_name</code></td>
+<td>char</td>
+<td>Full annotation name</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Optional columns:</strong></li>
+</ul>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="29%">
+<col width="22%">
+<col width="48%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>in_library</code></td>
+<td>num</td>
+<td>Number of times the <code>var_name</code> is observed in the sample cohort (added automatically if not present)</td>
+</tr>
+<tr class="even">
+<td><code>clinvar_DBN</code></td>
+<td>char</td>
+<td>ClinVar disease name</td>
+</tr>
+<tr class="odd">
+<td><code>CGC_Germline</code></td>
+<td>char</td>
+<td>Cancer Gene Census germline annotation</td>
+</tr>
+<tr class="even">
+<td><code>trusight_genes</code></td>
+<td>char</td>
+<td>TruSight gene panel annotation</td>
+</tr>
+<tr class="odd">
+<td><code>fOne</code></td>
+<td>char</td>
+<td>fOne database annotation</td>
+</tr>
+<tr class="even">
+<td><code>snpDB</code></td>
+<td>char</td>
+<td>dbSNP annotation</td>
 </tr>
 </tbody>
 </table></div>
@@ -544,10 +745,14 @@ or</p>
 <div id="fusion-genes" class="section level3 unnumbered">
 <h3>Fusion Genes<a class="anchor" aria-label="anchor" href="#fusion-genes"><i class="fas fa-link"></i></a>
 </h3>
+<div class="alert alert-info">
+<p><strong>Note:</strong>
+- Data must contain results from <strong>Arriba</strong> and <strong>StarFusion</strong> callers
+- Both <code>chr1</code>/<code>chr2</code> and <code>chrom1</code>/<code>chrom2</code> column names are accepted
+- If <code>chrom1</code>/<code>chrom2</code> are present, they will be automatically renamed to <code>chr1</code>/<code>chr2</code> during data loading</p>
+</div>
 <ul>
-<li><p>Data must contain results from <strong>Arriba</strong> and <strong>StarFusion</strong> callers.</p></li>
-<li><p>If a column named <strong>chrom1</strong> and <strong>chrom2</strong> are present, it is automatically <strong>renamed to chr1</strong> and <strong>chr2</strong>.</p></li>
-<li><p><strong>Required columns:</strong></p></li>
+<li><strong>Required columns:</strong></li>
 </ul>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
@@ -564,52 +769,158 @@ or</p>
 <tr class="odd">
 <td><code>gene1</code></td>
 <td>char</td>
-<td>gene name of first fusion partner</td>
+<td>Gene name of first fusion partner</td>
 </tr>
 <tr class="even">
 <td><code>gene2</code></td>
 <td>char</td>
-<td>gene name of second fusion partner</td>
+<td>Gene name of second fusion partner</td>
 </tr>
 <tr class="odd">
-<td><code>chr1</code></td>
+<td>
+<code>chr1</code> or <code>chrom1</code>
+</td>
 <td>char</td>
-<td>chromosome of first fusion partner (with “chr” prefix)</td>
+<td>Chromosome of first fusion partner (with “chr” prefix)</td>
 </tr>
 <tr class="even">
-<td><code>chr2</code></td>
+<td>
+<code>chr2</code> or <code>chrom2</code>
+</td>
 <td>char</td>
-<td>chromosome of second fusion partner (with “chr” prefix)</td>
+<td>Chromosome of second fusion partner (with “chr” prefix)</td>
 </tr>
 <tr class="odd">
 <td><code>pos1</code></td>
 <td>num</td>
-<td>genomic position of first fusion partner</td>
+<td>Genomic position of first fusion partner</td>
 </tr>
 <tr class="even">
 <td><code>pos2</code></td>
 <td>num</td>
-<td>genomic position of second fusion partner</td>
+<td>Genomic position of second fusion partner</td>
+</tr>
+<tr class="odd">
+<td><code>strand1</code></td>
+<td>char</td>
+<td>Strand orientation of first fusion partner (+/-)</td>
+</tr>
+<tr class="even">
+<td><code>strand2</code></td>
+<td>char</td>
+<td>Strand orientation of second fusion partner (+/-)</td>
 </tr>
 <tr class="odd">
 <td><code>arriba.called</code></td>
 <td>boolean</td>
-<td>whether Arriba called the fusion (true/false)</td>
+<td>Whether Arriba called the fusion (true/false)</td>
 </tr>
 <tr class="even">
 <td><code>starfus.called</code></td>
 <td>boolean</td>
-<td>whether STARFusion called the fusion (true/false)</td>
+<td>Whether STARFusion called the fusion (true/false)</td>
 </tr>
 <tr class="odd">
 <td><code>overall_support</code></td>
 <td>num</td>
-<td>overall support for the fusion</td>
+<td>Overall support for the fusion</td>
 </tr>
 <tr class="even">
 <td><code>arriba.confidence</code></td>
 <td>char</td>
-<td>confidence score from Arriba (high/medium/low)</td>
+<td>Confidence score from Arriba (high/medium/low)</td>
+</tr>
+<tr class="odd">
+<td><code>arriba.site1</code></td>
+<td>char</td>
+<td>Breakpoint site annotation for first fusion partner</td>
+</tr>
+<tr class="even">
+<td><code>arriba.site2</code></td>
+<td>char</td>
+<td>Breakpoint site annotation for second fusion partner</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Optional columns:</strong></li>
+</ul>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="29%">
+<col width="22%">
+<col width="48%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>DB_count</code></td>
+<td>int</td>
+<td>Number of databases where the fusion is found</td>
+</tr>
+<tr class="even">
+<td><code>DB_list</code></td>
+<td>char</td>
+<td>List of databases containing the fusion</td>
+</tr>
+<tr class="odd">
+<td><code>arriba.split_reads</code></td>
+<td>int</td>
+<td>Number of split reads supporting the fusion (Arriba)</td>
+</tr>
+<tr class="even">
+<td><code>arriba.discordant_mates</code></td>
+<td>int</td>
+<td>Number of discordant mate pairs supporting the fusion (Arriba)</td>
+</tr>
+<tr class="odd">
+<td><code>arriba.break_coverage</code></td>
+<td>int</td>
+<td>Coverage at first breakpoint (Arriba)</td>
+</tr>
+<tr class="even">
+<td><code>arriba.break2_coverage</code></td>
+<td>int</td>
+<td>Coverage at second breakpoint (Arriba)</td>
+</tr>
+<tr class="odd">
+<td><code>arriba.break_seq</code></td>
+<td>char</td>
+<td>Sequence at breakpoint (Arriba)</td>
+</tr>
+<tr class="even">
+<td><code>starfus.split_reads</code></td>
+<td>int</td>
+<td>Number of split reads supporting the fusion (STARFusion)</td>
+</tr>
+<tr class="odd">
+<td><code>starfus.discordant_mates</code></td>
+<td>int</td>
+<td>Number of discordant mate pairs supporting the fusion (STARFusion)</td>
+</tr>
+<tr class="even">
+<td><code>starfus.counter_fusion1</code></td>
+<td>int</td>
+<td>Counter fusion reads for first gene (STARFusion)</td>
+</tr>
+<tr class="odd">
+<td><code>starfus.counter_fusion2</code></td>
+<td>int</td>
+<td>Counter fusion reads for second gene (STARFusion)</td>
+</tr>
+<tr class="even">
+<td><code>starfus.splice_type</code></td>
+<td>char</td>
+<td>Type of splice junction (STARFusion)</td>
+</tr>
+<tr class="odd">
+<td><code>starfus.break_seq</code></td>
+<td>char</td>
+<td>Sequence at breakpoint (STARFusion)</td>
 </tr>
 </tbody>
 </table></div>
@@ -633,19 +944,76 @@ or</p>
 <td>Sample ID</td>
 </tr>
 <tr class="even">
-<td><code>tissue</code></td>
+<td><code>feature_name</code></td>
 <td>char</td>
-<td>Tissue name</td>
+<td>Gene name</td>
 </tr>
+<tr class="odd">
+<td><code>geneid</code></td>
+<td>char</td>
+<td>Gene ID (Ensembl, RefSeq, or other)</td>
+</tr>
+<tr class="even">
+<td><code>all_kegg_gene_names</code></td>
+<td>char</td>
+<td>KEGG gene names</td>
+</tr>
+<tr class="odd">
+<td><code>log2FC</code></td>
+<td>num</td>
+<td>Log2 fold change</td>
+</tr>
+<tr class="even">
+<td><code>p_value</code></td>
+<td>num</td>
+<td>P-value</td>
+</tr>
+<tr class="odd">
+<td><code>p_adj</code></td>
+<td>num</td>
+<td>Adjusted p-value</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Optional columns:</strong></li>
+</ul>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="29%">
+<col width="22%">
+<col width="48%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
 <td><code>pathway</code></td>
 <td>char</td>
-<td>Pathway name (if available)</td>
+<td>Pathway name (if available, otherwise automatically retrieved from KEGG)</td>
 </tr>
 <tr class="even">
-<td><em>additional</em></td>
-<td>num</td>
-<td>Columns with expression values</td>
+<td><code>refseq_id</code></td>
+<td>char</td>
+<td>RefSeq gene ID</td>
+</tr>
+<tr class="odd">
+<td><code>type</code></td>
+<td>char</td>
+<td>Gene type</td>
+</tr>
+<tr class="even">
+<td><code>gene_definition</code></td>
+<td>char</td>
+<td>Gene definition/description</td>
+</tr>
+<tr class="odd">
+<td><code>num_of_paths</code></td>
+<td>int</td>
+<td>Number of pathways</td>
 </tr>
 </tbody>
 </table></div>
@@ -755,7 +1123,7 @@ or</p>
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-11-11.</p>
+    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-11-12.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

@@ -774,7 +774,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       selected_dt(NULL)
       
       if (is.null(som_vars) && is.null(germ_vars) && is.null(fusions)) {
-        selected_dt(data.table(Gene_symbol = character(0), var_name = character(0), 
+        selected_dt(data.table(gene_symbol = character(0), var_name = character(0), 
                                fusion = character(0), pathway = character(0)))
         return()
       }
@@ -782,38 +782,38 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       variants_list <- list()
       
       if (!is.null(som_vars) && nrow(som_vars) > 0) {
-        variants_list[[1]] <- som_vars[, .(Gene_symbol, var_name = "somatic")]
+        variants_list[[1]] <- som_vars[, .(gene_symbol, var_name = "somatic")]
       }
       
       if (!is.null(germ_vars) && nrow(germ_vars) > 0) {
-        variants_list[[2]] <- germ_vars[, .(Gene_symbol, var_name = "germline")]
+        variants_list[[2]] <- germ_vars[, .(gene_symbol, var_name = "germline")]
       }
       
       combined_variants <- if(length(variants_list) > 0) {
         unique(rbindlist(variants_list, fill = TRUE))
       } else {
-        data.table(Gene_symbol = character(0), var_name = character(0))
+        data.table(gene_symbol = character(0), var_name = character(0))
       }
       
       fusions_dt <- if (!is.null(fusions) && nrow(fusions) > 0) {
         unique(rbindlist(list(
-          fusions[, .(Gene_symbol = gene1, fusion = "yes")],
-          fusions[, .(Gene_symbol = gene2, fusion = "yes")]
+          fusions[, .(gene_symbol = gene1, fusion = "yes")],
+          fusions[, .(gene_symbol = gene2, fusion = "yes")]
         )))
       } else {
-        data.table(Gene_symbol = character(0), fusion = character(0))
+        data.table(gene_symbol = character(0), fusion = character(0))
       }
       
-      combined_selected <- merge(combined_variants, fusions_dt, by = "Gene_symbol", all = TRUE)
+      combined_selected <- merge(combined_variants, fusions_dt, by = "gene_symbol", all = TRUE)
       
       if (nrow(combined_selected) > 0) {
         pathways_info <- subTissue_dt()[
-          feature_name %in% combined_selected$Gene_symbol, 
+          feature_name %in% combined_selected$gene_symbol, 
           .(pathway = paste(unique(pathway), collapse = "; ")), 
           by = feature_name
         ]
-        setnames(pathways_info, "feature_name", "Gene_symbol")
-        combined_selected <- merge(combined_selected, pathways_info, by = "Gene_symbol", all.x = TRUE)
+        setnames(pathways_info, "feature_name", "gene_symbol")
+        combined_selected <- merge(combined_selected, pathways_info, by = "gene_symbol", all.x = TRUE)
       }
       
       selected_dt(combined_selected)
@@ -825,7 +825,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         input_id = "selectedSomVariants",
         column = "var_name",
         value = "somatic",
-        filter = function(dt) dt[var_name == "somatic", unique(Gene_symbol)],
+        filter = function(dt) dt[var_name == "somatic", unique(gene_symbol)],
         alert_text = "You don't have any somatic variants selected as possibly oncogenic.",
         tab = "variants",
         box = "somatic"
@@ -834,7 +834,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         input_id = "selectedGermVariants",
         column = "var_name",
         value = "germline",
-        filter = function(dt) dt[var_name == "germline", unique(Gene_symbol)],
+        filter = function(dt) dt[var_name == "germline", unique(gene_symbol)],
         alert_text = "No germline variants are currently selected as possibly pathogenic.",
         tab = "variants",
         box = "germline"
@@ -843,7 +843,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         input_id = "selectedFusions",
         column = "fusion",
         value = "yes",
-        filter = function(dt) dt[!is.na(fusion), unique(Gene_symbol)],
+        filter = function(dt) dt[!is.na(fusion), unique(gene_symbol)],
         alert_text = "No fusion genes are currently selected.",
         tab = "fusion_genes",
         box = NULL

@@ -758,29 +758,13 @@ filterTab_ui <- function(id, tissue_list){
     tags$head(tags$style(HTML("button:has(.download-button) .dropdown-toggle {border-radius: 0; padding: 0; background-color: transparent; border: none; float: right; margin-top: -1px;}
                                button:has(.download-button) .dropdown-toggle::after {display: none !important;}
                                button:has(.download-button) .glyphicon-triangle-bottom {display: none !important; width: 0 !important; margin: 0 !important; padding: 0 !important;}
-                               .sw-dropdown .action-button #my-filter-btn {background-color: transparent; border: none; margin-top: -1px;}
-                               .dropdown {position: relative; z-index: 2000;}
-                               .bttn-material-circle {box-shadow: 0 0 0 0 !important;}
-                               .bttn-material-circle:hover {
-                                 box-shadow: 0 5px 11px 0 rgba(0, 0, 0, .18), 0 4px 15px 0 rgba(0, 0, 0, .15) !important;
-                                 background-color: transparent !important;
-                                 border: none !important;
-                               }
-                               .bttn-material-circle:focus {
-                                 box-shadow: 0 5px 11px 0 rgba(0, 0, 0, .18), 0 4px 15px 0 rgba(0, 0, 0, .15) !important;
-                                 background-color: transparent !important;
-                                 border: none !important;
-                                 outline: none !important;
-                               }
-                               .sw-dropdown-content {
-                                 min-width: 1100px !important;
-                                 width: auto !important;
-                                 max-width: 90vw !important;
-                               }
-                               .my-filter-btn .sw-dropdown-in {
-                                 min-width: 1100px !important;
-                                 width: auto !important;
-                               }"))),
+                               .sw-dropdown .action-button #my-filter-btn { background-color: transparent; border: none; margin-top: -1px; }
+                               .dropdown { position: relative; z-index: 2000; }
+                               .bttn-material-circle { box-shadow: 0 0 0 0 !important; }
+                               .bttn-material-circle:hover { box-shadow: 0 5px 11px 0 rgba(0, 0, 0, .18), 0 4px 15px 0 rgba(0, 0, 0, .15) !important; background-color: transparent !important; border: none !important; }
+                               .bttn-material-circle:focus { box-shadow: 0 5px 11px 0 rgba(0, 0, 0, .18), 0 4px 15px 0 rgba(0, 0, 0, .15) !important; border: none !important; outline: none !important; }
+                               .sw-dropdown-content { min-width: 1100px !important; width: auto !important; max-width: 90vw !important; }
+                               .my-filter-btn .sw-dropdown-in { min-width: 1100px !important; width: auto !important; }"))),
     dropdown(
       style = "material-circle",
       label = NULL,

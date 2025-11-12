@@ -74,18 +74,18 @@ server <- function(id, patient, shared_data, run) {
             Transcript  = character(),
             variant     = character(),
             VAF         = character(),
-            Consequence = character(),
+            consequence = character(),
             Class       = character()
           )
         } else {
           dt <- data.table(
-            Gene        = som_vars$Gene_symbol,
+            Gene        = som_vars$gene_symbol,
             Transcript  = som_vars$Feature,
             HGVSc       = noNA_text(som_vars$HGVSc),
             HGVSp       = noNA_text(som_vars$HGVSp),
             variant     = sprintf("%s\n(%s)", noNA_text(som_vars$HGVSc), noNA_text(som_vars$HGVSp)),
             VAF         = as.numeric(som_vars$tumor_variant_freq) * 100,
-            Consequence = som_vars$Consequence,
+            consequence = som_vars$consequence,
             Class       = ""
           )
         }
@@ -93,13 +93,13 @@ server <- function(id, patient, shared_data, run) {
       }
     })
     preprare_somatic_dt <- function(somatic_dt) {
-      ft <- flextable(somatic_dt, col_keys = c("Gene","Transcript","variant","VAF","Consequence","Class"))
+      ft <- flextable(somatic_dt, col_keys = c("Gene","Transcript","variant","VAF","consequence","Class"))
       ft <- set_header_labels(ft,
                               Gene = "Gene",
                               Transcript = "Transcript",
                               variant = "Variant",
                               VAF = "VAF",
-                              Consequence = "Variant effect",
+                              consequence = "Variant effect",
                               Class = "Class")
       ft <- myReport_theme(ft)
       ft <- set_table_properties(ft, width = 1, layout = "autofit")
@@ -123,7 +123,7 @@ server <- function(id, patient, shared_data, run) {
             Transcript  = character(),
             variant     = character(),
             MAF         = numeric(),
-            Consequence = character(),
+            consequence = character(),
             Phenotype   = character(),
             Zygozity    = character(),
             Inheritance = character(),
@@ -131,13 +131,13 @@ server <- function(id, patient, shared_data, run) {
           )
         } else {
           dt <- data.table(
-            Gene        = germ_vars$Gene_symbol,
+            Gene        = germ_vars$gene_symbol,
             Transcript  = germ_vars$Feature,
             HGVSc       = noNA_text(germ_vars$HGVSc),
             HGVSp       = noNA_text(germ_vars$HGVSp),
             variant     = sprintf("%s\n(%s)", noNA_text(germ_vars$HGVSc), noNA_text(germ_vars$HGVSp)),
             MAF         = germ_vars$gnomAD_NFE,
-            Consequence = germ_vars$Consequence,
+            consequence = germ_vars$consequence,
             Phenotype   = "",
             Zygozity    = "",
             Inheritance = "",
@@ -148,10 +148,10 @@ server <- function(id, patient, shared_data, run) {
       }
     })
     preprare_germline_dt <- function(germline_dt) {
-      ft <- flextable(germline_dt, col_keys = c("Gene","Transcript","variant","MAF","Consequence","Phenotype","Zygozity","Inheritance","Class"))
+      ft <- flextable(germline_dt, col_keys = c("Gene","Transcript","variant","MAF","consequence","Phenotype","Zygozity","Inheritance","Class"))
       ft <- set_header_labels(ft,
                               variant = "Variant",
-                              Consequence = "Variant effect")
+                              consequence = "Variant effect")
       ft <- myReport_theme(ft)
       ft <- set_table_properties(ft, width = 1, layout = "autofit")
       ft <- width(ft, j = ~ MAF, width = 0.6)

@@ -37,7 +37,7 @@ box::use(
   htmltools[tags,p,span],
   shinyWidgets[pickerInput,prettySwitch,dropdown],
   shinyjs[useShinyjs, runjs,toggle,hide,show],
-  utils[str],
+  utils[str, capture.output],
   waiter[spin_1, useWaiter, waiter_show, waiter_hide, waiter_update, spin_fading_circles],
   # jsonlite[read_json,write_json],
   # fresh[create_theme,bs4dash_vars,bs4dash_yiq,bs4dash_layout,bs4dash_sidebar_light,bs4dash_status,bs4dash_color]s
@@ -48,11 +48,15 @@ box::use(
   data.table[data.table],
   shinyalert[shinyalert],
   future[future, value, resolved, plan, multicore, multisession],
-  promises[then, catch]
+  promises[then, catch],
+  parallel[detectCores]
   # openxlsx[read.xlsx]
 )
 
-  plan(multisession, workers = 2)
+  # Dynamic worker configuration based on available physical CPU cores (Kubernetes safe)
+  n_workers <- min(parallel::detectCores(logical = FALSE), 2)
+  message("Setting up ", n_workers, " parallel workers")
+  plan(multisession, workers = n_workers)
   options(future.fork.enable = FALSE)
 
 
@@ -67,7 +71,8 @@ box::use(
   # app/logic/helper_igv[start_static_server,stop_static_server],
   app/view/networkGraph_cytoscape,
   app/logic/session_utils[load_session, save_session, cleanup_old_sessions, create_session_cache],
-  app/logic/prerun_fusion[fusion_patients_to_prerun,prerun_fusion_data, get_fusion_prerun_status],
+  app/logic/prerun_fusion[fusion_patients_to_prerun,prerun_fusion_data,prerun_fusion_patient,get_fusion_prerun_status],
+  app/logic/test_background_process[test_background_worker_single,test_background_worker],
   app/logic/helper_main[get_patients, get_files_by_patient, add_dataset_tabs, add_summary_boxes],
   app/logic/helper_waiter[show_waiter_with_progress, update_waiter_progress, wait_for_summary_rendered, get_waiter_js],
   app/logic/navigation_lock[lock_navigation, unlock_navigation, get_navigation_lock_css, get_navigation_lock_js],
@@ -257,10 +262,12 @@ server <- function(id) {
       session_dir = reactiveVal(NULL),
       is_loading_session = reactiveVal(FALSE),
       
-      # NOVÉ: Přidat pro fusion prerun status
-      fusion_prerun_status = reactiveVal("not_started"),
-      fusion_prerun_progress = reactiveVal(0),
-      fusion_prerun_future = NULL  # pro sledování future objektu
+      # Per-patient fusion prerun tracking (paralelní zpracování)
+      fusion_prerun_status = list(),      # patient_id -> reactiveVal("not_started"|"running"|"completed"|"failed")
+      fusion_prerun_progress = list(),    # patient_id -> reactiveVal(0-100)
+      fusion_prerun_future = list(),      # patient_id -> future object
+      fusion_prerun_observer = list(),    # patient_id -> observer object
+      fusion_prerun_errors = reactiveVal(character())  # Track all errors
     )
     shared_data$upload_modules <- reactiveVal(list())
     shared_data$upload_pending <- reactiveVal(list()) 
@@ -301,19 +308,8 @@ server <- function(id) {
     upload <- upload_data$server("upload_data_table", shared_data)
   
     
-    # NOVÝ: Observer pro sledování fusion prerun statusu (pro debugging)
-    observe({
-      status <- shared_data$fusion_prerun_status()
-      progress <- shared_data$fusion_prerun_progress()
-      
-      if (status == "running") {
-        message("Fusion prerun progress: ", progress, "%")
-      } else if (status == "completed") {
-        message("Fusion prerun completed successfully!")
-      } else if (status == "failed") {
-        message("Fusion prerun failed!")
-      }
-    })
+    # Observer removed - now using per-patient tracking
+    # (fusion_prerun_status is now a list, not a reactiveVal)
 
     observeEvent(upload$confirmed_paths(), {
       # Unlock all navigation tabs after successful data confirmation
@@ -490,94 +486,187 @@ server <- function(id) {
       })
       
       
+      # ═══════════════════════════════════════════════════════════════════════════
+      # FUSION PRERUN - PARALLEL processing for each patient
+      # ═══════════════════════════════════════════════════════════════════════════
       
-      # 
-#       fusion_patients <- get_patients(confirmed_paths, "fusion")
-#       patients_to_run <- fusion_patients_to_prerun(fusion_patients, "www")
-# 
-#       # NOVÝ KÓD: Spustit fusion prerun na pozadí
-# 
-#       if (length(patients_to_run) > 0) {
-#         message("Starting fusion prerun in background for: ", paste(patients_to_run, collapse = ", "))
-#         shared_data$fusion_prerun_status <- reactiveVal("running")
-#         shared_data$fusion_prerun_progress <- reactiveVal(0)
-# 
-#         # omez vstupní tabulku jen na tyto pacienty
-#         confirmed_subset <- subset(confirmed_paths, patient %in% patients_to_run & dataset == "fusion")
-# 
-#         prog_file <- file.path(tempdir(), paste0("fusion_", as.integer(Sys.time()), ".progress"))
-#         shared_data$fusion_prerun_progress_file <- prog_file
-# 
-#         fusion_future <- future({
-#           message("[DEBUG] fusion prerun: sleeping 30s to simulate heavy work...")
-# 
-#           # Sys.sleep(15)
-# 
-# 
-#           # prerun_fusion_data(confirmed_subset, shared_data)
-# 
-#           writeLines("0", prog_file)
-#           ok <- FALSE
-#           try({
-#             ok <- isTRUE(prerun_fusion_data(confirmed_subset, NULL, prog_file = prog_file))
-#           })
-#           writeLines("100", prog_file)
-#           ok
-# 
-#           TRUE
-#         })
-# 
-#         shared_data$fusion_prerun_future <- fusion_future
-# 
-#       #   fusion_status_observer <- observe({
-#       #     invalidateLater(1000)
-#       #     if (!is.null(shared_data$fusion_prerun_future) && resolved(shared_data$fusion_prerun_future)) {
-#       #       tryCatch({
-#       #         value(shared_data$fusion_prerun_future)
-#       #         shared_data$fusion_prerun_status <- reactiveVal("completed")
-#       #         message("Fusion prerun completed successfully!")
-#       #       }, error = function(e) {
-#       #         shared_data$fusion_prerun_status <- reactiveVal("failed")
-#       #         message("Fusion prerun failed: ", e$message)
-#       #       })
-#       #       shared_data$fusion_prerun_future <- NULL
-#       #       fusion_status_observer$destroy()
-#       #     }
-#       #   })
-# 
-#         fusion_status_observer <- observe({
-#           invalidateLater(1000)
-# 
-#           # čti průběžný progress ze souboru
-#           pf <- isolate(shared_data$fusion_prerun_progress_file)
-#           if (!is.null(pf) && nzchar(pf) && file.exists(pf)) {
-#             p <- suppressWarnings(as.integer(readLines(pf, n = 1)))
-#             if (!is.na(p)) shared_data$fusion_prerun_progress(p)  # <<< setter, ne reactiveVal()
-#           }
-# 
-#           # dokončení future
-#           if (!is.null(shared_data$fusion_prerun_future) &&
-#               future::resolved(shared_data$fusion_prerun_future)) {
-# 
-#             ok <- tryCatch(future::value(shared_data$fusion_prerun_future), error = function(e) FALSE)
-# 
-#             shared_data$fusion_prerun_status(if (ok) "completed" else "failed")  # <<< setter
-#             shared_data$fusion_prerun_progress(100)                               # <<< setter
-# 
-#             # úklid
-#             shared_data$fusion_prerun_future <- NULL
-#             if (!is.null(pf) && file.exists(pf)) unlink(pf)
-#             shared_data$fusion_prerun_progress_file <- NULL
-# 
-#             fusion_status_observer$destroy()
-#           }
-#         })
-# 
-# 
-#       } else {
-#         print("### Fusion prerun skript is not needed for any selected patient.")
-#       }
-# 
+      fusion_patients <- get_patients(confirmed_paths, "fusion")
+      patients_to_run <- fusion_patients_to_prerun(fusion_patients, "www")
+
+      if (length(patients_to_run) > 0) {
+        message("Starting PARALLEL fusion prerun for ", length(patients_to_run), " patients: ", paste(patients_to_run, collapse = ", "))
+        
+        # Clear old errors
+        shared_data$fusion_prerun_errors(character())
+        
+        # Get file list for all fusion patients
+        fusion_files <- get_files_by_patient(confirmed_paths, "fusion")
+        
+        # ═══════════════════════════════════════════════════════════════════════════
+        # Launch one future per patient (parallel execution with REAL processing)
+        # ═══════════════════════════════════════════════════════════════════════════
+        for (patient_id in patients_to_run) {
+          message("[LAUNCH] Starting REAL background process for patient: ", patient_id)
+          
+          # Initialize per-patient tracking
+          shared_data$fusion_prerun_status[[patient_id]] <- reactiveVal("running")
+          shared_data$fusion_prerun_progress[[patient_id]] <- reactiveVal(0)
+          
+          # Create progress file for this patient
+          prog_file <- file.path(tempdir(), paste0("fusion_", patient_id, "_", as.integer(Sys.time()), ".progress"))
+          
+          # Get file list for this patient
+          file_list <- fusion_files[[patient_id]]
+          message("[MAIN] file_list for ", patient_id, ":")
+          message("[MAIN]   - is.null: ", is.null(file_list))
+          message("[MAIN]   - class: ", paste(class(file_list), collapse=", "))
+          if (!is.null(file_list)) {
+            message("[MAIN]   - names: ", paste(names(file_list), collapse=", "))
+            message("[MAIN]   - fusion: ", if(!is.null(file_list$fusion)) paste(file_list$fusion, collapse=", ") else "NULL")
+            message("[MAIN]   - arriba: ", if(!is.null(file_list$arriba)) paste(file_list$arriba, collapse=", ") else "NULL")
+          }
+          
+          # Launch future for this patient with REAL processing
+          message("[MAIN] About to launch future for ", patient_id)
+          
+          # Use explicit globals list to speed up future creation
+          patient_future <- future({
+            prerun_fusion_patient(patient_id, file_list, prog_file, output_base_dir = "./www")
+          }, globals = list(
+            patient_id = patient_id,
+            file_list = file_list, 
+            prog_file = prog_file,
+            prerun_fusion_patient = prerun_fusion_patient
+          ), stdout = TRUE, conditions = "message")
+          
+          message("[MAIN] Future launched for ", patient_id)
+          
+          shared_data$fusion_prerun_future[[patient_id]] <- list(
+            future = patient_future,
+            prog_file = prog_file
+          )
+          
+          # Create observer for this patient
+          local({
+            pid <- patient_id  # Capture in closure
+            pfile <- prog_file
+            
+            observer <- observe({
+              invalidateLater(500)  # Check twice per second
+              
+              # Read progress from file
+              if (file.exists(pfile)) {
+                p <- suppressWarnings(as.integer(readLines(pfile, n = 1)))
+                if (!is.na(p)) {
+                  shared_data$fusion_prerun_progress[[pid]](p)
+                  # message("[OBSERVER] ", pid, " progress: ", p, "%")  # Comment out to reduce console spam
+                }
+              }
+              
+              # Check if this patient's future completed
+              fut_data <- shared_data$fusion_prerun_future[[pid]]
+              if (!is.null(fut_data) && future::resolved(fut_data$future)) {
+                
+                result <- tryCatch({
+                  val <- future::value(fut_data$future)
+                  
+                  # Print captured stdout/stderr from worker
+                  if (!is.null(attr(val, "stdout"))) {
+                    cat("[WORKER OUTPUT ", pid, "]\n", attr(val, "stdout"), "\n", sep = "")
+                  }
+                  
+                  # Print messages captured in result structure
+                  if (!is.null(val$messages) && length(val$messages) > 0) {
+                    message("[MESSAGES from ", pid, "]:")
+                    for (msg in val$messages) message("  ", msg)
+                  }
+                  
+                  # Print warnings
+                  if (!is.null(val$warnings) && length(val$warnings) > 0) {
+                    message("[WARNINGS from ", pid, "]:")
+                    for (wrn in val$warnings) warning("  ", wrn, call. = FALSE)
+                  }
+                  
+                  # Print errors
+                  if (!is.null(val$errors) && length(val$errors) > 0) {
+                    message("[ERRORS from ", pid, "]:")
+                    for (err in val$errors) message("  ", err)
+                  }
+                  
+                  val
+                }, error = function(e) {
+                  message("[ERROR] ", pid, ": ", e$message)
+                  list(success = FALSE, errors = paste0(pid, ": ", e$message), progress = 0)
+                })
+                
+                message("[COMPLETED] ", pid, " - Success: ", result$success)
+                
+                # Update status
+                shared_data$fusion_prerun_status[[pid]](if (result$success) "completed" else "failed")
+                shared_data$fusion_prerun_progress[[pid]](100)
+                
+                # Track errors
+                if (!result$success && length(result$errors) > 0) {
+                  current_errors <- shared_data$fusion_prerun_errors()
+                  shared_data$fusion_prerun_errors(c(current_errors, result$errors))
+                }
+                
+                # Cleanup
+                if (file.exists(pfile)) unlink(pfile)
+                shared_data$fusion_prerun_future[[pid]] <- NULL
+                observer$destroy()
+                
+                message("[CLEANUP] Observer destroyed for ", pid)
+              }
+            })
+            
+            shared_data$fusion_prerun_observer[[pid]] <- observer
+          })
+        }
+        
+        message("[PARALLEL LAUNCH] All ", length(patients_to_run), " patient futures started")
+        
+        # Global notification when all complete (runs once, then destroys itself)
+        all_complete_observer <- observe({
+          invalidateLater(1000)
+          
+          # Check if all patients completed
+          statuses <- sapply(patients_to_run, function(pid) {
+            if (pid %in% names(shared_data$fusion_prerun_status)) {
+              shared_data$fusion_prerun_status[[pid]]()
+            } else {
+              "not_started"
+            }
+          })
+          
+          all_done <- all(statuses %in% c("completed", "failed"))
+          
+          if (all_done) {
+            errors <- shared_data$fusion_prerun_errors()
+            if (length(errors) > 0) {
+              showNotification(
+                paste0("⚠️ Fusion prerun completed with ", length(errors), " error(s)"),
+                type = "warning",
+                duration = 10
+              )
+            } else {
+              showNotification(
+                paste0("✅ All ", length(patients_to_run), " patients processed successfully!"),
+                type = "message",
+                duration = 5
+              )
+            }
+            
+            # Destroy this observer so it doesn't keep showing notifications
+            all_complete_observer$destroy()
+            message("[ALL COMPLETE] Observer destroyed")
+          }
+        })
+
+      } else {
+        message("### Fusion prerun not needed - all patients already processed")
+      }
+
       # Optionally focus the whole Variant calling page
       update_waiter_progress(session, 98, "Finalizing...")
 

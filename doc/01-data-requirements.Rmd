@@ -233,6 +233,7 @@ project_root/
     - File cannot contain the strings **arriba** or **STAR** in their filename. These strings are exclusively reserved for Arriba and STARFusion files
 - **Arriba files**:
     - For each `.pdf` arriba report there must be a corresponding `.tsv` arriba results table
+    - File name must contain string **arriba**
     - Files cannot contain the strings **discarded** or **STAR** in their filename. These strings are exclusively reserved for arriba_discarded.tsv and STARfusion files
 - **Expression**:
     - In case of multiple tissue-matched reference expression data, files must contain `{tissue_name}` otherwise the name must contain `{patient_id}`
@@ -287,9 +288,30 @@ project_root/
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `var_name` | char |Variant identifier |
-| `sample` | char | Sample ID |
+| `var_name` | char | Variant identifier |
+| `gene_symbol` | char | Gene symbol |
+| `tumor_variant_freq` | num | Tumor variant frequency |
+| `tumor_depth` | int | Tumor sequencing depth |
+| `gene_region` | char | Gene region (exon, intron, etc.) |
+| `gnomAD_NFE` | num | gnomAD Non-Finnish European allele frequency |
+| `consequence` | char | Variant consequence (missense, nonsense, etc.) |
+| `HGVSc` | char | HGVS coding sequence notation |
+| `HGVSp` | char | HGVS protein sequence notation |
+| `variant_type` | char | Type of variant (SNV, insertion, deletion, etc.) |
+| `all_full_annot_name` | char | Full annotation name |
+
+- **Optional columns:**
+
+| Column | Type | Description |
+|--------|------|-------------|
 | `in_library` | num | Number of times the `var_name` is observed in the sample cohort (added automatically) |
+| `clinvar_sig` | char | ClinVar clinical significance |
+| `clinvar_DBN` | char | ClinVar disease name |
+| `CGC_Somatic` | char | Cancer Gene Census somatic annotation |
+| `fOne` | char | fOne database annotation |
+| `COSMIC` | char | COSMIC database annotation |
+| `HGMD` | char | HGMD database annotation |
+| `snpDB` | char | dbSNP annotation |
 
 
 #### TMB {-}
@@ -318,28 +340,77 @@ Example of `mutation_loads.tsv`
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `var_name` | char |Variant identifier |
-| `sample` | char | Sample ID |
+| `var_name` | char | Variant identifier |
+| `gene_symbol` | char | Gene symbol |
+| `variant_freq` | num | Variant frequency |
+| `coverage_depth` | int | Sequencing coverage depth |
+| `gene_region` | char | Gene region (exon, intron, etc.) |
+| `gnomAD_NFE` | num | gnomAD Non-Finnish European allele frequency |
+| `clinvar_sig` | char | ClinVar clinical significance |
+| `consequence` | char | Variant consequence (missense, nonsense, etc.) |
+| `HGVSc` | char | HGVS coding sequence notation |
+| `HGVSp` | char | HGVS protein sequence notation |
+| `variant_type` | char | Type of variant (SNV, insertion, deletion, etc.) |
+| `all_full_annot_name` | char | Full annotation name |
+
+- **Optional columns:**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `in_library` | num | Number of times the `var_name` is observed in the sample cohort (added automatically if not present) |
+| `clinvar_DBN` | char | ClinVar disease name |
+| `CGC_Germline` | char | Cancer Gene Census germline annotation |
+| `trusight_genes` | char | TruSight gene panel annotation |
+| `fOne` | char | fOne database annotation |
+| `snpDB` | char | dbSNP annotation |
 
 
 ### Fusion Genes {-}
-- Data must contain results from **Arriba** and **StarFusion** callers.
-- If a column named **chrom1** and **chrom2** are present, it is automatically **renamed to chr1** and **chr2**.
+
+::: {.alert .alert-info}
+**Note:** 
+- Data must contain results from **Arriba** and **StarFusion** callers
+- Both `chr1`/`chr2` and `chrom1`/`chrom2` column names are accepted
+- If `chrom1`/`chrom2` are present, they will be automatically renamed to `chr1`/`chr2` during data loading
+:::
 
 - **Required columns:**
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `gene1` | char | gene name of first fusion partner |
-| `gene2` | char | gene name of second fusion partner |
-| `chr1` | char | chromosome of first fusion partner (with "chr" prefix) |
-| `chr2` | char | chromosome of second fusion partner (with "chr" prefix) |
-| `pos1` | num | genomic position of first fusion partner |
-| `pos2` | num | genomic position of second fusion partner |
-| `arriba.called` | boolean | whether Arriba called the fusion (true/false) |
-| `starfus.called` | boolean | whether STARFusion called the fusion (true/false) |
-| `overall_support` | num | overall support for the fusion |
-| `arriba.confidence` | char | confidence score from Arriba (high/medium/low) |
+| `gene1` | char | Gene name of first fusion partner |
+| `gene2` | char | Gene name of second fusion partner |
+| `chr1` or `chrom1` | char | Chromosome of first fusion partner (with "chr" prefix) |
+| `chr2` or `chrom2` | char | Chromosome of second fusion partner (with "chr" prefix) |
+| `pos1` | num | Genomic position of first fusion partner |
+| `pos2` | num | Genomic position of second fusion partner |
+| `strand1` | char | Strand orientation of first fusion partner (+/-) |
+| `strand2` | char | Strand orientation of second fusion partner (+/-) |
+| `arriba.called` | boolean | Whether Arriba called the fusion (true/false) |
+| `starfus.called` | boolean | Whether STARFusion called the fusion (true/false) |
+| `overall_support` | num | Overall support for the fusion |
+| `arriba.confidence` | char | Confidence score from Arriba (high/medium/low) |
+| `arriba.site1` | char | Breakpoint site annotation for first fusion partner |
+| `arriba.site2` | char | Breakpoint site annotation for second fusion partner |
+
+
+- **Optional columns:**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `DB_count` | int | Number of databases where the fusion is found |
+| `DB_list` | char | List of databases containing the fusion |
+| `arriba.split_reads` | int | Number of split reads supporting the fusion (Arriba) |
+| `arriba.discordant_mates` | int | Number of discordant mate pairs supporting the fusion (Arriba) |
+| `arriba.break_coverage` | int | Coverage at first breakpoint (Arriba) |
+| `arriba.break2_coverage` | int | Coverage at second breakpoint (Arriba) |
+| `arriba.break_seq` | char | Sequence at breakpoint (Arriba) |
+| `starfus.split_reads` | int | Number of split reads supporting the fusion (STARFusion) |
+| `starfus.discordant_mates` | int | Number of discordant mate pairs supporting the fusion (STARFusion) |
+| `starfus.counter_fusion1` | int | Counter fusion reads for first gene (STARFusion) |
+| `starfus.counter_fusion2` | int | Counter fusion reads for second gene (STARFusion) |
+| `starfus.splice_type` | char | Type of splice junction (STARFusion) |
+| `starfus.break_seq` | char | Sequence at breakpoint (STARFusion) |
 
 
 ### Expression Data {-}
@@ -349,9 +420,22 @@ Example of `mutation_loads.tsv`
 | Column | Type | Description |
 |--------|------|-------------|
 | `sample` | char | Sample ID |
-| `tissue` | char | Tissue name |
-| `pathway` | char | Pathway name (if available) |
-| *additional* | num | Columns with expression values |
+| `feature_name` | char | Gene name |
+| `geneid` | char | Gene ID (Ensembl, RefSeq, or other) |
+| `all_kegg_gene_names` | char | KEGG gene names |
+| `log2FC` | num | Log2 fold change |
+| `p_value` | num | P-value |
+| `p_adj` | num | Adjusted p-value |
+
+- **Optional columns:**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `pathway` | char | Pathway name (if available, otherwise automatically retrieved from KEGG) |
+| `refseq_id` | char | RefSeq gene ID |
+| `type` | char | Gene type |
+| `gene_definition` | char | Gene definition/description |
+| `num_of_paths` | int | Number of pathways |
 
 #### GOI {-}
 

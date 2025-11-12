@@ -67,13 +67,13 @@ igv_server <- function(id, shared_data, root_path) {
         message("🔍 Opened IGV from tab: ", from)
         if (from == "somatic") {
           return(data.frame(
-            gene1 = shared_data$somatic.variants()$Gene_symbol,
+            gene1 = shared_data$somatic.variants()$gene_symbol,
             position1 = gsub("_(\\d+)_.*$", ":\\1", shared_data$somatic.variants()$var_name),
             sample = shared_data$somatic.variants()$sample
           ))
         } else if (from == "germline") {
           return(data.frame(
-            gene1 = shared_data$germline.variants()$Gene_symbol,
+            gene1 = shared_data$germline.variants()$gene_symbol,
             position1 = gsub("_(\\d+)_.*$", ":\\1", shared_data$germline.variants()$var_name),
             sample = shared_data$germline.variants()$sample
           ))

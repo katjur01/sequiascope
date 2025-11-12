@@ -87,7 +87,7 @@ function getCytoscapeStylesheet() {
             style: {
                 'curve-style': 'bezier',  // 🔑 bezier automaticky separuje parallení hrany!
                 'width': 'mapData(source_score, 0, 1, 0.5, 3)',  // 🔑 Tenčí hrany: 0.5-3px místo 2-10px
-                'line-color': '#999',  // Default barva (pokud source_type není rozpoznán)
+                'line-color': '#999999',  // Default barva (pokud source_type není rozpoznán)
                 'opacity': 0.8,
                 'target-arrow-shape': 'none'
             }
@@ -125,7 +125,7 @@ function getCytoscapeStylesheet() {
         {
             selector: 'edge[source_type="confidence"]',
             style: { 
-                'line-color': '#4a4a4a',  // Tmavě šedá místo černé
+                'line-color': '#999999',  // Tmavě šedá místo černé
                 'width': 'mapData(score, 0, 1, 0.5, 6)'  // Tenčí: 0.5-6px místo 1-15px
             }
         }

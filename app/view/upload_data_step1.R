@@ -85,11 +85,14 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
     next1_btn <- reactiveVal(NULL)
     load_click <- reactiveVal(NULL)
     
-    # wd <- c(home = getwd())
+    # # Nastavení pouze složky input_files jako root
+    # input_files_path <- file.path(getwd(), "/input_files")
+    # wd <- c(input_files = input_files_path)
+    # shinyDirChoose(input, "dir", roots = wd)
     
     wd <- c(home = getwd(), input_files = "/input_files")
     shinyDirChoose(input, "dir", roots = wd)
-    
+
     observeEvent(input$dir, {
       chosen <- parseDirPath(wd, input$dir)
       path(chosen)  # 🌍 uložíme do globálního reactiveVal
@@ -245,7 +248,7 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
     }
     
     return(list(
-      next1              = reactive(next1_btn()),
+      next1              = reactive(next1_btn(1)),
       load_request       = reactive(load_click()),
       restore_ui_inputs  = restore_ui_inputs
     ))

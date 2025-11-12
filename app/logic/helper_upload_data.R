@@ -129,7 +129,7 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
     fusion_fusion    = list(extensions = "\\.(tsv|xlsx)$", keywords = "fusion", exclude = "arriba|STAR", required = TRUE),
     tumor_fusion     = list(extensions = "\\.(bam|bai)$", keywords = "fusion", exclude = "Chimeric|transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
     chimeric_fusion  = list(extensions = "\\.(bam|bai)$", keywords = "fusion", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
-    arriba_fusion    = list(extensions = "\\.(pdf|tsv)$", keywords = "fusion", exclude = "discarded|STAR", required = FALSE, check_pair = TRUE, pair = "pdf_tsv"),
+  arriba_fusion    = list(extensions = "\\.(pdf|tsv)$", keywords = "arriba", exclude = "discarded|STAR", required = FALSE, check_pair = TRUE, pair = "pdf_tsv"),
     
     expression_expression = list(extensions = "\\.(tsv|xlsx)$", keywords = "expression|RNAseq", exclude = "report|genes_of_interest", required = TRUE),
     goi_expression        = list(extensions = "genes_of_interest\\.(tsv|xlsx)$", keywords = "expression|RNAseq", exclude = "report", required = FALSE)
@@ -914,6 +914,15 @@ validate_file_columns <- function(file_path, dataset_type, patient_id) {
         patient = patient_id,
         file_path = fp
       ))
+    }
+    
+    # Special handling for fusion: accept both chr1/chr2 and chrom1/chrom2
+    if (dataset_type == "fusion") {
+      # If file has chrom1/chrom2, temporarily rename in actual_cols for validation
+      if (all(c("chrom1", "chrom2") %in% actual_cols)) {
+        actual_cols[actual_cols == "chrom1"] <- "chr1"
+        actual_cols[actual_cols == "chrom2"] <- "chr2"
+      }
     }
     
     missing_cols <- setdiff(required_cols, actual_cols)

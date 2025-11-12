@@ -12,13 +12,13 @@ box::use(
 sankey_plot <- function(data, run){
   # kegg_path <- paste0(getwd(),"/input_files/kegg_tab.tsv")
   if (run == "docker") {
-    default_template_path <- paste0(getwd(),"/kegg_tab.tsv")
+    kegg_path <- paste0(getwd(),"/kegg_tab.tsv")
   } else {
-    default_template_path <- paste0(getwd(),"/input_files/kegg_tab.tsv")
+    kegg_path <- paste0(getwd(),"/input_files/kegg_tab.tsv")
   }
   
   df <- fread(kegg_path)
-  data_sub <- data[,list(var_name,Gene_symbol,`Annotation source`,Gene)]
+  data_sub <- data[,list(var_name,gene_symbol,`Annotation source`,Gene)]
   data_sub2_refseq <- df[, list(refseq_id,kegg_paths_name)]
   data_sub2_refseq[,refseq_id := as.character(refseq_id)]
   data_sankey_refseq <- merge(data_sub,data_sub2_refseq,by.x = "Gene", by.y = "refseq_id")
@@ -26,9 +26,9 @@ sankey_plot <- function(data, run){
   data_sankey_ensemble <- merge(data_sub,data_sub2_ensemble,by.x = "Gene", by.y = "ensembl_id")
   data_sankey <- rbind(data_sankey_ensemble,data_sankey_refseq)
   links <- data.frame(
-    source = c(data_sankey[, var_name], data_sankey[, Gene_symbol]),
-    target = c(data_sankey[, Gene_symbol], data_sankey[, kegg_paths_name]),
-    value = c(rep(3, length(data_sankey[, var_name])), rep(1, length(data_sankey[, Gene_symbol])))
+    source = c(data_sankey[, var_name], data_sankey[, gene_symbol]),
+    target = c(data_sankey[, gene_symbol], data_sankey[, kegg_paths_name]),
+    value = c(rep(3, length(data_sankey[, var_name])), rep(1, length(data_sankey[, gene_symbol])))
   )
   links <- unique(links)
   outgoing_counts <- group_by(links, source)

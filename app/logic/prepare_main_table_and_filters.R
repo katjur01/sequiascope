@@ -12,7 +12,7 @@ map_column_names <- function(column_names) {
   name_mapping <- list(
     var_name = "Variant name",
     library = "In library",
-    Gene_symbol = "Gene symbol",
+    gene_symbol = "Gene symbol",
     HGVSp = "HGVSp",
     HGVSc = "HGVSc",
     tumor_variant_freq = "Tumor variant frequency",
@@ -26,7 +26,7 @@ map_column_names <- function(column_names) {
     fOne = "fOne",
     CGC_Somatic = "CGC Somatic",
     gene_region = "Gene region",
-    Consequence = "Consequence",
+    consequence = "Consequence",
     all_full_annot_name = "Full annotated name",
     alarm = "Alarm",
     full_annot_name = "Annotated name",

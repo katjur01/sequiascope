@@ -17,11 +17,11 @@ box::use(
 #' @export
 prepare_somatic_table <- function(dt, all_colNames){
   dt <- replace_dot_with_na(dt)
-  dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "Consequence", "clinvar_DBN"))
+  dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "consequence", "clinvar_DBN"))
   cols_to_numeric <- c("gnomAD_NFE", "tumor_variant_freq")
   dt[, (cols_to_numeric) := lapply(.SD, as.numeric), .SDcols = cols_to_numeric]
   
-  fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
+  fast_lookup_column(dt, "consequence", "consequence_trimws", clean_consequence)
   
   cols <- colFilter("somatic",all_colNames)
   cols <- filter_existing_columns(cols, names(dt))
@@ -43,11 +43,11 @@ prepare_somatic_table <- function(dt, all_colNames){
 #' @export
 prepare_germline_table <- function(dt, all_colNames){
   dt <- replace_dot_with_na(dt)
-  dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "Consequence", "clinvar_DBN"))
+  dt <- replace_underscore_with_space(dt, c("gene_region", "clinvar_sig", "consequence", "clinvar_DBN"))
   cols_to_numeric <- c("gnomAD_NFE", "variant_freq")
   dt[, (cols_to_numeric) := lapply(.SD, as.numeric), .SDcols = cols_to_numeric]
   
-  fast_lookup_column(dt, "Consequence", "consequence_trimws", clean_consequence)
+  fast_lookup_column(dt, "consequence", "consequence_trimws", clean_consequence)
   fast_lookup_column(dt, "clinvar_sig", "clinvar_trimws", clean_clinvar_sig)
   
   cols <- colFilter("germline",all_colNames)
@@ -202,10 +202,10 @@ colFilter <- function(flag, all_column_var, tissues = NULL, session = NULL){
     hidden_columns <- c("sample")
     
     # Default selection (povinné + další důležité sloupce)
-    default_selection <- c("var_name","in_library","Gene_symbol","tumor_variant_freq",
+    default_selection <- c("var_name","in_library","gene_symbol","tumor_variant_freq",
                            "tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
                            "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD",
-                           "Consequence","HGVSc", "HGVSp","all_full_annot_name")
+                           "consequence","HGVSc", "HGVSp","all_full_annot_name")
     
     # Získej map_list pro zjištění mapovaných sloupců
     map_list <- colnames_map_list(flag)
@@ -223,9 +223,9 @@ colFilter <- function(flag, all_column_var, tissues = NULL, session = NULL){
     
   } else if (flag == "germline"){
     hidden_columns <- c("sample")
-    default_selection <- c("var_name","variant_freq","in_library","Gene_symbol",
+    default_selection <- c("var_name","variant_freq","in_library","gene_symbol",
                            "coverage_depth","gene_region","gnomAD_NFE","clinvar_sig",
-                           "snpDB","CGC_Germline","trusight_genes","fOne","Consequence",
+                           "snpDB","CGC_Germline","trusight_genes","fOne","consequence",
                            "HGVSc", "HGVSp","all_full_annot_name")
     
     map_list <- colnames_map_list(flag)
@@ -290,12 +290,12 @@ colFilter <- function(flag, all_column_var, tissues = NULL, session = NULL){
 # colFilter <- function(flag, all_column_var,tissues = NULL){
 #   if (flag == "somatic"){
 #     all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
-#     default_selection <- c("var_name","tumor_variant_freq","in_library","Gene_symbol","tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
-#                            "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD","Consequence","HGVSc", "HGVSp","all_full_annot_name")
+#     default_selection <- c("var_name","tumor_variant_freq","in_library","gene_symbol","tumor_depth","gene_region","gnomAD_NFE","clinvar_sig",
+#                            "clinvar_DBN","snpDB","CGC_Somatic","fOne","COSMIC","HGMD","consequence","HGVSc", "HGVSp","all_full_annot_name")
 #   } else if (flag == "germline"){
 #     all_column_names  <- setdiff(all_column_var, c("sample"))  # dont show/add sample column in table
-#     default_selection <- c("var_name","variant_freq","in_library","Gene_symbol","coverage_depth","gene_region",
-#                            "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","Consequence","HGVSc", "HGVSp","all_full_annot_name")
+#     default_selection <- c("var_name","variant_freq","in_library","gene_symbol","coverage_depth","gene_region",
+#                            "gnomAD_NFE","clinvar_sig","snpDB","CGC_Germline","trusight_genes","fOne","consequence","HGVSc", "HGVSp","all_full_annot_name")
 #     
 #   } else if (flag == "fusion"){
 #     filtered_all_column_var <- setdiff(all_column_var, c("chr1", "chr2", "pos1", "pos2"))

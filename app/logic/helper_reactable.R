@@ -146,7 +146,7 @@ create_clinvar_filter <- function(data, selected_clinvar_sig) {  #data[is.na(cli
 create_consequence_filter <- function(data, selected_consequences, include_missing = FALSE) {
 
   if(!"consequence_trimws" %in% names(data)) {
-    data$consequence_trimws <- data$Consequence
+    data$consequence_trimws <- data$consequence
   }
   
   # Vytvoříme logický vektor pro filtrování

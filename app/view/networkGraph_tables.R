@@ -154,19 +154,19 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
       if (is.null(data) || nrow(data) == 0) {
         return(NULL)
       }
-      required_columns <- c("Gene_symbol", "var_name", "fusion", "pathway")
+      required_columns <- c("gene_symbol", "var_name", "fusion", "pathway")
       missing_columns <- setdiff(required_columns, colnames(data))
       # dont show empty columns
       for (col in missing_columns) {
         data[[col]] <- ""
       }
       # Vyber jen relevantní sloupce
-      data <- data[, c("Gene_symbol", "var_name", "fusion", "pathway")]
+      data <- data[, c("gene_symbol", "var_name", "fusion", "pathway")]
       
       reactable(
         data,
         columns = list(
-          Gene_symbol = colDef(name = "Gene name", minWidth = 120, maxWidth = 140),
+          gene_symbol = colDef(name = "Gene name", minWidth = 120, maxWidth = 140),
           var_name = colDef(name = "Variant", width = 100, show = any(data$var_name != "")),  
           fusion = colDef(name = "Fusion", width = 100, show = any(data$fusion != "")),  
           pathway = colDef(name = "Pathway",minWidth = 180)

@@ -256,8 +256,8 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
                           '<span style="font-size:16px; font-weight:bold;">%s</span>
                            <span style="display:inline-block; vertical-align:middle; margin:0 8px; border-left:1px solid #ccc; height:18px;"></span>
                            <span style="font-size:14px; font-weight:normal;">%s</span>',
-                          noNA_text(variant$Gene_symbol),
-                          noNA_text(variant$Consequence))),
+                          noNA_text(variant$gene_symbol),
+                          noNA_text(variant$consequence))),
                     fluidRow(
                       column(3,
                              tags$p(strong("Variant info: ")),
@@ -306,8 +306,8 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
                        <span style="font-size:14px; font-weight:normal;"> %s </span>
                        <span style="display:inline-block; vertical-align:middle; margin:0 8px; border-left:1px solid #ccc; height:18px;"></span>
                        <span style="font-size:14px; font-weight:normal;"> %s </span>',
-                       noNA_text(variant$Gene_symbol),
-                       noNA_text(variant$Consequence),
+                       noNA_text(variant$gene_symbol),
+                       noNA_text(variant$consequence),
                       noNA_text(variant$clinvar_sig)
                     )),
                     fluidRow(
