@@ -144,7 +144,7 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL, select
     interaction_nodes <- unique(c(interactions$preferredName_A, interactions$preferredName_B))
     all_nodes <- unique(c(interaction_nodes, proteins))
 
-    log2FC_map <- setNames(tab[,log2FC], tab[,feature_name])
+    log2FC_map <- setNames(tab[,log2fc], tab[,feature_name])
     log2FC_values <- sapply(all_nodes, function(node) {
       if (node %in% names(log2FC_map)) {
         log2FC_map[node]
@@ -163,7 +163,7 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL, select
       id = all_nodes,
       name = all_nodes,
       label = all_nodes,
-      log2FC = log2FC_values,
+      log2fc = log2FC_values,
       degree = degree_values,  # Přidání stupně (degree) uzlu
       stringsAsFactors = FALSE
     )

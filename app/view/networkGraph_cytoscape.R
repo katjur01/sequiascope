@@ -281,9 +281,12 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       message("   Selected sources: ", paste(interaction_sources_debounced(), collapse = ", "))
       message("   Edge mode: ", input$edge_mode)
       
+      # 🔍 Debug: Check column names in tissue_dt
+      message("🔍 tissue_dt column names: ", paste(names(tissue_dt()), collapse = ", "))
+      
       result <- prepare_cytoscape_network(
         ints, 
-        unique(tissue_dt()[, .(feature_name, log2FC)]),
+        unique(tissue_dt()[, .(feature_name, log2fc)]),
         selected_sources = interaction_sources_debounced(),  # 🔑 ZMĚNA: debounced
         required_score = as.numeric(input$interaction_score),  # 🔑 Předat score threshold
         edge_mode = input$edge_mode  # 🔑 Předat edge mode
@@ -435,7 +438,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         message("Aktualizace podgrafu pro uzly: ", paste(current_nodes, collapse = ", "))
         subnetwork_data <- prepare_cytoscape_network(
           sub_interactions(), 
-          unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2FC)]),  # 🔑 subTissue_dt pro všechny geny
+          unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2fc)]),  # 🔑 subTissue_dt pro všechny geny
           current_nodes,
           selected_sources = interaction_sources_debounced(),  # 🔑 ZMĚNA: debounced
           required_score = as.numeric(input$interaction_score),  # 🔑 Předat score threshold

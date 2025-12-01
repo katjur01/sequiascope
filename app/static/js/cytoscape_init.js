@@ -29,17 +29,17 @@ function getCytoscapeStylesheet() {
             }
         },
         {
-            selector: 'node[log2FC<=0]',
+            selector: 'node[log2fc<=0]',
             style: {
                 'label': 'data(name)',
-                "background-color": "mapData(log2FC, -10, 0, blue, white)"
+                "background-color": "mapData(log2fc, -10, 0, blue, white)"
             }
         },
         {
-            selector: 'node[log2FC>0]',
+            selector: 'node[log2fc>0]',
             style: {
                 'label': 'data(name)',
-                "background-color": "mapData(log2FC, 0, 10, white, red)"
+                "background-color": "mapData(log2fc, 0, 10, white, red)"
             }
         },
         {

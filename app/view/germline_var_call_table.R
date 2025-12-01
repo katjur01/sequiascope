@@ -193,7 +193,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       pathogenic_variants <- selected_variants() # seznam variant, které byly označeny jako patogenní
 
       # Dynamicky vytvoř defaultSorted jen pro sloupce které existují
-      sort_cols <- c("CGC_Germline", "trusight_genes", "fOne")
+      sort_cols <- c("cgc_germline", "trusight_genes", "fone")
       existing_sort_cols <- intersect(sort_cols, names(filtered_data))
       default_sorted <- if (length(existing_sort_cols) > 0) {
         as.list(setNames(rep("desc", length(existing_sort_cols)), existing_sort_cols))
@@ -293,14 +293,27 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         return(NULL)
       }
       
+      # Vyber pouze sloupce které existují
+      required_cols <- c("var_name", "gene_symbol", "consequence", "clinvar_sig", "feature")
+      optional_cols <- c("hgvsc", "hgvsp")
+      available_cols <- intersect(c(required_cols, optional_cols), names(variants))
+      
+      variants <- as.data.table(variants)[, available_cols, with = FALSE]
+      
+      # Dynamicky vytvoř column definitions jen pro existující sloupce
+      col_list <- list(
+        var_name = colDef(name = "Variant name"),
+        gene_symbol = colDef(name = "Gene name"),
+        consequence = colDef(name = "Consequence", minWidth = 160),
+        clinvar_sig = colDef(name = "ClinVar significance", minWidth = 180),
+        feature = colDef(name = "Feature")
+      )
+      if ("hgvsc" %in% names(variants)) col_list$hgvsc <- colDef(name = "HGVSc")
+      if ("hgvsp" %in% names(variants)) col_list$hgvsp <- colDef(name = "HGVSp")
+      
       reactable(
-        variants <- as.data.table(variants)[,.(var_name,gene_symbol,hgvsc,hgvsp,consequence,clinvar_sig,feature)],
-        columns = list(
-          var_name = colDef(name = "Variant name"),
-          gene_symbol = colDef(name = "Gene name"),
-          consequence = colDef(name = "Consequence",minWidth=160),
-          clinvar_sig = colDef(name = "ClinVar significance",minWidth=180),
-          feature = colDef(name = "Feature")),
+        as.data.frame(variants),
+        columns = col_list,
         selection = "multiple", onClick = "select"
       )
     })

@@ -18,12 +18,12 @@ sankey_plot <- function(data, run){
   }
   
   df <- fread(kegg_path)
-  data_sub <- data[,list(var_name,gene_symbol,`Annotation source`,Gene)]
+  data_sub <- data[,list(var_name,gene_symbol,`annotation source`,gene)]
   data_sub2_refseq <- df[, list(refseq_id,kegg_paths_name)]
   data_sub2_refseq[,refseq_id := as.character(refseq_id)]
-  data_sankey_refseq <- merge(data_sub,data_sub2_refseq,by.x = "Gene", by.y = "refseq_id")
+  data_sankey_refseq <- merge(data_sub,data_sub2_refseq,by.x = "gene", by.y = "refseq_id")
   data_sub2_ensemble <- df[, list(ensembl_id,kegg_paths_name)]
-  data_sankey_ensemble <- merge(data_sub,data_sub2_ensemble,by.x = "Gene", by.y = "ensembl_id")
+  data_sankey_ensemble <- merge(data_sub,data_sub2_ensemble,by.x = "gene", by.y = "ensembl_id")
   data_sankey <- rbind(data_sankey_ensemble,data_sankey_refseq)
   links <- data.frame(
     source = c(data_sankey[, var_name], data_sankey[, gene_symbol]),

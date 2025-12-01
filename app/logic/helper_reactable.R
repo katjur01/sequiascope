@@ -175,17 +175,17 @@ create_consequence_filter <- function(data, selected_consequences, include_missi
 #' @export
 update_fusion_data <- function(dt, check_state, notes_state_current, fusion_data_to_render) {
   if (!is.null(dt)) {
-    dt$Visual_Check <- NA
-    dt$Notes <- NA
+    dt$visual_check <- NA
+    dt$notes <- NA
     
     if (!is.null(check_state) && nrow(check_state) > 0) {
       valid_rows <- check_state$row[check_state$row <= nrow(dt)]
-      dt$Visual_Check[valid_rows] <- check_state$value[check_state$row <= nrow(dt)]
+      dt$visual_check[valid_rows] <- check_state$value[check_state$row <= nrow(dt)]
     }
     
     if (!is.null(notes_state_current) && nrow(notes_state_current) > 0) {
       valid_rows <- notes_state_current$row[notes_state_current$row <= nrow(dt)]
-      dt$Notes[valid_rows] <- notes_state_current$value[notes_state_current$row <= nrow(dt)]
+      dt$notes[valid_rows] <- notes_state_current$value[notes_state_current$row <= nrow(dt)]
     }
     
     fusion_data_to_render(dt)

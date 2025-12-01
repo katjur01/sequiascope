@@ -115,6 +115,13 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     dt <- read_by_extension(input_var)
     # Normalize column names to lowercase
     setnames(dt, tolower(names(dt)))
+    
+    # Rename existing in_library column if present
+    if ("in_library" %in% names(dt)) {
+      setnames(dt, "in_library", "in_library_original")
+      message("⚠️ Column 'in_library' already exists in data, renamed to 'in_library_original'")
+    }
+    
     dt[, sample := sample]
     
     # # Add in_library if cache exists
@@ -132,6 +139,13 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     dt <- read_by_extension(input_var)
     # Normalize column names to lowercase
     setnames(dt, tolower(names(dt)))
+    
+    # Rename existing in_library column if present
+    if ("in_library" %in% names(dt)) {
+      setnames(dt, "in_library", "in_library_original")
+      message("⚠️ Column 'in_library' already exists in data, renamed to 'in_library_original'")
+    }
+    
     dt[, sample := sample]
     
     # Add in_library if cache exists

@@ -73,8 +73,9 @@ ui <- function(id) {
      tags$br(),
      div(class = "collapsible-box",
        box(width = 12, closable = FALSE,collapsible = TRUE, collapsed = TRUE, title = tags$div(style = "padding-top: 8px;","Tumor variant frequency histogram"),
-         dropdownButton(label = "Export Circos Plot",right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
-           downloadButton(ns("Hist_download"),"Download as PNG")),
+         div(class = "download-dropdown-wrapper",
+           dropdownButton(label = "Export Circos Plot",right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
+           downloadButton(ns("Hist_download"),"Download as PNG"))),
          br(),br(),
          div(style = "width: 100%; margin: auto;",
            use_spinner(plotOutput(ns("Histogram"),height = "480px"))
@@ -83,9 +84,10 @@ ui <- function(id) {
      ),
      div(class = "collapsible-box",
        box(width = 12,closable = FALSE,collapsible = TRUE,collapsed = TRUE,title = tags$div(style = "padding-top: 8px;","Sankey diagram"),
-         dropdownButton(label = "Export Sankey Plot",right = FALSE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
-           selectInput(ns("export_format"), "Select format:", choices = c("HTML" = "html", "PNG" = "png")),
-           downloadButton(ns("Sankey_download"),"Download")),
+         div(class = "download-dropdown-wrapper",
+           dropdownButton(label = "Export Sankey Plot",right = FALSE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
+             selectInput(ns("export_format"), "Select format:", choices = c("HTML" = "html", "PNG" = "png")),
+             downloadButton(ns("Sankey_download"),"Download"))),
          br(),
          tags$div(style = "display: flex; justify-content: space-between; width: 100%;",
            tags$span(style = "margin-left: 3cm;", "Variant"),
@@ -216,7 +218,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       filtered_data <- filtered_data()
       pathogenic_variants <- selected_variants() # seznam variant, které byly označeny jako patogenní
       # Dynamicky vytvoř defaultSorted jen pro sloupce které existují
-      sort_cols <- c("fOne", "CGC_Somatic")
+      sort_cols <- c("fone", "cgc_somatic")
       existing_sort_cols <- intersect(sort_cols, names(filtered_data))
       default_sorted <- if (length(existing_sort_cols) > 0) {
         as.list(setNames(rep("desc", length(existing_sort_cols)), existing_sort_cols))
@@ -263,6 +265,8 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
     observeEvent(input$selectPathogenic_button, {
       selected_rows <- getReactableState("somatic_var_call_tab", "selected")
       req(selected_rows)
+      
+      message("🔍 Available columns in filtered_data: ", paste(names(filtered_data()), collapse = ", "))
 
       new_variants <- filtered_data()[selected_rows, c("var_name", "gene_symbol","tumor_variant_freq","tumor_depth", "consequence",
                                                        "hgvsc","hgvsp","variant_type","feature", "gnomad_nfe")]  # Získání vybraných variant
@@ -310,14 +314,26 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       if (is.null(variants) || nrow(variants) == 0) {
         return(NULL)
       } else {
-        variants <- as.data.table(variants)[,.(var_name,gene_symbol,hgvsc,hgvsp,consequence,feature)]
+        # Vyber pouze sloupce které existují
+        required_cols <- c("var_name", "gene_symbol", "consequence", "feature")
+        optional_cols <- c("hgvsc", "hgvsp")
+        available_cols <- intersect(c(required_cols, optional_cols), names(variants))
+        
+        variants <- as.data.table(variants)[, available_cols, with = FALSE]
+        
+        # Dynamicky vytvoř column definitions jen pro existující sloupce
+        col_list <- list(
+          var_name = colDef(name = "Variant name"),
+          gene_symbol = colDef(name = "Gene name"),
+          consequence = colDef(name = "Consequence", minWidth = 160),
+          feature = colDef(name = "Feature")
+        )
+        if ("hgvsc" %in% names(variants)) col_list$hgvsc <- colDef(name = "HGVSc")
+        if ("hgvsp" %in% names(variants)) col_list$hgvsp <- colDef(name = "HGVSp")
+        
         reactable(
           as.data.frame(variants),
-          columns = list(
-            var_name = colDef(name = "Variant name"),
-            gene_symbol = colDef(name = "Gene name"),
-            consequence = colDef(name = "Consequence",minWidth=160),
-            feature = colDef(name = "Feature")),
+          columns = col_list,
           selection = "multiple", onClick = "select")
       }
     })
@@ -416,8 +432,9 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
     p <-reactiveVal()
 
     sankey_data <- reactive({
-      sankey_plot(filtered_data(), shared_data$run())
+      sankey_plot(filtered_data(), shared_data$run)
     })
+
     output$sankey_plot <- renderSankeyNetwork({
       p(sankeyNetwork(
         Links = sankey_data()$links, Nodes = sankey_data()$nodes,

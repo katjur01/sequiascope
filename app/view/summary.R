@@ -360,12 +360,10 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
                     fluidRow(
                       column(3,
                              tags$p(strong(sprintf("%s: ", fusion$gene1))),
-                             tags$p(sprintf("ID: %s", "ENS")),
                              tags$p(sprintf("Position: %s", fusion$position1)),
                              tags$p(sprintf("Arriba site: %s", fusion$arriba.site1))),
                       column(3,
                              tags$p(strong(sprintf("%s: ", fusion$gene2))),
-                             tags$p(sprintf("ID: %s", "ENS")),
                              tags$p(sprintf("Position: %s", fusion$position2)),
                              tags$p(sprintf("Arriba site: %s", fusion$arriba.site2))),
                       column(3,

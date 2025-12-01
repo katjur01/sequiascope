@@ -72,7 +72,7 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
                   geneid = colDef(name = "Ensembl id", minWidth = 140, show = F),
                   refseq_id = colDef(name = "Refseq id", minWidth = 80, show = F),
                   fc = colDef(show = F),
-                  log2FC = colDef(name = "log2FC", minWidth = 100),
+                  log2fc = colDef(name = "log2FC", minWidth = 100),
                   p_value = colDef(name = "p-value"),
                   p_adj = colDef(show = F),
                   pathway = colDef(name = "Pathway name", minWidth = 140),
@@ -116,7 +116,7 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
                     columns = list(
                       feature_name = colDef(name = "Gene name", minWidth = 120),
                       counts_tpm_round = colDef(name = "Counts TPM", minWidth = 120),
-                      log2FC = colDef(name = "log2FC", minWidth = 100),
+                      log2fc = colDef(name = "log2FC", minWidth = 100),
                       p_value = colDef(name = "p-value", minWidth = 100),
                       pathway = colDef(name = "Pathway name", minWidth = 200, resizable = TRUE),
                       # Skrýt všechny ostatní sloupce

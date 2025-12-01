@@ -113,7 +113,7 @@ prepare_fusion_genes_table <- function(sample, data, manifest_dt, all_colNames, 
     merge_dt[, `:=`( has_svg = !is.na(svg_path) & nzchar(svg_path),
                      has_png = !is.na(png_path) & nzchar(png_path))]
 
-    merge_dt[, `:=`(Visual_Check = "", Notes = "")]
+    merge_dt[, `:=`(visual_check = "", notes = "")]
     
     # Convert arriba.confidence to ordered factor for proper sorting (high > medium > low)
     # Unfortunally, reactable colDef is not taking factor order and sorting column as A-Z
@@ -242,10 +242,10 @@ colFilter <- function(flag, all_column_var, tissues = NULL, session = NULL){
     hidden_columns <- c("sample", "chr1", "chr2", "pos1", "pos2", "png_path", "svg_path", "has_png", "has_svg","arriba.confidence")
     
     # Speciální sloupce pro fusion
-    special_columns <- c("Visual_Check","Notes","position1","position2")
+    special_columns <- c("visual_check","notes","position1","position2")
     
     default_selection <- c("gene1","gene2","arriba.called","starfus.called",
-                           "arriba.confidence_sort","overall_support","Visual_Check","Notes",
+                           "arriba.confidence_sort","overall_support","visual_check","notes",
                            "position1","strand1","position2","strand2","arriba.site1",
                            "arriba.site2","starfus.splice_type","DB_count","DB_list")
     
