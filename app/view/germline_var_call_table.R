@@ -82,10 +82,10 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
     observe({
       req(data())
       overview_dt <- data.table(
-        clinvar_N = uniqueN(data()[clinvar_sig %in% c("Pathogenic", "Likely_pathogenic", "Pathogenic/Likely_pathogenic",
+        clinvar_N = length(data()[clinvar_sig %in% c("Pathogenic", "Likely_pathogenic", "Pathogenic/Likely_pathogenic",
                                                       "Pathogenic_(VUS)", "Likely_pathogenic (VUS)", "Pathogenic_(VUS)"), unique(var_name)]),
 
-        for_review = uniqueN(data()[gnomad_nfe <= 0.01 & coverage_depth > 10 & consequence != "synonymous_variant" &
+        for_review = length(data()[gnomad_nfe <= 0.01 & coverage_depth > 10 & consequence != "synonymous variant" &
                                       (gene_region == "exon" | gene_region == "splice"), unique(var_name)]))
       # print(overview_dt)
       shared_data$germline.overview[[ selected_samples ]] <- overview_dt
@@ -151,8 +151,6 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       generate_columnsDef(names(data()), selected_columns(), "germline", map_list)
     })
     
-    
-
     filtered_data <- reactive({
       req(data())
       dt <- copy(data())

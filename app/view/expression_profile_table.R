@@ -207,6 +207,10 @@ server <- function(id, patient, shared_data, patient_files, file_list) {
           # Deregulated genes: |log2fc| > 1 AND p_adj < 0.05
           deregulated_genes <- dt[abs(as.numeric(get(log2fc_col))) > 1 & as.numeric(get(padj_col)) < 0.05]
           
+          # DEBUG: Kolik genů má tato tkáň?
+          message("🔍 [", label, "] Tissue: ", tissue, " has ", nrow(deregulated_genes), " deregulated genes")
+          message("    Unique geneids: ", uniqueN(deregulated_genes$geneid))
+          
           # Přidat geneid do seznamu
           if (nrow(deregulated_genes) > 0 && "geneid" %in% names(deregulated_genes)) {
             all_deregulated_genes <- c(all_deregulated_genes, deregulated_genes$geneid)
@@ -219,6 +223,10 @@ server <- function(id, patient, shared_data, patient_files, file_list) {
             all_altered_pathways <- c(all_altered_pathways, pathways_split)
           }
         }
+        
+        # DEBUG: Celkový výsledek
+        message("📊 [", label, "] Total collected genes (with duplicates): ", length(all_deregulated_genes))
+        message("📊 [", label, "] Unique genes after concatenation: ", uniqueN(all_deregulated_genes))
         
         return(list(
           genes = uniqueN(all_deregulated_genes),
@@ -446,14 +454,26 @@ create_expression_logic <- function(session, ns, data, tissue_list, colnames_lis
       filters <- tissue_filters_final[[t]]
       if (!length(filters)) next
       
-      if ("log2FC > 1" %in% filters) {
+      # log2FC filtering - OR logic if both conditions selected
+      log2fc_gt1 <- "log2FC > 1" %in% filters
+      log2fc_lt_minus1 <- "log2FC < -1" %in% filters
+      
+      if (log2fc_gt1 || log2fc_lt_minus1) {
         col <- paste0("log2fc_", t)
-        if (col %in% names(df)) df <- df[as.numeric(get(col)) >  1]
+        if (col %in% names(df)) {
+          if (log2fc_gt1 && log2fc_lt_minus1) {
+            # Both selected: OR logic (> 1 OR < -1)
+            df <- df[as.numeric(get(col)) > 1 | as.numeric(get(col)) < -1]
+          } else if (log2fc_gt1) {
+            # Only > 1
+            df <- df[as.numeric(get(col)) > 1]
+          } else {
+            # Only < -1
+            df <- df[as.numeric(get(col)) < -1]
+          }
+        }
       }
-      if ("log2FC < -1" %in% filters) {
-        col <- paste0("log2fc_", t)
-        if (col %in% names(df)) df <- df[as.numeric(get(col)) < -1]
-      }
+      
       if ("p-value < 0.05" %in% filters) {
         col <- paste0("p_value_", t)
         if (col %in% names(df)) df <- df[as.numeric(get(col)) < 0.05]

@@ -104,41 +104,55 @@ set_pathway_colors <- function(){
 }
 
 #' @export
-create_clinvar_filter <- function(data, selected_clinvar_sig) {  #data[is.na(clinvar_sig) | clinvar_sig == "Benign",]
-  if ("missing_value" %in% selected_clinvar_sig) {
-    if (length(selected_clinvar_sig) == 1) {
-      return(data[is.na(clinvar_sig) | trimws(clinvar_sig) == ""])
-    } else {
-      # Pokud jsou vybrány i jiné hodnoty
-      other_terms <- selected_clinvar_sig[selected_clinvar_sig != "missing_value"]
-      
-      if (length(other_terms) > 0) {
-        conditions <- sapply(other_terms, function(term) {
-          escaped_term <- gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", term)
-          paste0("(^|[|/_])", escaped_term, "($|[|/_])")
-        })
-        final_pattern <- paste(conditions, collapse = "|")
-        
-        # Kombinace missing values a pattern matching
-        return(data[is.na(clinvar_sig) | trimws(clinvar_sig) == "" | 
-                      (!is.na(clinvar_sig) & grepl(final_pattern, clinvar_sig, ignore.case = TRUE))])
-      }
+create_clinvar_filter <- function(data, selected_clinvar_sig) {
+  # Pokud není clinvar_trimws sloupec, vytvořit ho dočasně
+  if(!"clinvar_trimws" %in% names(data)) {
+    data$clinvar_trimws <- data$clinvar_sig
+  }
+  
+  # DEBUG: Výpis unique hodnot v clinvar_trimws
+  message("############### clinvar_trimws unique values:")
+  message(paste(unique(unlist(data$clinvar_trimws)), collapse = ", "))
+  
+  # Převést vybrané hodnoty na lowercase pro case-insensitive porovnání
+  selected_lower <- tolower(selected_clinvar_sig)
+  
+  # DEBUG: Výpis selected values
+  message("############### selected_clinvar_sig:")
+  message(paste(selected_clinvar_sig, collapse = ", "))
+  
+  # Vytvoříme logický vektor pro filtrování
+  keep_rows <- sapply(data$clinvar_trimws, function(x) {
+    # Pokud je x NULL, prázdné nebo obsahuje NA
+    if(is.null(x) || length(x) == 0 || all(is.na(x))) {
+      # Zobrazit pouze pokud uživatel vybral "missing value" (s mezerou!)
+      return("missing value" %in% selected_lower)
     }
     
-  } else {
+    # Odstraň NA hodnoty z vectoru
+    x <- x[!is.na(x)]
+    
+    # Pokud po odstranění NA není nic, je to missing value
+    if(length(x) == 0) {
+      return("missing value" %in% selected_lower)
+    }
+    
+    # Převést hodnoty na lowercase
+    x_lower <- tolower(x)
+    
+    # Pokud obsahuje "missing value" (s mezerou - jak je v datech i v selected)
+    if(any(x_lower == "missing value")) {
+      return("missing value" %in% selected_lower)
+    }
+    
+    # OR logika: zobrazit variantu pokud ALESPOŇ JEDNA z jejích hodnot je ve výběru
+    # Case-insensitive porovnání
+    any(x_lower %in% selected_lower)
+  })
   
-    # Normální případ - žádné "missing_value"
-    conditions <- sapply(selected_clinvar_sig, function(term) {
-      escaped_term <- gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", term)
-      paste0("(^|[|/_])", escaped_term, "($|[|/_])")
-    })
-    
-    final_pattern <- paste(conditions, collapse = "|")
-    
-    filtered_data <- data[!is.na(clinvar_sig) & 
-                            grepl(final_pattern, clinvar_sig, ignore.case = TRUE)]
-    return(filtered_data)
-  }
+  filtered_data <- data[keep_rows]
+  
+  return(filtered_data)
 }
 
 

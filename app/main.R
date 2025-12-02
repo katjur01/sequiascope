@@ -281,8 +281,11 @@ server <- function(id) {
     shared_data$expression_modules <- reactiveVal(list())
     shared_data$expression_pending <- reactiveVal(list()) 
     
+    ############################
+    ### for data testing!
     # shared_data$run <- "docker"
     shared_data$run <- "local"
+    ############################
     
     # Track which tab values were added per dataset (so we can remove/replace on reconfirm)
     added_tab_values <- reactiveValues(

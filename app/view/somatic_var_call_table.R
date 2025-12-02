@@ -110,18 +110,18 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       if (!is.null(file$TMB)) {
         mutation_load <- load_data(file$TMB, "TMB", selected_samples)
         overview_dt <- data.table(
-          for_review = uniqueN(data()[gnomad_nfe <= 0.01 & tumor_depth > 10 & consequence != "synonymous_variant" &
+          for_review = length(data()[gnomad_nfe <= 0.01 & tumor_depth > 10 & consequence != "synonymous variant" &
                                         (gene_region == "exon" | gene_region == "splice"), unique(var_name)]),
           TMB = unique(mutation_load$TMB))
       } else {
         overview_dt <- data.table(
-          for_review = uniqueN(data()[gnomad_nfe <= 0.01 & tumor_depth > 10 & consequence != "synonymous_variant" &
+          for_review = length(data()[gnomad_nfe <= 0.01 & tumor_depth > 10 & consequence != "synonymous variant" &
                                         (gene_region == "exon" | gene_region == "splice"), unique(var_name)]))
       }
 
       shared_data$somatic.overview[[ selected_samples ]] <- overview_dt
     })
-    
+
     # Load and process data table
     prepare_data <- reactive({
       message("Loading input data for somatic: ", file$variant)
