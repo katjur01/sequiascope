@@ -187,50 +187,70 @@ server <- function(id, patient, shared_data, patient_files, file_list) {
     
     observe({
       req(tissue_list)
-      # Rozhodnout, zda použít GOI nebo all genes data
-      dt <- if (has_goi() && !is.null(prepare_goi_dt())) prepare_goi_dt() else data()
-
-      req(dt)
+      req(data())
       req(tissue_list())
       
-      # Sbírat unikátní geny a pathways napříč všemi tkáněmi
-      all_deregulated_genes <- character(0)
-      all_altered_pathways <- character(0)
-      
-      for (tissue in tissue_list()) {
-        log2fc_col <- paste0("log2FC_", tissue)
-        pval_col <- paste0("p_value_", tissue)
-        padj_col <- paste0("p_adj_", tissue)
+      # Funkce pro zpracování dat (GOI nebo All genes)
+      process_expression_data <- function(dt, label) {
+        all_deregulated_genes <- character(0)
+        all_altered_pathways <- character(0)
         
-        # Kontrola, zda sloupce existují
-        if (!all(c(log2fc_col, pval_col, padj_col) %in% names(dt))) {
-          next
+        for (tissue in tissue_list()) {
+          log2fc_col <- paste0("log2fc_", tissue)
+          padj_col <- paste0("p_adj_", tissue)
+          
+          # Kontrola, zda sloupce existují
+          if (!all(c(log2fc_col, padj_col) %in% names(dt))) {
+            next
+          }
+          
+          # Deregulated genes: |log2fc| > 1 AND p_adj < 0.05
+          deregulated_genes <- dt[abs(as.numeric(get(log2fc_col))) > 1 & as.numeric(get(padj_col)) < 0.05]
+          
+          # Přidat geneid do seznamu
+          if (nrow(deregulated_genes) > 0 && "geneid" %in% names(deregulated_genes)) {
+            all_deregulated_genes <- c(all_deregulated_genes, deregulated_genes$geneid)
+          }
+          
+          # Altered pathways: použít stejná data (deregulated_genes) pro pathways
+          if (nrow(deregulated_genes) > 0 && "pathway" %in% names(deregulated_genes)) {
+            pathways_split <- unlist(strsplit(deregulated_genes$pathway, ",\\s*"))
+            pathways_split <- pathways_split[nzchar(pathways_split)]  # Odstranit prázdné
+            all_altered_pathways <- c(all_altered_pathways, pathways_split)
+          }
         }
         
-        # Deregulated genes: |log2FC| > 1 AND p_value < 0.05 AND p_adj < 0.05
-        deregulated_genes <- dt[abs(as.numeric(get(log2fc_col))) > 1 & as.numeric(get(pval_col)) < 0.05 & as.numeric(get(padj_col)) < 0.05]
-        
-        # Přidat geneid do seznamu (použijeme geneid pro uniqueN)
-        if (nrow(deregulated_genes) > 0 && "geneid" %in% names(deregulated_genes)) {
-          all_deregulated_genes <- c(all_deregulated_genes, deregulated_genes$geneid)
-        }
-        
-        # Altered pathways: p_value < 0.05 AND p_adj < 0.05
-        altered_pathway_genes <- dt[as.numeric(get(pval_col)) < 0.05 & as.numeric(get(padj_col)) < 0.05]
-        
-        # Rozdělit pathways (můžou být oddělené čárkou)
-        if (nrow(altered_pathway_genes) > 0 && "pathway" %in% names(altered_pathway_genes)) {
-          pathways_split <- unlist(strsplit(altered_pathway_genes$pathway, ",\\s*"))
-          pathways_split <- pathways_split[nzchar(pathways_split)]  # Odstranit prázdné
-          all_altered_pathways <- c(all_altered_pathways, pathways_split)
-        }
+        return(list(
+          genes = uniqueN(all_deregulated_genes),
+          pathways = uniqueN(all_altered_pathways)
+        ))
       }
       
-            # Spočítat unikátní hodnoty napříč všemi tkáněmi
+      # Zpracovat All genes data
+      all_genes_result <- process_expression_data(data(), "all_genes")
+      
+      # Zpracovat GOI data (pokud existují)
+      goi_result <- NULL
+      if (has_goi() && !is.null(prepare_goi_dt())) {
+        goi_result <- process_expression_data(prepare_goi_dt(), "goi")
+      }
+      
+      # Vytvořit formátované řetězce s oddělovačem |
+      if (!is.null(goi_result)) {
+        # Máme obě: GOI | All genes
+        for_review_expr_str <- paste0(goi_result$genes, " | ", all_genes_result$genes)
+        altered_pathways_str <- paste0(goi_result$pathways, " | ", all_genes_result$pathways)
+      } else {
+        # Nemáme GOI: - | All genes
+        for_review_expr_str <- paste0("NA | ", all_genes_result$genes)
+        altered_pathways_str <- paste0("NA | ", all_genes_result$pathways)
+      }
+      
+      # Spočítat unikátní hodnoty napříč všemi tkáněmi
       overview_dt <- data.table(
         tissues = paste(unique(tissue_list()), collapse = ", "),
-        for_review_expr = uniqueN(all_deregulated_genes),
-        altered_pathways = uniqueN(all_altered_pathways)
+        for_review_expr = for_review_expr_str,
+        altered_pathways = altered_pathways_str
       )
       
       shared_data$expression.overview[[ patient ]] <- overview_dt

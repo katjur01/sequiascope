@@ -49,8 +49,8 @@ server <- function(id, shared_data) {
     # normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
     # tissues <- reactiveVal(NULL)
     #####
-    # patients <- reactiveVal(c("DZ1601","MR1507"))
-    patients <- reactiveVal("DZ1601")
+    patients <- reactiveVal(c("DZ1601","MR1507"))
+    # patients <- reactiveVal("DZ1601")
     path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
     # path     <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
     # path <- reactiveVal("/input_files/MOII_e117")   # cesta v Dockeru
