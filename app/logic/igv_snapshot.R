@@ -44,6 +44,7 @@ createIGVBatchFileFromXlsx <- function(xlsx_file,sample_name,zoom = 251){
     cat("Input file don't exist.\n")
     return(NULL)
   }
+  output_dir <- shared_data$output_path()
   setnames(input_table,c("chrom1","chrom2"),c("chr1","chr2"))
   
   fusions_tab <- input_table[,.(gene1, gene2, chr1, pos1, chr2, pos2)]
@@ -53,7 +54,7 @@ createIGVBatchFileFromXlsx <- function(xlsx_file,sample_name,zoom = 251){
   fusions_tab[,fusion_genes := paste0(gene1,"__",gene2)]
   fusions_tab$fusion_genes <- str_replace_all(fusions_tab$fusion_genes,"[.,()-]","_")
   fusions_tab <- unique(fusions_tab)
-  fusions_tab[, svg_path := sprintf(paste0("./www/igv_snapshot/",sample_name,"/",sample_name,"_%03d.svg"), .I)]
+  fusions_tab[, svg_path := sprintf(file.path(output_dir,"igv_snapshot",sample_name,paste0(sample_name,"_%03d.svg")), .I)]
   setorder(fusions_tab,gene1)
   
   return(fusions_tab)
@@ -71,9 +72,9 @@ runIGVSnapshot <- function(IGV_batch_file){
 }
 
 run_all <- function(args){
-  
-  if (!dir.exists("./www/igv_snapshot")) {
-    dir.create("./www/igv_snapshot") # Pokud složka neexistuje, vytvoř ji
+  output_dir <- shared_data$output_path()
+  if (!dir.exists(file.path(output_dir,"igv_snapshot"))) {
+    dir.create(file.path(output_dir,"igv_snapshot")) # Pokud složka neexistuje, vytvoř ji
   }
 
   # a <- "./input_files/MOII_e117/117_fusions/results/DZ1601fuze_fusions.xlsx"
@@ -85,7 +86,7 @@ run_all <- function(args){
     sample_name <- paste0(gsub("_fusions.xlsx","",basename(a)))
     bam_file <-  paste0("./input_files/reanalysed_data/primary_analysis/fuze","/mapped/", sample_name,".bam")
     chimeric_file <-  paste0("./input_files/reanalysed_data/primary_analysis/fuze/","/mapped/", sample_name,"/",sample_name,"Chimeric.out.bam")
-    output_dir <- paste0("./www/igv_snapshot/",sample_name)
+    output_dir <- file.path(output_dir,"igv_snapshot",sample_name)
     
     if (file.exists(output_dir)){
       setwd(file.path(path))

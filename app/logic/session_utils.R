@@ -536,7 +536,7 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
 # CACHE CLEANING
 # ============================================
 #' @export
-cleanup_old_sessions <- function(base_dir = "sessions", days = 7) {
+cleanup_old_sessions <- function(base_dir = "/output_files/sessions", days = 7) {
   if (!dir.exists(base_dir)) return(invisible(NULL))
   
   all_dirs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)

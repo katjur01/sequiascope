@@ -120,7 +120,7 @@ add_summary_boxes <- function(session,
       )
       
       summary_module$server(paste0("summary_table_", sample), sample, shared_data, dataset_availability)
-      create_report$server(paste0("create_report_", sample), sample, shared_data, shared_data$run)
+      create_report$server(paste0("create_report_", sample), sample, shared_data)
     })
     
     if (length(new_pats)) {

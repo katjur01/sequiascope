@@ -409,6 +409,7 @@ colnames_map_list <- function(tag, all_columns = NULL, session = NULL, tissues =
                                   var cls = 'tag confidence-' + confidence.toLowerCase();
                                   return '<div class=\"' + cls + '\">' + confidence + '</div>'; }")),
         overall_support = colDef(width = 100,name="Overall support"),
+        arriba.reading_frame = colDef(width = 110,name="Reading frame"),
         visual_check = colDef(width = 110,name="Visual check",html = TRUE,
                               cell = JS(paste0("function(cellInfo) {
                                                 const rowIndex = cellInfo.index;

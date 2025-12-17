@@ -50,7 +50,8 @@ box::use(
   future[future, value, resolved, plan, multicore, multisession],
   promises[then, catch],
   parallel[detectCores],
-  openxlsx[read.xlsx]
+  openxlsx[read.xlsx],
+  jsonlite[fromJSON]
 )
 
   # Dynamic worker configuration based on available physical CPU cores (Kubernetes safe)
@@ -108,7 +109,7 @@ ui <- function(id){
         navbarTab("Network graph", tabName = ns("network_graph"))
       ),
       rightUi = tagList(
-        tags$li(class = "dropdown", actionButton(ns("save_session_btn"), label = NULL, icon = icon("save"), title = "Save session",class = "session-btn")))),
+        tags$li(class = "dropdown", actionButton(ns("save_session_btn"), label = NULL, icon = icon("floppy-disk", style = "color: #1D89FF;"), title = "Save session")))),
     sidebar = dashboardSidebar(disable = TRUE),
     body = dashboardBody(#style = "background-color: white;",
       tags$head(
@@ -117,6 +118,44 @@ ui <- function(id){
         get_waiter_js(),
         get_navigation_lock_css(),
         get_navigation_lock_js(),
+        tags$script(HTML("
+          // Prevent accidental page refresh/close with warning
+          var dataModified = false;  // Track if user has made changes
+          var allowUnload = false;   // Flag to allow unload after save
+          
+          // Set flag when user interacts with data (selections, filters, etc.)
+          $(document).on('shiny:inputchanged', function(event) {
+            // Ignore internal state changes
+            if (!event.name.includes('_rendered') && 
+                !event.name.includes('_state') &&
+                !event.name.includes('_rows_selected') &&
+                event.name !== 'summary_rendered') {
+              dataModified = true;
+            }
+          });
+          
+          // Set flag when data is confirmed/loaded
+          Shiny.addCustomMessageHandler('data-loaded', function(message) {
+            dataModified = true;
+          });
+          
+          // Show browser warning before leaving page
+          window.addEventListener('beforeunload', function(e) {
+            if (dataModified && !allowUnload) {
+              // Modern browsers show standard message: 'Leave site? Changes you made may not be saved.'
+              // with buttons: 'Leave' and 'Stay'
+              e.preventDefault();
+              e.returnValue = '';
+              return '';
+            }
+          });
+          
+          // Handler to allow unload after successful save
+          Shiny.addCustomMessageHandler('allow-unload', function(message) {
+            allowUnload = true;
+            dataModified = false;
+          });
+        ")),
         tags$script(HTML("
           Shiny.addCustomMessageHandler('scroll-to-box', function(message) {
             // Get the namespace prefix from the current URL or use default
@@ -236,8 +275,21 @@ server <- function(id) {
     session$userData$parent_session <- session  # for going to different navbarMenu from other modules
     message("[future plan] ", paste(class(future::plan()), collapse = " / "))
 
+    # Load output directory from config
+    config <- jsonlite::fromJSON("reference_paths.json")
+    output_dirname <- config$output_dir  # e.g. "output_files"
+    
+    # Detect environment: check if /output_files exists (Docker/K8s mount) or use local
+    if (dir.exists(paste0("/", output_dirname))) {
+      output_base <- paste0("/", output_dirname)
+      message("📦 Container environment detected - using ", output_base)
+    } else {
+      output_base <- paste0("./", output_dirname)
+      message("💻 Running locally - output: ", output_base)
+    }
     
     shared_data <- reactiveValues(
+      data_path = reactiveVal(NULL),  # User-selected data directory path
       somatic.variants = reactiveVal(NULL),
       somatic.patients  = reactiveVal(character(0)),
       somatic.patients.igv = reactiveVal(NULL),
@@ -282,9 +334,8 @@ server <- function(id) {
     shared_data$expression_pending <- reactiveVal(list()) 
     
     ############################
-    ### for data testing!
-    # shared_data$run <- "docker"
-    shared_data$run <- "local"
+    ### Output path setup (already detected above)
+    shared_data$output_path <- reactiveVal(output_base)
     ############################
     
     # Track which tab values were added per dataset (so we can remove/replace on reconfirm)
@@ -317,7 +368,7 @@ server <- function(id) {
 
     observeEvent(upload$confirmed_paths(), {
       message("🚀 [OBSERVE] confirmed_paths changed - starting data loading...")
-      
+      output_dir <- shared_data$output_path()
       # Unlock all navigation tabs after successful data confirmation
       unlock_navigation(session)
       
@@ -338,6 +389,14 @@ server <- function(id) {
       update_waiter_progress(session, 15, "Checking session...")
       
       session_dir <- isolate(shared_data$session_dir())
+      
+      # If session_dir is relative path (old format), convert to absolute path in output_files
+      if (!is.null(session_dir) && session_dir != "" && !startsWith(session_dir, output_dir)) {
+        session_name <- basename(session_dir)  # e.g., "session_20240204_123456"
+        session_dir <- file.path(output_dir, "sessions", session_name)
+        shared_data$session_dir(session_dir)  # Update with absolute path
+        message("📂 Converted relative session path to absolute: ", session_dir)
+      }
 
       if (isTRUE(shared_data$is_loading_session())) {
         message("📂 Loading session - using existing cache from: ", session_dir)
@@ -370,7 +429,7 @@ server <- function(id) {
         update_waiter_progress(session, 20, "Preparing session...")
         
         # Cleanup old sessions
-        cleanup_old_sessions("sessions", days = 7)
+        cleanup_old_sessions(file.path(output_dir, "sessions"), days = 31)
         
         # Use existing session_dir if available, otherwise create new one
         existing_session_dir <- isolate(shared_data$session_dir())
@@ -381,7 +440,7 @@ server <- function(id) {
           if (is.null(existing_session_dir) || existing_session_dir == "") {
             # Create new session directory only if none exists
             timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-            new_session_dir <- file.path("sessions", paste0("session_", timestamp))
+            new_session_dir <- file.path(output_dir, "sessions", paste0("session_", timestamp))
             dir.create(new_session_dir, recursive = TRUE)
             shared_data$session_dir(new_session_dir)
             message("📂 New session directory: ", new_session_dir)
@@ -483,23 +542,29 @@ server <- function(id) {
       
       observeEvent(input$save_session_btn, {
         shinyalert(
-          title = "Confirm Save",
-          text  = "Do you really want to save/overwrite the session?",
-          type  = "warning",
+          title = "Save Session",
+          text  = "Save your current work? This will preserve all selected variants, genes, and settings.",
+          type  = "info",
           showCancelButton = TRUE,
-          confirmButtonText = "Yes, save it",
+          confirmButtonText = "Save",
           cancelButtonText  = "Cancel",
           callbackR = function(x) {
             if (isTRUE(x)) {
-              session_file <- file.path(shared_data$session_dir(), "session_data.json")
-              save_session(session_file, shared_data)
-              showNotification("Session successfully saved.", type = "message")
-            } else {
-              showNotification("Saving session was canceled.", type = "default")
+              # Save to session directory (where cache files are), not root output_files
+              session_dir <- shared_data$session_dir()
+              if (!is.null(session_dir) && session_dir != "") {
+                session_file <- file.path(session_dir, "session_data.json")
+                save_session(session_file, shared_data)
+                session$sendCustomMessage("allow-unload", list())  # Allow page unload after save
+                showNotification(paste0("✅ Session saved to: ", basename(session_dir)), type = "message", duration = 5)
+              } else {
+                showNotification("⚠️ No session to save - please load data first.", type = "warning", duration = 5)
+              }
             }
           }
         )
-      })
+      }, ignoreInit = TRUE)
+      
       
       
       # ═══════════════════════════════════════════════════════════════════════════
@@ -514,7 +579,9 @@ server <- function(id) {
       # Only run prerun once per session
       if (!shared_data$fusion_prerun_started()) {
         fusion_patients <- get_patients(confirmed_paths, "fusion")
-        patients_to_run <- fusion_patients_to_prerun(fusion_patients, "www")
+        patients_to_run <- fusion_patients_to_prerun(fusion_patients, output_dir)
+
+
 
         if (length(patients_to_run) > 0) {
           message("[PRERUN INIT] Starting PARALLEL fusion prerun for ", length(patients_to_run), " patients: ", paste(patients_to_run, collapse = ", "))
@@ -534,6 +601,7 @@ server <- function(id) {
           
           # Initialize per-patient tracking
           shared_data$fusion_prerun_status[[patient_id]] <- reactiveVal("running")
+          message("[STATUS] ", patient_id, " -> running")
           shared_data$fusion_prerun_progress[[patient_id]] <- reactiveVal(0)
           
           # Create progress file for this patient
@@ -572,19 +640,21 @@ server <- function(id) {
           
           # Use explicit globals list to speed up future creation
           patient_future <- future({
-            prerun_fusion_patient(patient_id, file_list, prog_file, output_base_dir = "./www")
+            prerun_fusion_patient(patient_id, file_list, prog_file, output_base_dir = output_dir)
           }, globals = list(
             patient_id = patient_id,
             file_list = file_list, 
             prog_file = prog_file,
+            output_dir = output_dir,
             prerun_fusion_patient = prerun_fusion_patient
-          ), stdout = TRUE, conditions = "message")
+          ), seed = TRUE, stdout = TRUE, conditions = "message")
           
           message("[MAIN] Future launched for ", patient_id)
           
           shared_data$fusion_prerun_future[[patient_id]] <- list(
             future = patient_future,
-            prog_file = prog_file
+            prog_file = prog_file,
+            start_time = Sys.time()  # Track when future started
           )
           
           # Create observer for this patient
@@ -594,6 +664,29 @@ server <- function(id) {
             
             observer <- observe({
               invalidateLater(500)  # Check twice per second
+              
+              # Get future data
+              fut_data <- shared_data$fusion_prerun_future[[pid]]
+              if (is.null(fut_data)) return()
+              
+              # Check for timeout (max 30 minutes per patient)
+              elapsed <- as.numeric(difftime(Sys.time(), fut_data$start_time, units = "mins"))
+              if (elapsed > 30) {
+                message("[TIMEOUT] ", pid, " exceeded 30 minutes - marking as failed")
+                shared_data$fusion_prerun_status[[pid]]("failed")
+                message("[STATUS] ", pid, " -> failed (timeout)")
+                shared_data$fusion_prerun_progress[[pid]](0)
+                
+                # Track error
+                current_errors <- shared_data$fusion_prerun_errors()
+                shared_data$fusion_prerun_errors(c(current_errors, paste0(pid, ": Timeout after 30 minutes")))
+                
+                # Cleanup
+                if (file.exists(pfile)) unlink(pfile)
+                shared_data$fusion_prerun_future[[pid]] <- NULL
+                observer$destroy()
+                return()
+              }
               
               # Read progress from file
               if (file.exists(pfile)) {
@@ -643,7 +736,9 @@ server <- function(id) {
                 message("[COMPLETED] ", pid, " - Success: ", result$success)
                 
                 # Update status
-                shared_data$fusion_prerun_status[[pid]](if (result$success) "completed" else "failed")
+                new_status <- if (result$success) "completed" else "failed"
+                shared_data$fusion_prerun_status[[pid]](new_status)
+                message("[STATUS] ", pid, " -> ", new_status)
                 shared_data$fusion_prerun_progress[[pid]](100)
                 
                 # Track errors
@@ -709,7 +804,7 @@ server <- function(id) {
           # Mark all fusion patients as completed since they already have processed data
           for (patient_id in fusion_patients) {
             shared_data$fusion_prerun_status[[patient_id]] <- reactiveVal("completed")
-            message("[PRERUN INIT] Marked patient ", patient_id, " as completed")
+            message("[STATUS] ", patient_id, " -> completed (already processed)")
           }
           shared_data$fusion_prerun_started(TRUE)
         }
@@ -741,6 +836,9 @@ server <- function(id) {
         message("✅ Summary tab fully rendered - hiding waiter")
         waiter_hide(id = NA)
         waiter_hidden(TRUE)
+        
+        # Signal JavaScript that data is loaded - enable beforeunload warning
+        session$sendCustomMessage("data-loaded", list())
       }
     })
     

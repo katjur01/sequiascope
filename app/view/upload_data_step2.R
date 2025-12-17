@@ -12,7 +12,7 @@ box::use(
 )
 
 box::use(
-  app/logic/helper_upload_data[create_dataset_data,create_reactable,validate_datasets_status,build_confirmed_paths, validate_all_columns, create_column_error_message],
+  app/logic/helper_upload_data[create_dataset_data,create_reactable,validate_datasets_status,build_confirmed_paths, validate_all_columns, create_column_error_message, create_reference_files_data, create_reference_files_reactable],
   app/logic/waiters[show_waiter, hide_waiter]
 )
 
@@ -38,7 +38,7 @@ step2_ui <- function(id) {
 
 
 
-  step2_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern, tissues, step) {
+  step2_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern, tissues, step, shared_data) {
     moduleServer(id, function(input, output, session) {
       ns <- session$ns
       all_files <- reactiveVal()
@@ -47,6 +47,16 @@ step2_ui <- function(id) {
       confirmed_paths_state <- reactiveVal(NULL)
       # Trigger for manual evaluation (only on refresh or when step becomes 2)
       eval_trigger <- reactiveVal(0)
+      
+      # Reload config when returning to step 2 (e.g., after going back to step 1)
+      observeEvent(step(), {
+        if (step() == 2) {
+          # Reload config from file
+          shared_data$config_reload_trigger(shared_data$config_reload_trigger() + 1)
+          # Also trigger re-evaluation of data
+          eval_trigger(eval_trigger() + 1)
+        }
+      }, ignoreInit = FALSE)  # Run on init to load config first time
       
       # Initial load - trigger evaluation ONLY when step becomes 2
       # Initial load - trigger evaluation ONLY when step becomes 2
@@ -69,13 +79,17 @@ step2_ui <- function(id) {
         all_files(all_files_list[matches])
       })
       
+      # Load genes_of_interest from config if available
       observe({
         req(step() == 2)  # Don't load files until step 2
-        req(path(), patients())
-        goi_file_list <- list.files(path(), full.names = TRUE, recursive = TRUE)
-        patient_pattern <- paste(patients(), collapse = "|") 
-        matches <- stri_detect_regex(goi_file_list, "genes_of_interest") & !str_detect(goi_file_list, regex(patient_pattern, ignore_case = TRUE))
-        goi_files(goi_file_list[matches])
+        
+        # Pass path from config even if file doesn't exist
+        # evaluate_file_status will check existence and return orange status if missing
+        if (!is.null(shared_data$genes_of_interest_path())) {
+          goi_files(shared_data$genes_of_interest_path())
+        } else {
+          goi_files(NULL)
+        }
       })
 
       observe({
@@ -99,16 +113,37 @@ step2_ui <- function(id) {
         }
         return(result)
       })
+      
+      # Reference files data
+      reference_files_data <- reactive({
+        req(datasets())
+        # Depend on eval_trigger and config reload trigger
+        req(eval_trigger())
+        # Also depend on config paths to re-evaluate when config reloads
+        kegg_path <- shared_data$kegg_tab_path()
+        goi_path <- shared_data$genes_of_interest_path()
+        report_path <- shared_data$report_template_path()
+        
+        create_reference_files_data(
+          kegg_tab_path = kegg_path,
+          goi_path = goi_path,
+          report_template_path = report_path,
+          datasets = datasets()
+        )
+      })
 
       # Upravte output$dataset_boxes aby používal cached data:
       output$dataset_boxes <- renderUI({
         req(datasets())
         
         data <- datasets_data()
+        ref_data <- reference_files_data()
         
         tagList(
           # Tooltips are now handled globally by index.js
           # No need for local initialization
+          
+          # Patient datasets
           lapply(datasets(), function(dataset_name) {
             patient_tab   <- data[[dataset_name]]$patient_tab
             
@@ -121,22 +156,40 @@ step2_ui <- function(id) {
                   create_reactable(patient_tab, dataset_name)
                 )
             )
-          })
+          }),
+          
+          # Reference files table (always last, with gray background)
+          div(class = "upload-reference-box",
+              bs4Card(
+                title       = h5("Reference files"),
+                solidHeader = TRUE,
+                width       = 12,
+                collapsible = TRUE,
+                create_reference_files_reactable(ref_data$reference_tab)
+              )
+          )
         )
       })
 
       # Refresh tlačítko
       observeEvent(input$refresh_files, {
         req(path(), patients())
+        
+        # Reload reference config from file
+        shared_data$config_reload_trigger(shared_data$config_reload_trigger() + 1)
+        
         # Znovu načti všechny soubory
         all_files_list <- list.files(path(), full.names = TRUE, recursive = TRUE)
         patient_pattern <- paste(patients(), collapse = "|")
         matches <- stri_detect_regex(all_files_list, patient_pattern) 
         all_files(all_files_list[matches])
         
-        # Znovu načti goi soubor
-        goi_matches <- stri_detect_regex(all_files_list, "genes_of_interest") & !str_detect(all_files_list, regex(patient_pattern, ignore_case = TRUE))
-        goi_files(all_files_list[goi_matches])
+        # Znovu načti goi soubor - POUZE z configu, žádný fallback
+        if (!is.null(shared_data$genes_of_interest_path())) {
+          goi_files(shared_data$genes_of_interest_path())
+        } else {
+          goi_files(NULL)
+        }
         
         # Znovu načti TMB soubor
         file_pattern <- paste(c("mutation_loads","TMB"), collapse = "|")
@@ -152,6 +205,7 @@ step2_ui <- function(id) {
         req(datasets(), patients(), all_files())
         
         data <- datasets_data()
+        ref_data <- reference_files_data()
         
       # ==========================================
       
@@ -165,6 +219,32 @@ step2_ui <- function(id) {
           shinyalert(
             title = "Missing Required Columns",
             text = HTML(error_html),
+            type = "error",
+            showConfirmButton = TRUE,
+            confirmButtonText = "OK",
+            html = TRUE
+          )
+          return()
+        }
+        
+      # ========== REFERENCE FILES VALIDATION =========
+      
+        # Check if kegg_tab is red (required but missing)
+        if (ref_data$kegg_status == "red") {
+          confirmed_paths_state(NULL)
+          
+          shinyalert(
+            title = "Critical reference file missing",
+            text = HTML(paste0(
+              "<div style='text-align: center;'><strong style='color: #d32f2f;'>Pathways file is required for your selected datasets.</strong></div><br>",
+              "<div style='text-align: left; margin-left: 2em;'>The pathways file is necessary for:</div>",
+              "<ul style='text-align: left; margin-left: 3em;'>",
+              if ("somatic" %in% datasets()) "<li>Somatic variants analysis (Sankey plot)</li>" else "",
+              if ("expression" %in% datasets()) "<li>Expression profile analysis</li>" else "",
+              if ("expression" %in% datasets()) "<li>Network graph visualization</li>" else "",
+              "</ul>",
+              "<br><div style='text-align: center;'>Please configure the correct path in <code>reference_paths.json</code></div>"
+            )),
             type = "error",
             showConfirmButton = TRUE,
             confirmButtonText = "OK",
@@ -209,7 +289,10 @@ step2_ui <- function(id) {
           return()
         }
 
-        if (validation$has_orange_status) {
+        # Check for orange warnings (patient data or reference files)
+        has_ref_warnings <- (ref_data$goi_status == "orange" || ref_data$report_status == "orange")
+        
+        if (validation$has_orange_status || has_ref_warnings) {
           warning_parts <- c()
           
           # IGV nepoběží (chybí BAM/BAI)
@@ -236,18 +319,6 @@ step2_ui <- function(id) {
             warning_parts <- c(warning_parts, arr_html)
           }
           
-          # GOI část (ponecháno)
-          if (length(validation$goi_issues) > 0) {
-            goi_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$goi_issues), collapse = "")
-            goi_html <- paste0(
-              "<div style='text-align: center;'><strong>Gene-of-interest analysis may be limited for:</strong></div><br>",
-              "<ul style='text-align: left; margin-left: 2em;'>",
-              goi_lines,
-              "</ul>"
-            )
-            warning_parts <- c(warning_parts, goi_html)
-          }
-          
           # TMB část (ponecháno)
           if (length(validation$TMB_issues) > 0) {
             TMB_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$TMB_issues), collapse = "")
@@ -258,6 +329,26 @@ step2_ui <- function(id) {
               "</ul>"
             )
             warning_parts <- c(warning_parts, TMB_html)
+          }
+          
+          # ===== REFERENCE FILES WARNINGS =====
+          
+          # GOI missing
+          if (ref_data$goi_status == "orange") {
+            goi_ref_html <- paste0(
+              "<div style='text-align: center;'><strong>Genes of interest file is configured but not found</strong></div><br>",
+              "<div style='text-align: center; color: #666;'>GOI analysis will be unavailable in Expression Profile module.</div>"
+            )
+            warning_parts <- c(warning_parts, goi_ref_html)
+          }
+          
+          # Report template missing
+          if (ref_data$report_status == "orange") {
+            report_ref_html <- paste0(
+              "<div style='text-align: center;'><strong>Report template is missing</strong></div><br>",
+              "<div style='text-align: center; color: #666;'>Report download functionality will be unavailable for all datasets.</div>"
+            )
+            warning_parts <- c(warning_parts, report_ref_html)
           }
           
           warning_message <- paste0(paste(warning_parts, collapse = "<br>"), "<br>Do you want to continue anyway?")
@@ -283,8 +374,8 @@ step2_ui <- function(id) {
 
         confirmed_paths_state(build_confirmed_paths(data, path()))  # NO RED, NO ORANGE: pass data directly
         
-        # Show waiter after confirming - will be hidden when summary/expression profile loads
-        show_waiter("main-app", "Loading data and preparing modules...")
+        # Note: Waiter will be shown in main.R observeEvent(upload$confirmed_paths())
+        # and Summary tab will be switched to automatically
         
       })
 

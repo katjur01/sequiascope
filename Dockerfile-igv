@@ -2,7 +2,10 @@
 # Kombinovaný kontejner pro IGV Desktop snapshoty + statický server
 FROM openjdk:17.0.1-jdk-slim
 
-WORKDIR /srv/igv-static
+# Default output directory (can be overridden via environment variable)
+ENV OUTPUT_BASE_DIR=/output_files
+
+WORKDIR /app
 
 # Systémové závislosti pro IGV Desktop + Node.js + Xvfb
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -51,9 +54,11 @@ RUN chmod +x /usr/local/bin/igv_batch_watcher.sh
 
 # Vytvoření skriptu pro spuštění http-serveru a watcheru
 RUN echo '#!/bin/bash\n\
-# Spusť http-server na pozadí\n\
-echo "Starting http-server on port 8081..."\n\
-http-server /srv/igv-static -p 8081 --cors -c 3600 &\n\
+# Spusť http-server na pozadí (servíruje /input_files pro BAM soubory)\n\
+INPUT_DIR="${INPUT_DIR:-/input_files}"\n\
+OUTPUT_BASE_DIR="${OUTPUT_BASE_DIR:-/output_files}"\n\
+echo "Starting http-server on port 8081 serving ${INPUT_DIR}..."\n\
+http-server "${INPUT_DIR}" -p 8081 --cors -c 3600 &\n\
 HTTP_SERVER_PID=$!\n\
 \n\
 echo "IGV container started. Java version:"\n\

@@ -291,22 +291,18 @@ prepare_cytoscape_network <- function(interactions, tab, proteins = NULL, select
 }
 
 #' @export
-get_pathway_list <- function(expr_tag, goi_dt = NULL, run = NULL) {
-
-  # Bezpečná kontrola parametru run
-  if (!is.null(run) && length(run) > 0 && run == "docker") {
-    path <- "/input_files/kegg_tab.tsv"
-  } else {
-    path <- paste0(getwd(), "/input_files/kegg_tab.tsv")
+get_pathway_list <- function(expr_tag, goi_dt = NULL, kegg_tab_path = NULL) {
+  # Validate kegg_tab_path
+  if (is.null(kegg_tab_path) || kegg_tab_path == "") {
+    stop("get_pathway_list: kegg_tab_path is NULL or empty. This should be set in main.R via shared_data$kegg_tab_path()")
   }
-
   
   # Zpracování pro ALL GENES
   if (identical(expr_tag, "all_genes")) {
-    if (!file.exists(path)) {
-      stop("Soubor ", path, " nebyl nalezen.")
+    if (!file.exists(kegg_tab_path)) {
+      stop("Soubor ", kegg_tab_path, " nebyl nalezen.")
     }
-    dt <- fread(path)
+    dt <- fread(kegg_tab_path)
     return(sort(unique(dt$kegg_paths_name)))
   }
   
@@ -318,8 +314,8 @@ get_pathway_list <- function(expr_tag, goi_dt = NULL, run = NULL) {
     }
     
     # 2️⃣ goi_dt neobsahuje pathway, použij KEGG tabulku
-    if (file.exists(path)) {
-      dt <- fread(path)
+    if (file.exists(kegg_tab_path)) {
+      dt <- fread(kegg_tab_path)
       return(sort(unique(dt$kegg_paths_name)))
     } else {
       stop("Soubor ", path, " nebyl nalezen.")

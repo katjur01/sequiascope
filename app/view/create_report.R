@@ -1,9 +1,10 @@
 box::use(
-  shiny[tagList,fileInput,conditionalPanel,reactive,reactiveValues,reactiveVal,downloadButton,icon,moduleServer,NS,downloadHandler,div,observe,observeEvent,reactiveValuesToList],
-  flextable[flextable,theme_vanilla,bg,fontsize,border_remove,set_header_labels,set_table_properties,body_add_flextable,color,align,width,bold,nrow_part],
-  officer[cursor_reach,body_add_par,body_add_fpar,body_remove,fp_border,fp_text,fpar,ftext,read_docx],
+  shiny[req,tagList,fileInput,conditionalPanel,reactive,reactiveValues,reactiveVal,downloadButton,icon,moduleServer,NS,downloadHandler,div,observe,observeEvent,reactiveValuesToList],
+  flextable[flextable,theme_vanilla,bg,fontsize,border_remove,set_header_labels,set_table_properties,body_add_flextable,color,align,width,bold,nrow_part,italic,border],
+  officer[cursor_reach,body_add_par,body_add_fpar,body_remove,fp_border,fp_text,fpar,ftext,read_docx,hyperlink_ftext],
   htmltools[tags,HTML],
   shinyWidgets[dropdown,prettyRadioButtons],
+  shinyjs[useShinyjs,enable,disable,hide,show],
   data.table[data.table,as.data.table],
   bs4Dash[box],
   utils[str],
@@ -14,9 +15,9 @@ myReport_theme <- function(ft) {
   ft |>
     theme_vanilla() |>
     color(part = "header", color = "white") |>
-    bg(part = "header", bg = "#294779") |> # "#22a9c0"
-    bg(i = seq_len(nrow_part(ft, part = "body")), bg = "#9fc5e8", part = "body") |> # "#bce5ec"
-    bg(i = seq(1, nrow_part(ft, part = "body"), by = 2), bg ="#cfe2f3" , part = "body") |> # "#e8f6f8"
+    bg(part = "header", bg = "#294779") |>
+    bg(i = seq_len(nrow_part(ft, part = "body")), bg = "white", part = "body") |>
+    bg(i = seq(1, nrow_part(ft, part = "body"), by = 2), bg = "#cfe2f3", part = "body") |>
     fontsize(size = 8, part = "all") |>
     align(align = "left", part = "header") |>
     align(align = "left", part = "body") |>
@@ -26,6 +27,7 @@ myReport_theme <- function(ft) {
 
 ui <- function(id) {
   ns <- NS(id)
+  useShinyjs()
   tagList(
     div(style = "font-size: 16px !important; font-weight: normal !important;",
       dropdown(right = TRUE, size = "sm", icon = icon("download"), style = "material-flat", width = "300px",
@@ -39,6 +41,12 @@ ui <- function(id) {
             condition = sprintf("input['%s'] == 'custom'", ns("template_choice")),
             fileInput(ns("custom_template"), "Upload your template (.docx)", accept = ".docx")
          ),
+        tags$div(
+          id = ns("template_warning"),
+          style = "display: none; color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px; padding: 8px; margin-bottom: 10px; font-size: 13px;",
+          icon("exclamation-triangle"),
+          " Default template not available. Upload template in Upload Data or select custom template."
+        ),
         downloadButton(ns("download_report"), "Generate Report")
       )
     )
@@ -46,8 +54,10 @@ ui <- function(id) {
 }
 
 
-server <- function(id, patient, shared_data, run) {
+server <- function(id, patient, shared_data) {
   moduleServer(id, function(input, output, session) {
+    
+    ns <- session$ns
 
     noNA_text <- function(x) ifelse(is.na(x) | x == "", "-", x)
 
@@ -66,7 +76,8 @@ server <- function(id, patient, shared_data, run) {
 
       if (is.null(som_vars) || nrow(som_vars) == 0) {
       } else {
-        som_vars <- som_vars[grepl(patient, sample)]
+        patient_id <- patient  # Store in local variable to avoid column name collision
+        som_vars <- som_vars[sample == patient_id]
 
         if (nrow(som_vars) == 0) {
           dt <- data.table(
@@ -84,7 +95,7 @@ server <- function(id, patient, shared_data, run) {
             HGVSc       = noNA_text(som_vars$hgvsc),
             HGVSp       = noNA_text(som_vars$hgvsp),
             variant     = sprintf("%s\n(%s)", noNA_text(som_vars$hgvsc), noNA_text(som_vars$hgvsp)),
-            VAF         = as.numeric(som_vars$tumor_variant_freq) * 100,
+            VAF         = sprintf("%.1f%%", as.numeric(som_vars$tumor_variant_freq) * 100),
             consequence = som_vars$consequence,
             Class       = ""
           )
@@ -115,8 +126,8 @@ server <- function(id, patient, shared_data, run) {
       
       if (is.null(germ_vars) || nrow(germ_vars) == 0) {
       } else {
-        germ_vars <- germ_vars[grepl(patient, sample)]
-        
+        patient_id <- patient  # Store in local variable to avoid column name collision
+        germ_vars <- germ_vars[sample == patient_id]
         if (nrow(germ_vars) == 0) {
           dt <- data.table(
             Gene        = character(),
@@ -132,7 +143,7 @@ server <- function(id, patient, shared_data, run) {
         } else {
           dt <- data.table(
             Gene        = germ_vars$gene_symbol,
-            Transcript  = germ_vars$Feature,
+            Transcript  = germ_vars$feature,
             HGVSc       = noNA_text(germ_vars$hgvsc),
             HGVSp       = noNA_text(germ_vars$hgvsp),
             variant     = sprintf("%s\n(%s)", noNA_text(germ_vars$hgvsc), noNA_text(germ_vars$hgvsp)),
@@ -150,6 +161,7 @@ server <- function(id, patient, shared_data, run) {
     preprare_germline_dt <- function(germline_dt) {
       ft <- flextable(germline_dt, col_keys = c("Gene","Transcript","variant","MAF","consequence","Phenotype","Zygozity","Inheritance","Class"))
       ft <- set_header_labels(ft,
+                              Transcript = "Transcript",
                               variant = "Variant",
                               consequence = "Variant effect")
       ft <- myReport_theme(ft)
@@ -171,10 +183,9 @@ server <- function(id, patient, shared_data, run) {
       
       if (is.null(fusion) || nrow(fusion) == 0) {
       } else {
-        fusion <- fusion[grepl(patient, sample)]
-        
+        patient_id <- patient  # Store in local variable to avoid column name collision
+        fusion <- fusion[sample == patient_id]
         if (nrow(fusion) == 0) {
-          message("### fusion je NULL nebo má 0 řádků → prázdný výstup")
           dt <- data.table(
             gene1           = character(),
             transcript5     = character(),
@@ -190,7 +201,7 @@ server <- function(id, patient, shared_data, run) {
             gene2           = fusion$gene2,
             transcript3     = "",
             overall_support = fusion$overall_support,
-            phasing         = "in-frame/ out-of-frame"
+            phasing         = noNA_text(fusion$arriba.reading_frame)
           )
         }
         return(dt)
@@ -224,7 +235,8 @@ server <- function(id, patient, shared_data, run) {
       
       if (is.null(exp_genes) || nrow(exp_genes) == 0) {
       } else {
-        exp_genes <- exp_genes[grepl(patient, sample)]
+        patient_id <- patient  # Store in local variable to avoid column name collision
+        exp_genes <- exp_genes[sample == patient_id]
         if (nrow(exp_genes) == 0) {
           dt <- data.table(
             Gene              = character(),
@@ -286,91 +298,157 @@ server <- function(id, patient, shared_data, run) {
 #       ft
 #     }
 #     
-#     
-    # details_dt <- reactive({
-    #   dt <- data.table(
-    #     attribute = c("Specimen type", "Date of collection", "Number of biopsy",
-    #                   "Cancer cell content", "Method used", "Library preparation",
-    #                   "Sequencing device", "Date of sequencing"),
-    #     # germline = c("Peripheral blood", "7.9.2023", NA, NA, "Whole-exome sequencing", "KAPA HyperExome", "NextSeq 500", "11.9.2023"),
-    #     somatic = c("FFPE tissue", "5.9.2023", "1391/23/1", "NA", "Whole-exome sequencing", "KAPA HyperExome", "NextSeq 500", "9.10.2023"),
-    #     # fusion = c("Peripheral blood", "7.9.2023", NA, NA, "Whole-exome sequencing", "KAPA HyperExome", "NextSeq 500", "11.9.2023"),
-    #     # expression = c("Frozen tissue", "5.9.2023", "1391/23", "NA", "Whole-transcriptome sequencing", "NEBNext Ultra II Directional RNA Library Prep Kit", "NextSeq 500", "31.10.2023")
-    #   )
-    #   
-    #   active_cols <- c()
-    # 
-    #   # if (!is.null(germline_dt()) && nrow(germline_dt()) > 0) active_cols <- c(active_cols, "germline")
-    #   if (!is.null(somatic_dt()) && nrow(somatic_dt()) > 0) active_cols <- c(active_cols, "somatic")
-    #   # if (!is.null(fusion_dt()) && nrow(fusion_dt()) > 0) active_cols <- c(active_cols, "fusion")
-    #   # if (!is.null(expression_dt()) && nrow(expression_dt()) > 0) active_cols <- c(active_cols, "expression")
-    # 
-    #   details_dt <- dt[, c("attribute", active_cols), with = FALSE]
-    #   details_dt
-    # })
-    # 
-    # preprare_details_dt <- function(details_dt) {
-    #   # Definujeme, které sloupce budou aktivní
-    #   active_cols <- c("attribute", "space1",
-    #                    if ("germline" %in% names(details_dt)) c("germline", "space2") else NULL,
-    #                    if ("somatic" %in% names(details_dt)) c("somatic", "space3") else NULL,
-    #                    if ("fusion" %in% names(details_dt)) c("fusion", "space4") else NULL,
-    #                    if ("expression" %in% names(details_dt)) "expression" else NULL)
-    #   space_cols <- grep("space[0-9]+", active_cols, value = TRUE)
-    #   
-    #   # Definujeme okraje
-    #   top_bottom_border <- fp_border(color = "#22a9c0", width = 1)
-    #   
-    #   # Nejprve vytvoříme flextable objekt
-    #   ft <- flextable(details_dt, col_keys = active_cols)
-    #   
-    #   # Nyní můžeme bezpečně získat poslední řádek
-    #   last_row <- nrow_part(ft, part = "body")
-    #   
-      # Aplikujeme formátování
-      # ft <- ft |>
-      #   theme_vanilla() |>
-      #   fontsize(size = 8, part = "all") |>
-      #   align(align = "center", part = "header") |>
-      #   empty_blanks() |>
-      #   bg(part = "header", bg = "white") |>
-      #   bg(i = seq_len(last_row), bg = "white", part = "body") |>
-      #   bg(i = seq(1, last_row, by = 2), bg = "#bce5ec", part = "body") |>
-      #   border(part = "header",
-      #          border.top = top_bottom_border,
-      #          border.bottom = top_bottom_border) |>
-      #   border(part = "body",
-      #          i = last_row,
-      #          j = active_cols,
-      #          border.bottom = top_bottom_border) |>
-      #   bold(part = "header", bold = TRUE) |>
-      #   width(j = "attribute", width = 1.5) |>
-      #   # width(j = "germline", width = 1.5) |>
-      #   # width(j = "fusion", width = 1.5) |>
-      #   # width(j = "expression", width = 1.5) |>
-      #   set_table_properties(width = 1, layout = "autofit") |>
-      #   set_header_labels(attribute = "") |>
-      #   bold(j = "attribute", bold = TRUE) |>
-      #   italic(j = "attribute", italic = TRUE) |>
-      #   bg(j = space_cols, bg = "white", part = "body")
-      # 
-      # ft
-    # }
 
     
-    # Cesta k výchozí šabloně
-    if (run == "docker") {
-      # default_template_path <- paste0(getwd(),"/report_template.docx")
-      default_template_path <- "/report_template.docx"
-    } else {
-      default_template_path <- paste0(getwd(),"/input_files/report_template.docx")
+    details_dt <- reactive({
+      # Ukázková tabulka s daty (pro budoucí reference):
+      # dt <- data.table(
+      #   attribute = c("Specimen type", "Date of collection", "Number of biopsy",
+      #                 "Cancer cell content", "Method used", "Library preparation",
+      #                 "Sequencing device", "Date of sequencing"),
+      #   germline = c("Peripheral blood", "7.9.2023", NA, NA, "Whole-exome sequencing", "KAPA HyperExome", "NextSeq 500", "11.9.2023"),
+      #   somatic = c("FFPE tissue", "5.9.2023", "1391/23/1", "NA", "Whole-exome sequencing", "KAPA HyperExome", "NextSeq 500", "9.10.2023"),
+      #   fusion = c("Peripheral blood", "7.9.2023", NA, NA, "Whole-exome sequencing", "KAPA HyperExome", "NextSeq 500", "11.9.2023"),
+      #   expression = c("Frozen tissue", "5.9.2023", "1391/23", "NA", "Whole-transcriptome sequencing", "NEBNext Ultra II Directional RNA Library Prep Kit", "NextSeq 500", "31.10.2023")
+      # )
+      
+      # Vytvoř prázdnou tabulku pouze s atributy
+      dt <- data.table(
+        attribute = c("Specimen type", "Date of collection", "Number of biopsy",
+                      "Cancer cell content", "Method used", "Library preparation",
+                      "Sequencing device", "Date of sequencing")
+      )
+      
+      active_cols <- c()
+    
+      # Check which datasets were loaded (by checking if patient lists are not empty)
+      if (length(shared_data$germline.patients()) > 0) {
+        dt$germline <- ""
+        active_cols <- c(active_cols, "germline")
+      }
+      if (length(shared_data$somatic.patients()) > 0) {
+        dt$somatic <- ""
+        active_cols <- c(active_cols, "somatic")
+      }
+      if (length(shared_data$fusion.patients()) > 0) {
+        dt$fusion <- ""
+        active_cols <- c(active_cols, "fusion")
+      }
+      if (length(shared_data$expression.patients()) > 0) {
+        dt$expression <- ""
+        active_cols <- c(active_cols, "expression")
+      }
+    
+      return(dt)
+    })
+    
+    preprare_details_dt <- function(details_dt) {
+      # Definujeme, které sloupce budou aktivní (bez prázdných mezer)
+      active_cols <- c("attribute",
+                       if ("germline" %in% names(details_dt)) "germline" else NULL,
+                       if ("somatic" %in% names(details_dt)) "somatic" else NULL,
+                       if ("fusion" %in% names(details_dt)) "fusion" else NULL,
+                       if ("expression" %in% names(details_dt)) "expression" else NULL)
+      
+      # Definujeme okraje
+      top_bottom_border <- fp_border(color = "#294779", width = 1)
+      
+      # Nejprve vytvoříme flextable objekt
+      ft <- flextable(details_dt, col_keys = active_cols)
+      
+      # Nyní můžeme bezpečně získat poslední řádek
+      last_row <- nrow_part(ft, part = "body")
+      
+      # Aplikujeme formátování - bílé záhlaví, střídání bílá-modrá
+      ft <- ft |>
+        theme_vanilla() |>
+        fontsize(size = 8, part = "all") |>
+        align(align = "center", part = "header") |>
+        bg(part = "header", bg = "white") |>
+        bg(i = seq_len(last_row), bg = "white", part = "body") |>
+        bg(i = seq(1, last_row, by = 2), bg = "#cfe2f3", part = "body") |>
+        border(part = "header",
+               border.top = top_bottom_border,
+               border.bottom = top_bottom_border) |>
+        border(part = "body",
+               i = last_row,
+               j = active_cols,
+               border.bottom = top_bottom_border) |>
+        bold(part = "header", bold = TRUE) |>
+        width(j = "attribute", width = 1.5) |>
+        set_table_properties(width = 1, layout = "autofit") |>
+        set_header_labels(
+          attribute = "",
+          germline = "Germline variant calling",
+          somatic = "Somatic variant calling",
+          fusion = "Fusion gene detection",
+          expression = "RNA expression profile"
+        ) |>
+        bold(j = "attribute", bold = TRUE) |>
+        italic(j = "attribute", italic = TRUE)
+      
+      ft
     }
 
+    # Cesta k výchozí šabloně (reactive value)
+    default_template_path <- shared_data$report_template_path
+    
+    # Check if default template is available (reactive)
+    is_default_template_available <- reactive({
+      path <- default_template_path()
+      
+      message("[REPORT TEMPLATE] ========== DEBUG ==========")
+      message("[REPORT TEMPLATE] Path from config: ", if(is.null(path)) "NULL" else paste0("'", path, "'"))
+      message("[REPORT TEMPLATE] is.null(path): ", is.null(path))
+      message("[REPORT TEMPLATE] nzchar(path): ", if(!is.null(path)) nzchar(path) else "N/A (path is NULL)")
+      message("[REPORT TEMPLATE] file.exists(path): ", if(!is.null(path) && nzchar(path)) file.exists(path) else "N/A")
+      
+      result <- !is.null(path) && nzchar(path) && file.exists(path)
+      message("[REPORT TEMPLATE] Final is_available: ", result)
+      message("[REPORT TEMPLATE] =============================")
+      
+      return(result)
+    })
+    
+    # Enable/disable download button based on template availability
+    # Use observe() to react to both template_choice AND template availability changes
+    observe({
+      # Wait for template_choice to be initialized
+      if (is.null(input$template_choice) || length(input$template_choice) == 0) {
+        return()
+      }
+      
+      message("[BUTTON STATE] ========== OBSERVE TRIGGERED ==========")
+      message("[BUTTON STATE] template_choice: ", input$template_choice)
+      message("[BUTTON STATE] is_default_template_available(): ", is_default_template_available())
+      
+      # Small delay to ensure DOM is ready (especially for dropdown content)
+      shinyjs::delay(100, {
+        if (input$template_choice == "default") {
+          # If default template is selected, check if it's available
+          if (is_default_template_available()) {
+            message("[BUTTON STATE] Action: ENABLE button, HIDE warning")
+            shinyjs::enable("download_report")
+            shinyjs::hide("template_warning")
+          } else {
+            message("[BUTTON STATE] Action: DISABLE button, SHOW warning")
+            shinyjs::disable("download_report")
+            shinyjs::show("template_warning")
+          }
+        } else {
+          # If custom template is selected, always enable button (req() will handle validation)
+          message("[BUTTON STATE] Action: ENABLE button (custom template), HIDE warning")
+          shinyjs::enable("download_report")
+          shinyjs::hide("template_warning")
+        }
+        message("[BUTTON STATE] ========================================")
+      })
+    })
 
     # Reaktivní výraz pro získání cesty k šabloně
     template_path <- reactive({
       if (input$template_choice == "default") {
-        return(default_template_path)
+        return(default_template_path())
       } else {
         # Zkontrolujeme, zda byl nahrán vlastní soubor
         req(input$custom_template)
@@ -407,24 +485,44 @@ server <- function(id, patient, shared_data, run) {
 
     somatic_interpretation <- reactive({
       if (is.null(somatic_dt()) || nrow(somatic_dt()) == 0) {
-        full_text <- NA
+        return(NULL)
       } else {
-        variants <- sprintf("%s/%s variant was found in the %s gene.", somatic_dt()$HGVSc, somatic_dt()$HGVSp, somatic_dt()$Gene)
-        links <- paste0("(https://www.oncokb.org/gene/", somatic_dt()$Gene, ")")
-        full_text <- paste(variants, links)
+        # Create formatted paragraph with hyperlink in parentheses
+        fpar_list <- lapply(1:nrow(somatic_dt()), function(i) {
+          variant_text <- sprintf("%s/%s variant was found in the %s gene. ", 
+                                  somatic_dt()$HGVSc[i], somatic_dt()$HGVSp[i], somatic_dt()$Gene[i])
+          gene_url <- paste0("https://www.oncokb.org/gene/", somatic_dt()$Gene[i])
+          
+          fpar(
+            ftext(variant_text),
+            ftext("("),
+            hyperlink_ftext(href = gene_url, text = gene_url),
+            ftext(")")
+          )
+        })
+        return(fpar_list)
       }
-      return(full_text)
     })
     
     germline_interpretation <- reactive({
       if (is.null(germline_dt()) || nrow(germline_dt()) == 0) {
-        full_text <- NA
+        return(NULL)
       } else {
-        variants <- sprintf("%s/%s variant was found in the %s gene.", germline_dt()$HGVSc, germline_dt()$HGVSp, germline_dt()$Gene)
-        links <- paste0("(https://www.oncokb.org/gene/", germline_dt()$Gene, ")")
-        full_text <- paste(variants, links)
+        # Create formatted paragraph with hyperlink in parentheses
+        fpar_list <- lapply(1:nrow(germline_dt()), function(i) {
+          variant_text <- sprintf("%s/%s variant was found in the %s gene. ", 
+                                  germline_dt()$HGVSc[i], germline_dt()$HGVSp[i], germline_dt()$Gene[i])
+          gene_url <- paste0("https://www.oncokb.org/gene/", germline_dt()$Gene[i])
+          
+          fpar(
+            ftext(variant_text),
+            ftext("("),
+            hyperlink_ftext(href = gene_url, text = gene_url),
+            ftext(")")
+          )
+        })
+        return(fpar_list)
       }
-      return(full_text)
     })
 
   observe({
@@ -451,7 +549,7 @@ server <- function(id, patient, shared_data, run) {
           # the placeholder itself is now removed to finalize the layout.
           doc <- body_add_par(doc, paste0("Patient ID: ", patient), pos = "before")
           doc <- body_add_par(doc, paste0("Diagnosis: ", ""), pos = "after")
-          doc <- body_add_par(doc, paste0("Report date: ", format(Sys.Date(), "%B %d, %Y")), pos = "after")
+          doc <- body_add_par(doc, paste0("Report date: ", format(Sys.Date(), "%d. %m. %Y")), pos = "after")
 
           doc <- cursor_reach(doc, "<<patient_info>>")
           doc <- body_remove(doc)
@@ -498,22 +596,29 @@ server <- function(id, patient, shared_data, run) {
           message("Placeholder <<summary_fusion>> was not found. No gene fusion will not be added.")
         })
         
-  #       # 
-  #       # tryCatch({
-  #       #   doc <- cursor_reach(doc, "<<details_table>>")
-  #       #   # doc <- body_remove(doc)
-  #       #   
-  #       #   if (ncol(details_dt()) == 1) {    # if (is.null(details_dt()) || nrow(details_dt()) == 0) {
-  #       #     doc <- body_add_par(doc, "No analysis metadata available.")
-  #       #   } else {
-  #       #     doc <- body_add_flextable(doc, preprare_details_dt(details_dt()), pos = "before")
-  #       #   }
-  #       #   doc <- cursor_reach(doc, "<<details_table>>")
-  #       #   doc <- body_remove(doc)
-  #       # }, error = function(e) {
-  #       #   message("Placeholder <<details_table>> was not found. Details table will not be added.")
-  #       # })
-  #       # 
+        
+        tryCatch({
+          doc <- cursor_reach(doc, "<<details_table>>")
+          
+          message("📊 [DETAILS TABLE] Checking details_dt...")
+          message("📊 [DETAILS TABLE] ncol: ", ncol(details_dt()))
+          message("📊 [DETAILS TABLE] Column names: ", paste(names(details_dt()), collapse = ", "))
+          message("📊 [DETAILS TABLE] nrow: ", nrow(details_dt()))
+          
+          # Tabulka se vytvoří vždy, protože aplikace musí mít alespoň jeden dataset
+          message("📊 [DETAILS TABLE] Creating flextable with preprare_details_dt...")
+          ft <- preprare_details_dt(details_dt())
+          message("📊 [DETAILS TABLE] Flextable created, adding to document")
+          doc <- body_add_flextable(doc, ft, pos = "before")
+          message("📊 [DETAILS TABLE] Flextable added successfully")
+          
+          doc <- cursor_reach(doc, "<<details_table>>")
+          doc <- body_remove(doc)
+          message("📊 [DETAILS TABLE] Placeholder removed successfully")
+        }, error = function(e) {
+          message("❌ [DETAILS TABLE] ERROR: ", e$message)
+          message("Placeholder <<details_table>> was not found or error occurred.")
+        })
         
         tryCatch({
           doc <- cursor_reach(doc, "<<somatic_table>>")
@@ -562,20 +667,38 @@ server <- function(id, patient, shared_data, run) {
         })
         
         tryCatch({
+          message("=== EXPRESSION TABLE DEBUG ===")
+          message("expression_dt rows: ", if(!is.null(expression_dt())) nrow(expression_dt()) else "NULL")
+          
           doc <- cursor_reach(doc, "<<expression_table>>")
           if (is.null(expression_dt()) || nrow(expression_dt()) == 0) {
             doc <- body_add_par(doc, "No deregulated genes were selected for this report.")
           } else {
+            message("expression_dt columns: ", paste(colnames(expression_dt()), collapse=", "))
+            if ("pathway" %in% colnames(expression_dt())) {
+              message("Pathway values: ", paste(expression_dt()$pathway, collapse=", "))
+            }
             pathways <- rev(unique(expression_dt()$pathway)) # Musím převrátit, jinak bude seznam pathways v opačném pořadí
+            message("Unique pathways: ", paste(pathways, collapse=", "))
+            message("Number of pathways: ", length(pathways))
+            
             for (p in pathways) {
+              message("Processing pathway: ", p)
               subset_dt <- expression_dt()[pathway == p,]
-              doc <- body_add_flextable(doc, preprare_expression_dt(subset_dt[,-c("pathway")]), pos = "before")
-              doc <- body_add_par(doc, p, style = "heading 5", pos = "before") # Přidej nadpis (podsekce) s názvem pathway
+              message("  Subset rows: ", nrow(subset_dt))
+              if (nrow(subset_dt) > 0) {
+                message("  Genes in pathway: ", paste(subset_dt$Gene, collapse=", "))
+                doc <- body_add_flextable(doc, preprare_expression_dt(subset_dt[,-c("pathway")]), pos = "before")
+                doc <- body_add_par(doc, p, style = "Heading 5", pos = "before") # Přidej nadpis (podsekce) s názvem pathway
+              } else {
+                message("  WARNING: Subset is empty for pathway: ", p)
+              }
             }
           }
           doc <- cursor_reach(doc, "<<expression_table>>")
           doc <- body_remove(doc)
         }, error = function(e) {
+          message("ERROR in expression table: ", e$message)
           message("Placeholder <<expression_table>> was not found. Expression profile table will not be added.")
         })
         
@@ -600,9 +723,9 @@ server <- function(id, patient, shared_data, run) {
         tryCatch({
           doc <- cursor_reach(doc, "<<somatic_interpretation>>")
 
-          if (!is.null(somatic_dt()) && nrow(somatic_dt()) != 0) {
-            for (variant_text in somatic_interpretation()) {
-              doc <- body_add_par(doc, variant_text, pos = "before")
+          if (!is.null(somatic_interpretation())) {
+            for (fpar_obj in somatic_interpretation()) {
+              doc <- body_add_fpar(doc, fpar_obj, pos = "before")
             }
           }
           doc <- cursor_reach(doc, "<<somatic_interpretation>>")
@@ -614,9 +737,9 @@ server <- function(id, patient, shared_data, run) {
         tryCatch({
           doc <- cursor_reach(doc, "<<germline_interpretation>>")
 
-          if (!is.null(germline_dt()) && nrow(germline_dt()) != 0) {
-            for (variant_text in germline_interpretation()) {
-              doc <- body_add_par(doc, variant_text, pos = "before")
+          if (!is.null(germline_interpretation())) {
+            for (fpar_obj in germline_interpretation()) {
+              doc <- body_add_fpar(doc, fpar_obj, pos = "before")
             }
           }
           doc <- cursor_reach(doc, "<<germline_interpretation>>")

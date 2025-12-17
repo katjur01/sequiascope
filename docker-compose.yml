@@ -1,35 +1,37 @@
 services:
-  shiny:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: juraskovakaterina/sequiaviz:latest
-    container_name: sequiaviz-shiny
+    image: juraskovakaterina/sequiascope-app:latest
+    container_name: sequiascope-app
     ports:
       - "8080:8080"
     volumes:
-      - ./input_files:/input_files
-      - ./app:/app
-      - igv-shared:/srv/shiny-server/sequiaViz/www
+      - ./input_files:/input_files:ro
+      - ./output_files:/output_files
     depends_on:
-      - igv-static
+      - igv
     environment:
       - IGV_HOST=localhost
       - IGV_PORT=8081
 
 
 
-  igv-static:
+  igv:
     build:
       context: .
       dockerfile: Dockerfile-igv
-    image: juraskovakaterina/sequiaviz-igv:latest
-    container_name: igv-static
+    image: juraskovakaterina/sequiascope-igv:latest
+    container_name: sequiascope-igv
     ports:
       - "8081:8081"
     volumes:
       - ./input_files:/input_files:ro
-      - igv-shared:/srv/igv-static
+      - ./output_files:/output_files
+    environment:
+      - INPUT_DIR=/input_files
+      - OUTPUT_BASE_DIR=/output_files
+      - WATCH_DIR=/output_files/igv_snapshots
+      - PROCESSED_DIR=/output_files/.processed_batches
 
-volumes:
-  igv-shared:

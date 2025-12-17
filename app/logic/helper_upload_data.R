@@ -67,6 +67,32 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
       detailed = "Too many files"
     ),
     
+    # GOI specific
+    "goi_configured_missing" = list(
+      simple = "GOI file path in config but file not found",
+      detailed = "GOI file missing"
+    ),
+    
+    # Reference files
+    "kegg_missing_required" = list(
+      simple = "Pathways file missing",
+      detailed = "Pathways file missing"
+    ),
+    "kegg_missing_optional" = list(
+      simple = "Pathways file missing",
+      detailed = "Pathways file missing"
+    ),
+    "report_template_missing" = list(
+      simple = "Report template missing",
+      detailed = "Report template missing"
+    ),
+    
+    # Pattern-based search
+    "pattern_no_match" = list(
+      simple = "No files found matching pattern",
+      detailed = "Pattern matched no files"
+    ),
+    
     # Šedé stavy
     "optional_missing" = list(
       simple = "Optional files not available",
@@ -128,11 +154,11 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
     
     fusion_fusion    = list(extensions = "\\.(tsv|xlsx)$", keywords = "fusion", exclude = "arriba|STAR", required = TRUE),
     tumor_fusion     = list(extensions = "\\.(bam|bai)$", keywords = "fusion", exclude = "Chimeric|transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
-    chimeric_fusion  = list(extensions = "\\.(bam|bai)$", keywords = "fusion", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
-  arriba_fusion    = list(extensions = "\\.(pdf|tsv)$", keywords = "arriba", exclude = "discarded|STAR", required = FALSE, check_pair = TRUE, pair = "pdf_tsv"),
+    chimeric_fusion  = list(extensions = "\\.(bam|bai)$", keywords = "fusion", exclude = "transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    arriba_fusion    = list(extensions = "\\.(pdf|tsv)$", keywords = "arriba", exclude = "discarded|STAR", required = FALSE, check_pair = TRUE, pair = "pdf_tsv"),
     
     expression_expression = list(extensions = "\\.(tsv|xlsx)$", keywords = "expression|RNAseq", exclude = "report|genes_of_interest", required = TRUE),
-    goi_expression        = list(extensions = "genes_of_interest\\.(tsv|xlsx)$", keywords = "expression|RNAseq", exclude = "report", required = FALSE)
+    goi_expression        = list(extensions = "\\.(tsv|xlsx)$", keywords = NULL, exclude = NULL, required = FALSE)  # Exact path from config, no pattern matching
   )
   
   config_key <- paste(file_type, dataset_type, sep = "_")
@@ -140,8 +166,8 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
   if (is.null(config)) return("red")
   
   # DEBUG: Log for tumor_fusion to diagnose pattern issues
-  if (config_key == "tumor_fusion") {
-    message("[FILE_EVAL] Evaluating tumor_fusion for patient: ", patient)
+  if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
+    message("[FILE_EVAL] Evaluating ", config_key, " for patient: ", patient)
     message("[FILE_EVAL]   - patterns parameter: ", if(is.null(patterns)) "NULL" else paste(patterns, collapse=", "))
     message("[FILE_EVAL]   - config keywords: ", config$keywords)
     message("[FILE_EVAL]   - config exclude: ", if(!is.null(config$exclude)) config$exclude else "NULL")
@@ -156,25 +182,66 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
       pattern_list <- unique(trimws(as.character(patterns)))
     }
   }
+  
+  # Check if "none" is used as a marker for "search without additional pattern"
+  # "none" means: search for BAM files using only keyword (e.g., "somatic", "fusion") + patient ID, no additional pattern
+  search_without_pattern <- FALSE
+  if (length(pattern_list) > 0 && any(tolower(pattern_list) == "none")) {
+    search_without_pattern <- TRUE
+    pattern_list <- pattern_list[tolower(pattern_list) != "none"]  # Remove "none" from pattern list
+    
+    # DEBUG: Confirm "none" detection
+    message("[NONE DETECTED] config_key: ", config_key, ", patient: ", patient, ", search_without_pattern: TRUE")
+  }
+  
+  # If no patterns are provided for BAM files (fusion tumor/chimeric or somatic tumor/normal or germline normal), don't search at all
+  # UNLESS "none" was specified (search_without_pattern = TRUE)
+  # Note: arriba_fusion is NOT included - it always searches by keyword "arriba" regardless of user patterns
+  if ((config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) && 
+      !search_without_pattern &&
+      (is.null(patterns) || length(pattern_list) == 0 || all(!nzchar(pattern_list)))) {
+    return(list(
+      status = "gray",
+      files = character(0),
+      reason = "optional_missing",
+      tissues = character(0),
+      all_mapping = NULL,
+      missing_tissues = NULL
+    ))
+  }
+  
   base_keywords <- config$keywords
   
+  # For expression, keep OR logic (tissues can be different)
+  # For other file types with patterns: require config_keyword AND pattern (both must match)
   if (config_key == "expression_expression") {
     keyword_regex <- config$keywords
   } else {
-    all_keywords <- c(config$keywords, pattern_list)
+    # NEW LOGIC: When patterns are provided, require BOTH config keyword AND pattern
+    # Exception: if search_without_pattern = TRUE (user specified "-"), use ONLY config keyword
+    if (search_without_pattern) {
+      # Search using only config keyword (e.g., "somatic", "fusion"), no additional pattern
+      all_keywords <- c(config$keywords)
+    } else {
+      # Normal mode: combine config keyword + user patterns
+      all_keywords <- c(config$keywords, pattern_list)
+    }
     all_keywords <- all_keywords[nzchar(all_keywords)]
-    keyword_regex <- paste(all_keywords, collapse = "|")
+    keyword_regex <- all_keywords  # Store as vector for AND logic
   }
   
   # DEBUG: Log keyword construction for tumor_fusion
-  if (config_key == "tumor_fusion") {
+  if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
+    message("[FILE_EVAL] Evaluating ", config_key, " for patient: ", patient)
     message("[FILE_EVAL]   - pattern_list after parsing: ", paste(pattern_list, collapse=", "))
+    message("[FILE_EVAL]   - search_without_pattern: ", search_without_pattern)
     message("[FILE_EVAL]   - all_keywords combined: ", paste(all_keywords, collapse=", "))
-    message("[FILE_EVAL]   - final keyword_regex: ", keyword_regex)
+    message("[FILE_EVAL]   - final keyword_regex (AND logic): ", paste(keyword_regex, collapse=" AND "))
   }
   
   relevant_files <- if (config_key == "goi_expression") {
-    files[str_detect(files, regex(config$keywords, ignore_case = TRUE)) & !str_detect(files, config$exclude)]
+    # GOI file comes as exact path from config - no filtering needed
+    files
   } else if (config_key == "TMB_somatic") {
     files[str_detect(files, regex(config$keywords, ignore_case = TRUE)) & !str_detect(files, config$exclude)]
   } else {
@@ -182,17 +249,78 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
   }
   
   # DEBUG: Log file filtering for tumor_fusion
-  if (config_key == "tumor_fusion") {
+  if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
     message("[FILE_EVAL]   - relevant_files (matching patient): ", length(relevant_files))
     # File list omitted to reduce log verbosity
   }
   
-  matched <- relevant_files[
-    str_detect(relevant_files, config$extensions) &
-      str_detect(relevant_files, regex(keyword_regex, ignore_case = TRUE))]
+  # GOI file comes as exact path - no keyword matching needed
+  if (config_key == "goi_expression") {
+    # Special handling for GOI - check if file actually exists
+    if (length(relevant_files) > 0) {
+      existing_files <- relevant_files[file.exists(relevant_files)]
+      matched <- existing_files[str_detect(existing_files, config$extensions)]
+      
+      # If path was in config but file doesn't exist -> we need to signal this
+      # Store the original path for later status determination
+      if (length(existing_files) == 0 && length(relevant_files) > 0) {
+        # Path was provided but file doesn't exist
+        attr(matched, "goi_path_missing") <- TRUE
+      }
+    } else {
+      matched <- character(0)
+    }
+  } else if (config_key == "expression_expression") {
+    # Expression uses OR logic for keyword_regex (as before)
+    matched <- relevant_files[
+      str_detect(relevant_files, config$extensions) &
+        str_detect(relevant_files, regex(keyword_regex, ignore_case = TRUE))]
+  } else {
+    # For other types: AND logic - file must contain ALL keywords
+    matched <- relevant_files[str_detect(relevant_files, config$extensions)]
+    for (kw in keyword_regex) {
+      matched <- matched[str_detect(matched, regex(kw, ignore_case = TRUE))]
+    }
+  }
   
-  # DEBUG: Log matching results for tumor_fusion  
-  if (config_key == "tumor_fusion") {
+  # When "none" is specified (search_without_pattern), apply stricter filtering
+  # to ensure we only match files with exact patient ID, not patient ID + additional text
+  # e.g., "DZ1601.bam" ✓  but "DZ1601FFPE.bam" ✗
+  if (search_without_pattern && (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline"))) {
+    # Build strict pattern that matches ONLY files where patient ID is followed by:
+    #   1. Extension directly: DZ1601.bam, DZ1601.bam.bai ✓
+    #   2. Separator + numbers + extension: DZ1601_001.bam, DZ1601_001.bam.bai ✓
+    # BUT NOT files where patient ID + letters: DZ1601FFPE.bam ✗
+    
+    # Pattern: start of string (^), patient ID, optionally separator+digits, then .bam.bai, .bam, or .bai
+    # Order matters: longer extensions first (bam.bai before bam)
+    # Apply to basename only
+    strict_pattern <- paste0("^", patient, "(?:[\\._-][0-9]+)?\\.(bam\\.bai|bam|bai)$")
+    
+    # Filter based on basename matching the strict pattern
+    matched_basenames <- basename(matched)
+    matches_strict <- str_detect(matched_basenames, regex(strict_pattern, ignore_case = TRUE))
+    
+    # DEBUG: Log strict pattern filtering BEFORE applying filter
+    if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
+      message("[FILE_EVAL]   - Applied strict pattern (none specified): ", strict_pattern)
+      message("[FILE_EVAL]   - Files before strict filter: ", paste(basename(matched), collapse=", "))
+      message("[FILE_EVAL]   - Matches strict pattern: ", paste(which(matches_strict), collapse=", "))
+    }
+    
+    matched <- matched[matches_strict]
+    
+    # DEBUG: Log after filter
+    if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
+      message("[FILE_EVAL]   - Files after strict filter: ", length(matched))
+      if (length(matched) > 0) {
+        message("[FILE_EVAL]     Strict matched: ", paste(basename(matched), collapse=", "))
+      }
+    }
+  }
+  
+  # DEBUG: Log matching results for BAM file types
+  if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
     message("[FILE_EVAL]   - matched files (after extension + keyword filter): ", length(matched))
     if (length(matched) > 0) {
       message("[FILE_EVAL]     Matched: ", paste(basename(matched), collapse=", "))
@@ -203,40 +331,53 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
     matched <- matched[!str_detect(matched, regex(config$exclude, ignore_case = TRUE))]
   }
   
-  # DEBUG: Log after exclude filter for tumor_fusion
-  if (config_key == "tumor_fusion") {
+  # DEBUG: Log after exclude filter for BAM file types
+  if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
     message("[FILE_EVAL]   - final matched files (after exclude filter): ", length(matched))
     if (length(matched) > 0) {
       message("[FILE_EVAL]     Final: ", paste(basename(matched), collapse=", "))
     } else {
-      message("[FILE_EVAL]     ⚠️  NO TUMOR BAM FILES MATCHED!")
+      message("[FILE_EVAL]     ⚠️  NO FILES MATCHED!")
       message("[FILE_EVAL]     This usually means:")
-      message("[FILE_EVAL]       1. Tumor pattern is missing or incorrect")
-      message("[FILE_EVAL]       2. Files don't contain the keyword '", keyword_regex, "'")
-      message("[FILE_EVAL]     👉 Check Step 1: 'Pattern for tumor BAM files' must match your filename!")
+      message("[FILE_EVAL]       1. Pattern is missing or incorrect")
+      message("[FILE_EVAL]       2. Files don't contain ALL required keywords: ", paste(keyword_regex, collapse=" AND "))
+      message("[FILE_EVAL]     👉 Check Step 1: Pattern must match your filename!")
     }
   }
   
   tissues_matched <- character(0)
   
+  # When user provides a pattern for BAM files (or uses "-" for no pattern), it becomes "required"
+  is_required_by_pattern <- (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) &&
+                             (search_without_pattern || (length(pattern_list) > 0 && any(nzchar(pattern_list))))
+  is_required <- config$required || is_required_by_pattern
+  
   # BAM/BAI pairing
   if (!is.null(config$check_pair) && config$check_pair) {
     if (length(matched) == 0) {
-      status <- if (config$required) "red" else "gray"
-      reason <- if (config$required) "required_missing" else "optional_missing"
+      # Optional files with pattern: orange (not red) - user can proceed without this feature
+      status <- if (is_required) "orange" else "gray"
+      # Use pattern_no_match when user specified pattern but no files found
+      reason <- if (is_required_by_pattern) "pattern_no_match" else if (is_required) "required_missing" else "optional_missing"
     } else {
       pair_type <- if (!is.null(config$pair)) config$pair else "bam_bai"
       pair_status <- check_pair(matched, patient, pair = pair_type)
       
-      if (pair_status == "incomplete") {
+      if (pair_status == "multiple") {
+        status <- "orange"
+        reason <- "multiple_files"
+        matched <- character(0)  # Clear files - app should not use them
+      } else if (pair_status == "incomplete") {
         status <- "orange"
         reason <- if (pair_type == "pdf_tsv") "missing_pair_pdf_tsv" else "missing_pair_bam_bai"
+        matched <- character(0)  # Clear files - incomplete pairs are unusable
       } else if (pair_status == "complete") {
         status <- "green"
         reason <- if (pair_type == "pdf_tsv") "complete_pair_pdf_tsv" else "complete_pair_bam_bai"
       } else {
-        status <- if (config$required) "red" else "gray"
-        reason <- if (config$required) "required_missing" else "optional_missing"
+        status <- if (is_required) "orange" else "gray"
+        reason <- if (is_required) "required_missing" else "optional_missing"
+        matched <- character(0)  # No files found
       }
     }
   } else {
@@ -256,6 +397,7 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
           status <- "red"
           reason <- "required_one_file"
           tissues_matched <- rep("none", length(matched))
+          # No need to clear matched - red status blocks user from proceeding anyway
         }
       } else {
         # Tissues jsou zadané -> vždy použij mapování
@@ -263,10 +405,11 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
           expression_files = matched,
           tissues_str      = pattern_list
         )
-        matched <- as.character(filtered$mapping)         # jen mapované soubory (mohou být length 0)
+        matched <- as.character(filtered$mapping)  # jen mapované soubory (mohou být length 0)
         status  <- if (filtered$status == "green") "green" else "red"
         reason  <- if (status == "green") "files_ok" else "required_missing_exp"
         tissues_matched <- names(filtered$mapping)
+        # No need to clear matched when red - red status blocks user from proceeding anyway
         
         # PŘIDEJME do výstupu i úplné mapování (vč. NA pro chybějící)
         attr(matched, "all_mapping") <- filtered$all_mapping
@@ -275,15 +418,22 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
       
     } else {
       # --- Other non-BAM types ---
-      if (length(matched) == 0) {
+      # Special handling for GOI: if path was in config but file doesn't exist -> orange
+      if (config_key == "goi_expression" && !is.null(attr(matched, "goi_path_missing")) && attr(matched, "goi_path_missing")) {
+        status <- "orange"
+        reason <- "goi_configured_missing"  # Path configured but file not found
+        matched <- character(0)  # Clear - file doesn't exist, don't pass to app
+      } else if (length(matched) == 0) {
         status <- if (config$required) "red" else "gray"
         reason <- if (config$required) "required_missing" else "optional_missing"
       } else if (length(matched) == 1) {
         status <- "green"
         reason <- "single_file_ok"
       } else if (config_key != "expression_expression" && length(matched) > 1) {
-        status <- "orange"
+        # Multiple files: RED for required files, ORANGE for optional
+        status <- if (config$required) "red" else "orange"
         reason <- "multiple_files"
+        matched <- character(0)  # Multiple files found - clear them (ambiguous which to use)
       } else {
         status <- "gray"
         reason <- "unknown"
@@ -473,7 +623,6 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
   } 
   else if (dataset_type == "expression") {
     patient_data$expression <- sapply(patient_results, function(x) get_status_icon(x$expression$status, simple = TRUE, reason = x$expression$reason))
-    patient_data$goi <- sapply(patient_results, function(x) get_status_icon(x$goi$status, simple = TRUE, reason = x$goi$reason))
 
     patient_data$tissue <- sapply(patient_results, function(x) {
       tm_full <- x$expression$tissue_mapping_full
@@ -481,16 +630,15 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
     })
     
     patient_data$icon <- sapply(patient_results, function(x) {
-      all_statuses <- c(x$expression$status, x$goi$status)
-      all_reasons <- c(x$expression$reason, x$goi$reason)
+      # Only check expression status (GOI is now in reference files table)
+      status <- x$expression$status
+      reason <- x$expression$reason
       
-      if ("red" %in% all_statuses) {
-        red_reason <- all_reasons[all_statuses == "red"][1]
-        get_status_icon("red", simple = FALSE, reason = red_reason)
-      } else if ("orange" %in% all_statuses) {
-        orange_reason <- all_reasons[all_statuses == "orange"][1]
-        get_status_icon("orange", simple = FALSE, reason = orange_reason)
-      } else if (all(all_statuses == "gray")) {
+      if (status == "red") {
+        get_status_icon("red", simple = FALSE, reason = reason)
+      } else if (status == "orange") {
+        get_status_icon("orange", simple = FALSE, reason = reason)
+      } else if (status == "gray") {
         get_status_icon("gray", simple = FALSE, reason = "optional_missing")
       } else {
         get_status_icon("green", simple = FALSE, reason = "files_ok")
@@ -498,8 +646,7 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
     })
     
     patient_data$files <- sapply(patient_results, function(x) {
-      tm_full   <- x$expression$tissue_mapping_full
-      goi_files <- x$goi$files
+      tm_full <- x$expression$tissue_mapping_full
       
       lines <- character(0)
       
@@ -513,14 +660,6 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
         if (length(expr_files) > 0) {
           lines <- c(lines, str_replace(expr_files, path, ""))
         }
-      }
-      
-      # Připojit GOI až na konec, jasně označené a bez vazby na tkáň
-      if (length(goi_files) > 0) {
-        goi_lines <- str_replace(goi_files, path, "")
-        # volitelné prázdné oddělení, ať se blok vizuálně neplete s tkáněmi:
-        if (length(lines) > 0) lines <- c(lines, "")
-        lines <- c(lines, goi_lines)
       }
       
       if (length(lines) == 0) "" else paste(lines, collapse = ",\n")
@@ -553,7 +692,6 @@ validate_datasets_status <- function(datasets_data) {
     orange_patients_list = list(),
     igv_issues = character(),
     arriba_issues = character(),
-    goi_issues = c(),
     TMB_issues = c()
   )
   
@@ -586,19 +724,32 @@ validate_datasets_status <- function(datasets_data) {
               cell_html <- data[[col]][i]
               if (!grepl("#fd7e14", cell_html)) next
               
+              # Detect different types of orange issues
               if (grepl("Missing BAM or BAI", cell_html, fixed = TRUE)) {
                 validation_results$igv_issues <- c(validation_results$igv_issues, patient)
               } else if (grepl("Missing PDF or TSV", cell_html, fixed = TRUE)) {
                 validation_results$arriba_issues <- c(validation_results$arriba_issues, patient)
+              } else if (grepl("Multiple files found", cell_html, fixed = TRUE)) {
+                # Multiple files can affect both IGV (BAM) and Arriba (PDF/TSV)
+                if (col %in% c("tumor", "normal", "chimeric")) {
+                  validation_results$igv_issues <- c(validation_results$igv_issues, patient)
+                } else if (col == "arriba") {
+                  validation_results$arriba_issues <- c(validation_results$arriba_issues, patient)
+                }
+              } else if (grepl("Required file missing", cell_html, fixed = TRUE)) {
+                # Pattern specified but file not found
+                if (col %in% c("tumor", "normal", "chimeric")) {
+                  validation_results$igv_issues <- c(validation_results$igv_issues, patient)
+                } else if (col == "arriba") {
+                  validation_results$arriba_issues <- c(validation_results$arriba_issues, patient)
+                }
               }
               validation_results$orange_patients_list[[patient]] <- c(validation_results$orange_patients_list[[patient]], dataset)
             }
           }
     
         }
-        if (dataset == "expression" && "goi" %in% colnames(data) && grepl("#fd7e14", data$goi[i])) {
-          validation_results$goi_issues <- c(validation_results$goi_issues, patient)
-        }
+        # Note: GOI is now checked in reference files, not per-patient
       }
     }
   }
@@ -620,6 +771,8 @@ check_pair <- function(files, patient, pair = c("bam_bai","pdf_tsv")) {
     
     if (length(pdf_files) == 0 && length(tsv_files) == 0) {
       return("none")
+    } else if (length(pdf_files) > 1 || length(tsv_files) > 1) {
+      return("multiple") # too many PDF or TSV files
     } else if (length(pdf_files) > 0 && length(tsv_files) > 0) {
       return("complete")
     } else {
@@ -630,6 +783,11 @@ check_pair <- function(files, patient, pair = c("bam_bai","pdf_tsv")) {
     bai_files <- files[str_detect(files, "\\.bai$") & str_detect(files, patient)]
     
     if (length(bam_files) == 0) return("none")
+    
+    # Check if there are multiple BAM files
+    if (length(bam_files) > 1) {
+      return("multiple") # too many BAM files
+    }
     
     # Kontrola, zda každý BAM má odpovídající BAI
     bam_bases <- str_remove(bam_files, "\\.bam$")
@@ -776,7 +934,6 @@ get_dataset_columns <- function(dataset_type) {
       icon = list(name = "Status", width = 80),
       patient = list(name = "Patient", width = 120),
       expression = list(name = "Expression file", width = 105),
-      goi = list(name = "Genes of Interest file", width = 120),
       tissue = list(name = "Tissue", width = 120), 
       files = list(name = "Detected files", minWidth = 400)
     )
@@ -795,7 +952,7 @@ create_reactable <- function(data, dataset_type) {
   for (col_name in names(columns_config)) {
     config <- columns_config[[col_name]]
     
-    if (col_name == "icon" || col_name %in% c("variant", "tumor", "normal", "TMB","fusion", "chimeric", "arriba","expression", "goi")) {
+    if (col_name == "icon" || col_name %in% c("variant", "tumor", "normal", "TMB","fusion", "chimeric", "arriba","expression")) {
       columns_def[[col_name]] <- colDef(
         name = config$name,
         width = config$width,
@@ -851,6 +1008,171 @@ create_reactable <- function(data, dataset_type) {
     columns = columns_def,
     defaultPageSize = 10,
     striped = TRUE,
+    highlight = TRUE,
+    borderless = FALSE,
+    compact = TRUE
+  )
+}
+
+#' Create reference files data table
+#' @param kegg_tab_path Path to kegg_tab file from config
+#' @param goi_path Path to genes_of_interest file from config (can be NULL)
+#' @param report_template_path Path to report_template file from config
+#' @param datasets Vector of active dataset types (to determine if kegg_tab is required)
+#' @return List with reference_tab and validation info
+#' @export
+create_reference_files_data <- function(kegg_tab_path, goi_path, report_template_path, datasets) {
+  
+  # Determine if kegg_tab is required based on active datasets
+  # Required for: somatic (sankey plot), expression (expression profile & network graph)
+  kegg_required <- any(c("somatic", "expression") %in% datasets)
+  
+  # Determine if GOI is relevant (only for expression dataset) 
+  # In the future, HERE add other datasets when GOI is relevant for them
+  goi_relevant <- "expression" %in% datasets
+  
+  # Check file existence (also check for empty strings)
+  kegg_exists <- !is.null(kegg_tab_path) && nzchar(kegg_tab_path) && file.exists(kegg_tab_path)
+  goi_exists <- !is.null(goi_path) && nzchar(goi_path) && file.exists(goi_path)
+  report_exists <- !is.null(report_template_path) && nzchar(report_template_path) && file.exists(report_template_path)
+  
+  # Determine status for each file
+  # kegg_tab
+  if (is.null(kegg_tab_path) || !nzchar(kegg_tab_path)) {
+    # Empty/NULL path - check if required
+    if (kegg_required) {
+      kegg_status <- "red"
+      kegg_reason <- "kegg_missing_required"
+    } else {
+      kegg_status <- "gray"
+      kegg_reason <- "optional_missing"
+    }
+  } else if (!kegg_exists) {
+    # Path configured but file doesn't exist
+    kegg_status <- if (kegg_required) "red" else "orange"
+    kegg_reason <- if (kegg_required) "kegg_missing_required" else "kegg_missing_optional"
+  } else {
+    kegg_status <- "green"
+    kegg_reason <- "single_file_ok"
+  }
+  
+  # GOI (optional, only relevant for expression dataset)
+  if (is.null(goi_path) || !nzchar(goi_path)) {
+    goi_status <- "gray"
+    goi_reason <- "optional_missing"
+  } else if (!goi_exists) {
+    # Only show orange warning if expression dataset is active
+    if (goi_relevant) {
+      goi_status <- "orange"
+      goi_reason <- "goi_configured_missing"
+    } else {
+      # Not relevant for current datasets, show gray
+      goi_status <- "gray"
+      goi_reason <- "optional_missing"
+    }
+  } else {
+    goi_status <- "green"
+    goi_reason <- "single_file_ok"
+  }
+  
+  # report_template (used by all datasets for report download - show warning if missing)
+  if (is.null(report_template_path) || !nzchar(report_template_path)) {
+    report_status <- "orange"
+    report_reason <- "report_template_missing"
+  } else if (!report_exists) {
+    report_status <- "orange"
+    report_reason <- "report_template_missing"
+  } else {
+    report_status <- "green"
+    report_reason <- "single_file_ok"
+  }
+  
+  # Create data frame for the table
+  reference_tab <- data.frame(
+    icon = get_status_icon(
+      if (kegg_status == "red") "red" else if (any(c(kegg_status, goi_status, report_status) == "orange")) "orange" else if (all(c(kegg_status, goi_status, report_status) %in% c("green", "gray"))) "green" else "gray",
+      simple = FALSE,
+      reason = if (kegg_status == "red") kegg_reason else if (kegg_status == "orange") kegg_reason else if (goi_status == "orange") goi_reason else if (report_status == "orange") report_reason else "files_ok"
+    ),
+    kegg_tab = get_status_icon(kegg_status, simple = TRUE, reason = kegg_reason),
+    goi = get_status_icon(goi_status, simple = TRUE, reason = goi_reason),
+    report_template = get_status_icon(report_status, simple = TRUE, reason = report_reason),
+    files = paste(c(
+      if (!is.null(kegg_tab_path)) kegg_tab_path else "",
+      if (!is.null(goi_path)) goi_path else "",
+      if (!is.null(report_template_path)) report_template_path else ""
+    ), collapse = ",\n"),
+    stringsAsFactors = FALSE
+  )
+  
+  return(list(
+    reference_tab = reference_tab,
+    kegg_status = kegg_status,
+    goi_status = goi_status,
+    report_status = report_status,
+    kegg_required = kegg_required
+  ))
+}
+
+#' Create reactable for reference files
+#' @param data Reference files data frame
+#' @return Reactable object
+#' @export
+create_reference_files_reactable <- function(data) {
+  if (is.null(data)) return(NULL)
+  
+  reactable(
+    data,
+    columns = list(
+      icon = colDef(
+        name = "Status",
+        width = 80,
+        align = "center",
+        html = TRUE,
+        cell = function(value) value
+      ),
+      kegg_tab = colDef(
+        name = "Pathways file",
+        width = 120,
+        align = "center",
+        html = TRUE,
+        cell = function(value) value
+      ),
+      goi = colDef(
+        name = "Genes of interest file",
+        width = 140,
+        align = "center",
+        html = TRUE,
+        cell = function(value) value
+      ),
+      report_template = colDef(
+        name = "Report template",
+        width = 120,
+        align = "center",
+        html = TRUE,
+        cell = function(value) value
+      ),
+      files = colDef(
+        name = "Detected files",
+        minWidth = 300,
+        cell = function(value) {
+          if (value == "") {
+            div("No files configured", style = "color: #999; font-style: italic;")
+          } else {
+            files_list <- strsplit(value, ",\n")[[1]]
+            files_list <- files_list[nzchar(files_list)]
+            div(
+              lapply(files_list, function(file) {
+                div(file, style = "margin-bottom: 2px; font-family: monospace; font-size: 11px;")
+              })
+            )
+          }
+        }
+      )
+    ),
+    defaultPageSize = 1,  # Only one row for reference files
+    pagination = FALSE,   # No pagination needed
+    striped = FALSE,
     highlight = TRUE,
     borderless = FALSE,
     compact = TRUE

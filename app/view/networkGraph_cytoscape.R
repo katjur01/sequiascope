@@ -165,7 +165,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     # Initialize pathway choices - only when tab is active
     observe({
       req(active())
-      pathway_choices <- get_pathway_list("all_genes", run = shared_data$run)
+      pathway_choices <- get_pathway_list("all_genes", kegg_tab_path = shared_data$kegg_tab_path())
       updatePickerInput(
         session = session,
         inputId = "selected_pathway",
@@ -221,9 +221,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     pathway_dt <- reactive({
       req(dt())
       req(input$selected_pathway)
-      unique(dt()[grepl(input$selected_pathway, pathway, fixed = TRUE),
-                  -c("all_kegg_gene_names","counts_tpm_round","size","mu",
-                     "lower_than_p","higher_than_p","type","gene_definition")])
+      unique(dt()[grepl(input$selected_pathway, pathway, fixed = TRUE)])
     })
     
     tissue_dt <- reactive({
@@ -776,6 +774,17 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       germ_vars <- as.data.table(shared_data$germline.variants())
       fusions <- as.data.table(shared_data$fusion.variants())
       
+      # Filter by current patient
+      if (!is.null(som_vars) && nrow(som_vars) > 0 && "sample" %in% names(som_vars)) {
+        som_vars <- som_vars[sample == patient]
+      }
+      if (!is.null(germ_vars) && nrow(germ_vars) > 0 && "sample" %in% names(germ_vars)) {
+        germ_vars <- germ_vars[sample == patient]
+      }
+      if (!is.null(fusions) && nrow(fusions) > 0 && "sample" %in% names(fusions)) {
+        fusions <- fusions[sample == patient]
+      }
+      
       selected_dt(NULL)
       
       if (is.null(som_vars) && is.null(germ_vars) && is.null(fusions)) {
@@ -812,8 +821,9 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       combined_selected <- merge(combined_variants, fusions_dt, by = "gene_symbol", all = TRUE)
       
       if (nrow(combined_selected) > 0) {
+        # Filter pathways by current patient's sample
         pathways_info <- subTissue_dt()[
-          feature_name %in% combined_selected$gene_symbol, 
+          feature_name %in% combined_selected$gene_symbol & sample == patient, 
           .(pathway = paste(unique(pathway), collapse = "; ")), 
           by = feature_name
         ]
@@ -962,7 +972,14 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       selector = "head",
       where = "beforeEnd",
       ui = tags$head(
-        tags$style(HTML(".popover { z-index: 999999 !important; }")),
+        tags$style(HTML("
+          .popover { z-index: 999999 !important; }
+          /* Dropdown seznamy mají vyšší z-index než helpPopover ikony */
+          .bootstrap-select .dropdown-menu { z-index: 10000 !important; }
+          .selectize-dropdown { z-index: 10000 !important; }
+          /* HelpPopover ikony mají nižší z-index než dropdowny */
+          [id*='helpPopover'] { z-index: 100 !important; }
+        ")),
         tags$script(HTML("$(document).ready(function(){
                             $('[data-toggle=\"popover\"]').popover({
                               container: 'body' });

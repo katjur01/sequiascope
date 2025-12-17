@@ -38,15 +38,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lsof \
     curl \
     poppler-utils \
+    chromium \
+    chromium-driver \
   && rm -rf /var/lib/apt/lists/*
+
+# Nastavení proměnné prostředí pro Chromium (pro webshot2)
+ENV CHROMOTE_CHROME=/usr/bin/chromium
 
 
 # Vytvoř adresář a nastav pracovní prostředí
-RUN mkdir -p /srv/shiny-server/sequiaViz
-WORKDIR /srv/shiny-server/sequiaViz
+RUN mkdir -p /srv/shiny-server/sequiaScope
+WORKDIR /srv/shiny-server/sequiaScope
 
 # Zkopíruj Shiny aplikaci
-COPY . /srv/shiny-server/sequiaViz
+COPY . /srv/shiny-server/sequiaScope
 
 # Zkopíruj předem připravené JS knihovny z Node buildu
 COPY --from=frontend-builder /dist/js ./app/static/js
@@ -54,7 +59,7 @@ COPY --from=frontend-builder /dist/js ./app/static/js
 # Instalace R balíčků
 RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org')"
-RUN Rscript /srv/shiny-server/sequiaViz/dependencies.R
+RUN Rscript /srv/shiny-server/sequiaScope/dependencies.R
 
 # Nastavení portu a spuštění
 EXPOSE 8080

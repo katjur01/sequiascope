@@ -1,9 +1,11 @@
 #!/bin/bash
 # IGV Batch File Watcher
-# Monitors /srv/igv-static/igv_snapshots/ for new batch files and executes them
+# Monitors for new batch files and executes them
 
-WATCH_DIR="/srv/igv-static/igv_snapshots"
-PROCESSED_DIR="/srv/igv-static/.processed_batches"
+# Use environment variables with defaults
+OUTPUT_BASE_DIR="${OUTPUT_BASE_DIR:-/output_files}"
+WATCH_DIR="${WATCH_DIR:-${OUTPUT_BASE_DIR}/igv_snapshots}"
+PROCESSED_DIR="${PROCESSED_DIR:-${OUTPUT_BASE_DIR}/.processed_batches}"
 IGV_SCRIPT="/opt/IGV_2.16.2/igv.sh"
 XVFB_DISPLAY_START=100
 XVFB_DISPLAY_END=150

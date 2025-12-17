@@ -28,11 +28,31 @@ build_igv_tracks <- function(samples) {
   igv_host <- Sys.getenv("IGV_HOST", "localhost")
   igv_port <- Sys.getenv("IGV_PORT", "8081")
   
+  message("[IGV TRACKS] Building tracks for ", length(samples), " BAM files")
+  message("[IGV TRACKS] IGV_HOST=", igv_host, ", IGV_PORT=", igv_port)
+  
   tracks <- lapply(samples, function(sample) {
     # Ošetření: každý sample musí mít položky name a file
     if (is.null(sample$name) || is.null(sample$file)) {
       warning("⚠️  Sample chybí 'name' nebo 'file': ", paste(sample, collapse = ", "))
       return(NULL)
+    }
+    
+    # Diagnostic: Check if BAM file exists on disk
+    bam_path <- sample$file
+    bam_exists <- file.exists(bam_path)
+    bai_exists <- file.exists(paste0(bam_path, ".bai"))
+    
+    message("[IGV TRACKS] Track: ", sample$name)
+    message("[IGV TRACKS]   BAM: ", bam_path, " → ", if(bam_exists) "✓ EXISTS" else "✗ NOT FOUND")
+    message("[IGV TRACKS]   BAI: ", bam_path, ".bai → ", if(bai_exists) "✓ EXISTS" else "✗ NOT FOUND")
+    message("[IGV TRACKS]   URL: http://", igv_host, ":", igv_port, "/", bam_path)
+    
+    if (!bam_exists) {
+      warning("⚠️  BAM file does not exist: ", bam_path)
+    }
+    if (!bai_exists) {
+      warning("⚠️  BAI index does not exist: ", bam_path, ".bai")
     }
     
     # Generuj IGV track JSON (pro JS interpretaci)

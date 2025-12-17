@@ -11,10 +11,10 @@ generate_vaf <- function(data, selected_variants){
   data <- data[,"tumor_variant_freq", drop = FALSE]
   ggplot(data, aes(x=tumor_variant_freq)) +
     geom_histogram(binwidth = 0.01,fill="#A7C6ED", color="#e9ecef", alpha=0.9)+
-    geom_density(aes(color = "Distribution curve"), size = 0.5,, key_glyph = "path") +
+    geom_density(aes(color = "Distribution curve"), linewidth = 0.5,, key_glyph = "path") +
     scale_color_manual(values = c("Distribution curve" = "#333333"), name = "") +
     labs(x="Tumor variant frequency",y="Number of found variants")+
-    geom_vline(xintercept = selected_variants[["tumor_variant_freq"]], color = "blue", linetype = "dashed", size = 1) +
+    geom_vline(xintercept = selected_variants[["tumor_variant_freq"]], color = "blue", linetype = "dashed", linewidth = 1) +
     annotate("text", x = selected_variants[["tumor_variant_freq"]],
              y = rep(Inf, length(selected_variants[["tumor_variant_freq"]])),  
              label = paste0(selected_variants[["var_name"]], "                                        "),

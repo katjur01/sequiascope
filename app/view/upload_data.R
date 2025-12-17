@@ -9,7 +9,8 @@ box::use(
   stringi[stri_detect_regex],
   stringr[str_detect,regex],
   shinyalert[shinyalert],
-  waiter[waiter_show, waiter_hide, spin_fading_circles]
+  waiter[waiter_show, waiter_hide, spin_fading_circles],
+  jsonlite[fromJSON]
   # shinyjs[useShinyjs,runjs],
 )
 # 
@@ -37,27 +38,87 @@ ui <- function(id) {
   )
 }
 
+# Helper function to load reference config
+load_reference_config <- function() {
+  config <- fromJSON("reference_paths.json")
+  
+  # Convert relative paths to absolute paths and handle empty strings
+  kegg_tab_path <- config$reference_files$kegg_tab
+  if (!is.null(kegg_tab_path) && nzchar(kegg_tab_path) && !grepl("^/|^[A-Za-z]:", kegg_tab_path)) {
+    kegg_tab_path <- file.path(getwd(), kegg_tab_path)
+  } else if (!is.null(kegg_tab_path) && !nzchar(kegg_tab_path)) {
+    kegg_tab_path <- NULL  # Empty string -> NULL
+  }
+  
+  report_template_path <- config$reference_files$report_template
+  if (!is.null(report_template_path) && nzchar(report_template_path) && !grepl("^/|^[A-Za-z]:", report_template_path)) {
+    report_template_path <- file.path(getwd(), report_template_path)
+  } else if (!is.null(report_template_path) && !nzchar(report_template_path)) {
+    report_template_path <- NULL  # Empty string -> NULL
+  }
+  
+  goi_path <- config$reference_files$genes_of_interest
+  if (!is.null(goi_path) && nzchar(goi_path) && !grepl("^/|^[A-Za-z]:", goi_path)) {
+    goi_path <- file.path(getwd(), goi_path)
+  } else if (!is.null(goi_path) && !nzchar(goi_path)) {
+    goi_path <- NULL  # Empty string -> NULL
+  }
+  
+  list(
+    kegg_tab = kegg_tab_path,
+    report_template = report_template_path,
+    goi = goi_path
+  )
+}
+
 server <- function(id, shared_data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    # Reactive values for reference file paths
+    shared_data$kegg_tab_path <- reactiveVal(NULL)
+    shared_data$report_template_path <- reactiveVal(NULL)
+    shared_data$genes_of_interest_path <- reactiveVal(NULL)
+    
+    # Trigger for reloading config (incremented by step2 refresh button or step change)
+    shared_data$config_reload_trigger <- reactiveVal(0)
+    
+    # Load config initially and when trigger changes
+    observe({
+      # Depend on trigger to reload config
+      trigger <- shared_data$config_reload_trigger()
+      
+      config_paths <- load_reference_config()
+      
+      shared_data$kegg_tab_path(config_paths$kegg_tab)
+      shared_data$report_template_path(config_paths$report_template)
+      shared_data$genes_of_interest_path(config_paths$goi)
+      
+      # Log reference files configuration
+      message("📁 Reference files configured (reload #", trigger, "):")
+      message("  kegg_tab: ", if (!is.null(config_paths$kegg_tab)) config_paths$kegg_tab else "not configured")
+      message("  report_template: ", if (!is.null(config_paths$report_template)) config_paths$report_template else "not configured")
+      message("  genes_of_interest: ", if (!is.null(config_paths$goi)) config_paths$goi else "not configured")
+    })
+    
     step <- reactiveVal(1)
-    # patients <- reactiveVal(character(0))
-    # path     <- reactiveVal(NULL)
-    # datasets <- reactiveVal(character(0))
-    # tumor_pattern <- reactiveValues(somatic = NULL, fusion = NULL, chimeric = NULL, arriba = NULL)
-    # normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
-    # tissues <- reactiveVal(NULL)
+    patients <- reactiveVal(character(0))
+    path     <- reactiveVal(NULL)
+    datasets <- reactiveVal(character(0))
+    tumor_pattern <- reactiveValues(somatic = NULL, fusion = NULL, chimeric = NULL, arriba = NULL)
+    normal_pattern  <- reactiveValues(somatic = NULL, germline = NULL)
+    tissues <- reactiveVal(NULL)
+    
     #####
-    patients <- reactiveVal(c("DZ1601","MR1507"))
-    # patients <- reactiveVal("DZ1601")
-    path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
-    # path     <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
-    # path <- reactiveVal("/input_files/MOII_e117")   # cesta v Dockeru
-    datasets <- reactiveVal(c("somatic","germline","fusion","expression")) #
-    tumor_pattern <- reactiveValues(somatic = NULL, fusion = "fuze", chimeric = "chimeric", arriba = NULL)
-    normal_pattern  <- reactiveValues(somatic = "krev", germline = "krev")
-    tissues <- reactiveVal(c("Blood","Blood_Vessel"))
+    # patients <- reactiveVal(c("DZ1601","MR1507"))
+    # # patients <- reactiveVal("DZ1601")
+    # path     <- reactiveVal("/home/katka/BioRoots/sequiaViz/input_files/MOII_e117")
+    # # path     <- reactiveVal("/Users/katerinajuraskova/Desktop/sequiaViz/input_files/MOII_e117")
+    # # path <- reactiveVal("/input_files/MOII_e117")   # cesta v Dockeru
+    # datasets <- reactiveVal(c("somatic","germline","fusion","expression")) #
+    # tumor_pattern <- reactiveValues(somatic = NULL, fusion = "fuze", chimeric = "chimeric", arriba = NULL)
+    # normal_pattern  <- reactiveValues(somatic = "krev", germline = "krev")
+    # tissues <- reactiveVal(c("Blood","Blood_Vessel"))
     #####
     # patients <- reactiveVal("DZ1601")
     # # patients <- reactiveVal(c("DZ1601","MR1507"))
@@ -79,9 +140,9 @@ server <- function(id, shared_data) {
     
     confirmed_paths_state <- reactiveVal(NULL)
     
-    step1 <- upload_data_step1$step1_server("first_step",  path, patients, datasets, tumor_pattern, normal_pattern, tissues)
-    # step2 <- upload_data_step2$step2_server("second_step", path, patients, datasets, tumor_pattern, normal_pattern, tissues, step)
-    step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("somatic","germline","fusion","expression")), tumor_pattern=reactiveValues(fusion = "fuze",chimeric = "chimeric"), normal_pattern=reactiveValues(somatic = "krev",germline= "krev"), tissues = reactiveVal(c("Blood","Blood_Vessel")),step)
+    step1 <- upload_data_step1$step1_server("first_step",  path, patients, datasets, tumor_pattern, normal_pattern, tissues, shared_data)
+    step2 <- upload_data_step2$step2_server("second_step", path, patients, datasets, tumor_pattern, normal_pattern, tissues, step, shared_data)
+    # step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("somatic","germline","fusion","expression")), tumor_pattern=reactiveValues(fusion = "fuze",chimeric = "chimeric"), normal_pattern=reactiveValues(somatic = "krev",germline= "krev"), tissues = reactiveVal(c("Blood","Blood_Vessel")),step)
     # step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("expression")), tumor_pattern=NULL, normal_pattern=NULL, tissues = reactiveVal(c("blood","blood_vessel")),step)
     # step2 <- upload_data_step2$step2_server("second_step",  path=path, patients=patients, datasets =reactiveVal(c("fusion","expression")), tumor_pattern=reactiveValues(fusion = "fuze",chimeric = "chimeric"), normal_pattern=NULL, tissues = reactiveVal(c("blood","blood_vessel")),step)
     
@@ -159,7 +220,7 @@ server <- function(id, shared_data) {
               color = "rgba(0, 0, 0, 0.8)"
             )
             
-            session_base <- "sessions"
+            session_base <- file.path(shared_data$output_path(),"sessions")
             
             if (!dir.exists(session_base)) {
               waiter_hide(id = NA)

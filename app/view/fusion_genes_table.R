@@ -62,7 +62,7 @@ ui <- function(id) {
             column(12,reactableOutput(ns("selectFusion_tab")))),
           tags$br(),
           fluidRow(
-            column(3,actionButton(ns("delete_button"),"Delete genes", icon = icon("trash-can"))))
+            column(4,actionButton(ns("delete_button"),"Delete genes", icon = icon("trash-can"))))
         ),
         dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
                  pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
@@ -77,7 +77,7 @@ ui <- function(id) {
 
 }
 
-read_fusion_manifest <- function(sample, www_dir = "www") {
+read_fusion_manifest <- function(sample, www_dir) {
   man_path <- file.path(www_dir, "manifests", "fusion", paste0(sample, ".tsv"))
   if (!file.exists(man_path)) return(NULL)
   man_dt <- fread(man_path, na.strings = "NA")
@@ -94,7 +94,7 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
    
     is_restoring_session <- reactiveVal(FALSE)
     
-    # IGV snapshot watcher - sleduje .done soubory
+    # IGV snapshot watcher - sleduje .progress a .done soubory
     observe({
       patient_id <- selected_samples
       
@@ -103,13 +103,42 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
         status <- shared_data$fusion_prerun_status[[patient_id]]()
         
         if (status == "running") {
-          # Pravidelná kontrola .done souborů (každé 2 sekundy)
+          # Pravidelná kontrola souborů (každé 2 sekundy)
           invalidateLater(2000)
           
-          # Zkontrolovat, zda existuje .done soubor
-          batch_file <- file.path("www", "igv_snapshots", patient_id, paste0(patient_id, "_batch.txt"))
+          batch_file <- file.path(shared_data$output_path(), "igv_snapshots", patient_id, paste0(patient_id, "_batch.txt"))
           done_file <- paste0(file_path_sans_ext(batch_file), ".done")
+          progress_file <- paste0(file_path_sans_ext(batch_file), ".progress")
           
+          # Číst .progress soubor pokud existuje
+          if (file.exists(progress_file)) {
+            tryCatch({
+              prog_content <- readLines(progress_file, warn = FALSE)
+              if (length(prog_content) > 0) {
+                # Format: "5/20" → extract first number
+                parts <- strsplit(prog_content[1], "/")[[1]]
+                if (length(parts) == 2) {
+                  completed <- as.numeric(parts[1])
+                  total <- as.numeric(parts[2])
+                  if (!is.na(completed) && !is.na(total) && total > 0) {
+                    # IGV snapshots are ~70% of total work (30% is Arriba PDF→SVG)
+                    igv_progress <- round((completed / total) * 70)
+                    if (patient_id %in% names(shared_data$fusion_prerun_progress)) {
+                      current_prog <- shared_data$fusion_prerun_progress[[patient_id]]()
+                      # Only update if new progress is higher (avoid going backwards)
+                      if (igv_progress > current_prog) {
+                        shared_data$fusion_prerun_progress[[patient_id]](igv_progress)
+                      }
+                    }
+                  }
+                }
+              }
+            }, error = function(e) {
+              # Ignore read errors (file might be being written)
+            })
+          }
+          
+          # Zkontrolovat .done soubor
           if (file.exists(done_file)) {
             message("IGV snapshots completed for ", patient_id, " - found .done file")
             # Odstranit .done soubor
@@ -246,12 +275,14 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
     prepare_data <- reactive({
       req(prerun_ready())
       
+      output_dir <- shared_data$output_path()
+
       message("[fusion] Loading input data for: ", file$fusion)
       data <- load_data(file$fusion, "fusion", selected_samples)
-      manifest_dt <- read_fusion_manifest(selected_samples, www_dir = "www")
+      manifest_dt <- read_fusion_manifest(selected_samples, www_dir = output_dir)
       # Add arriba.confidence_sort to column names since it will be created in prepare function
       all_col_names <- c(colnames(data), "arriba.confidence_sort")
-      patient_dt <- prepare_fusion_genes_table(selected_samples, as.data.table(data), manifest_dt, all_col_names, session = list(ns = session$ns) )
+      patient_dt <- prepare_fusion_genes_table(selected_samples, as.data.table(data), manifest_dt, all_col_names, shared_data, session = list(ns = session$ns) )
 
       message(sprintf("[fusion] Rows: %d | has_svg: %d | has_png: %d",
                       nrow(patient_dt), sum(patient_dt$has_svg, na.rm = TRUE), sum(patient_dt$has_png, na.rm = TRUE)))
@@ -338,15 +369,37 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
                           details = function(index) {
                             svg_file <- dt$svg_path[index]
                             png_file <- dt$png_path[index]
-                            # kontrola existence na disku bránila prázdnému <img src="">
-                            svg_ok <- !is.na(svg_file) && nzchar(svg_file) && file.exists(file.path("www", svg_file))
-                            png_ok <- !is.na(png_file) && nzchar(png_file) && file.exists(file.path("www", png_file))
+                            output_dir <- shared_data$output_path()
+                            
+                            # Helper function to read and encode image as base64 data URI
+                            read_as_base64 <- function(file_path, mime_type) {
+                              if (!file.exists(file_path)) return(NULL)
+                              tryCatch({
+                                raw_data <- readBin(file_path, "raw", file.info(file_path)$size)
+                                encoded <- base64enc::base64encode(raw_data)
+                                paste0("data:", mime_type, ";base64,", encoded)
+                              }, error = function(e) {
+                                message("[IMG ERROR] Failed to encode ", file_path, ": ", e$message)
+                                NULL
+                              })
+                            }
+                            
+                            # Build full paths and check existence
+                            svg_path <- if (!is.na(svg_file) && nzchar(svg_file)) file.path(output_dir, svg_file) else NULL
+                            png_path <- if (!is.na(png_file) && nzchar(png_file)) file.path(output_dir, png_file) else NULL
+                            
+                            svg_ok <- !is.null(svg_path) && file.exists(svg_path)
+                            png_ok <- !is.null(png_path) && file.exists(png_path)
+                            
+                            # Encode to base64 data URIs (no URL needed!)
+                            svg_data <- if (svg_ok) read_as_base64(svg_path, "image/svg+xml") else NULL
+                            png_data <- if (png_ok) read_as_base64(png_path, "image/png") else NULL
                             
                             tags$div(
                               style = "display:flex; align-items:flex-start; gap:16px;",
-                              if (svg_ok) tags$img(src = svg_file, style = "width:50%; height:auto;")
+                              if (!is.null(svg_data)) tags$img(src = svg_data, style = "width:50%; height:auto;")
                               else tags$strong("Arriba image not available.",  style = "width:50%; text-align:center; margin:40px 0;"),
-                              if (png_ok) tags$img(src = png_file, style = "width:50%; height:auto;")
+                              if (!is.null(png_data)) tags$img(src = png_data, style = "width:50%; height:auto;")
                               else tags$strong("IGV snapshot not available.", style = "width:50%; text-align:center; margin:40px 0;")
                             )
                           },
@@ -420,7 +473,7 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
       selected_rows <- getReactableState("fusion_genes_tab", "selected")
       req(selected_rows)
       
-      new_variants <- data()[selected_rows, c("gene1","gene2","overall_support","position1","position2","arriba.confidence","arriba.site1","arriba.site2")]  # Získání vybraných fúzí
+      new_variants <- data()[selected_rows, c("gene1","gene2","overall_support","arriba.reading_frame","position1","position2","arriba.confidence","arriba.site1","arriba.site2")]  # Získání vybraných fúzí
       new_variants$sample <- selected_samples
       current_variants <- selected_fusions()  # Stávající přidané varianty
       new_unique_variants <- new_variants[!(new_variants$gene1 %in% current_variants$gene1 &       # Porovnání - přidáme pouze ty varianty, které ještě nejsou v tabulce
@@ -463,11 +516,12 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
       }
       
       reactable(
-        variants <- as.data.table(variants)[,.(gene1,gene2,overall_support,position1,position2,arriba.confidence)],
+        variants <- as.data.table(variants)[,.(gene1,gene2,overall_support,arriba.reading_frame,position1,position2,arriba.confidence)],
         columns = list(
           gene1 = colDef(name = "Gene1"),
           gene2 = colDef(name = "Gene2"),
           overall_support = colDef(name = "Overall support"),
+          arriba.reading_frame = colDef(name = "Reading frame"),
           position1 = colDef(name = "Position1",minWidth = 150),
           position2 = colDef(name = "Position2",minWidth = 150),
           arriba.confidence = colDef(name = "Arriba confidence")),

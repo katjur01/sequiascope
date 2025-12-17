@@ -5,7 +5,7 @@
 *.log
 sequiaViz.Rproj
 app/reactable.extras.R
-app/Untitled.R
+app/UntitledR.R
 
 # Local environment configuration
 .Renviron
@@ -23,20 +23,33 @@ renv.lock
 *.xlsx
 *.xls
 *.tsv
+
+# Config - INCLUDE
+!reference_paths.json
+
+# Reference files - INCLUDE these (override *.tsv and *.docx)
+!app/references/
+!app/references/*.tsv
+!app/references/*.docx
+!app/references/*.txt
+
+# Temp files
 *temp_batch.txt
-!kegg_tab.tsv
 
 # renv and input data directories
 doc/
 renv/
 input_files/
+output_files/
 report_results/
 node_modules/
 sessions/
 tests/
 www/
+2www2/
 !www/manifests/
 _book/
 docker-compose.yml
 Dockefile
 Dockerfile-igv
+

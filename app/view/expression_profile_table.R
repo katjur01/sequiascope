@@ -2,16 +2,16 @@
 
 box::use(
   shiny[moduleServer, NS, tagList, fluidRow, fluidPage, column, tabPanel, reactive, req, observe, div, observeEvent, reactiveVal, icon, splitLayout, h4, bindEvent,conditionalPanel,isTruthy,
-        updateSelectInput, selectInput, numericInput, actionButton, renderPlot, plotOutput, uiOutput, renderUI, verbatimTextOutput, renderPrint, reactiveValues, isolate,
+        updateSelectInput, selectInput, numericInput, renderPlot, plotOutput, uiOutput, renderUI, verbatimTextOutput, renderPrint, reactiveValues, isolate,
         downloadButton,is.reactive],
   reactable,
-  bs4Dash[box,tabBox],
+  bs4Dash[actionButton,box,tabBox],
   reactable[colDef, reactableOutput, renderReactable, reactable, getReactableState, colGroup, JS],
   htmltools[tags,HTML,h6,h5],
   plotly[plotlyOutput, renderPlotly, toWebGL],
   shinyWidgets[radioGroupButtons, checkboxGroupButtons, updateCheckboxGroupButtons,prettyCheckboxGroup, updatePrettyCheckboxGroup, dropdown, dropdownButton, actionBttn,
                awesomeCheckboxGroup, pickerInput, updatePickerInput],
-  data.table[rbindlist, dcast.data.table, as.data.table, melt.data.table, copy],
+  data.table[rbindlist, dcast.data.table, as.data.table, melt.data.table, copy, setnames],
   grDevices[colorRampPalette],
   # pheatmap[pheatmap],
   stats[setNames],
@@ -165,7 +165,7 @@ ui <- function(id, tissue_list, goi = FALSE) {
              use_spinner(reactableOutput(ns("expression_table"))),
              div(
                tags$br(),
-               actionButton(ns("selectDeregulated_button"), "Select deregulated genes for report", status = "info"),
+               actionButton(ns("selectDeregulated_button"), "Select deregulated genes for report", status = "primary"),
                tags$br(),
                fluidRow(column(8, reactableOutput(ns("selectDeregulated_tab")))),
                tags$br(),
@@ -177,8 +177,9 @@ ui <- function(id, tissue_list, goi = FALSE) {
   
   
   tabbox_id <- if (isTRUE(goi)) "expression_profile_tabs_goi" else "expression_profile_tabs_allGenes"
+  selected_tab <- if (isTRUE(goi)) "genesOfinterest" else "allGenes"
   
-  do.call(tabBox, c(list(id = ns(tabbox_id), width = 12, collapsible = FALSE, selected = "genesOfinterest", headerBorder = FALSE), tabs))
+  do.call(tabBox, c(list(id = ns(tabbox_id), width = 12, collapsible = FALSE, selected = selected_tab, headerBorder = FALSE), tabs))
 }
 
 server <- function(id, patient, shared_data, patient_files, file_list) {
@@ -306,7 +307,7 @@ server <- function(id, patient, shared_data, patient_files, file_list) {
       colnames_list = colnames_list,
       patient = patient,
       expression_var = shared_data$expression.variants.all,
-      pathway_list = get_pathway_list("all_genes", run = shared_data$run),
+      pathway_list = get_pathway_list("all_genes", kegg_tab_path = shared_data$kegg_tab_path()),
       expr_tag = "all_genes",
       suffix = ""
     )
@@ -322,7 +323,7 @@ server <- function(id, patient, shared_data, patient_files, file_list) {
         colnames_list = colnames_list,
         patient = patient,
         expression_var = shared_data$expression.variants.goi,
-        pathway_list = get_pathway_list("genes_of_interest",prepare_goi_dt(), run = shared_data$run),
+        pathway_list = get_pathway_list("genes_of_interest",prepare_goi_dt(), kegg_tab_path = shared_data$kegg_tab_path()),
         expr_tag = "genes_of_interest",
         suffix = "_goi"
       )
@@ -612,14 +613,26 @@ create_expression_logic <- function(session, ns, data, tissue_list, colnames_lis
     selected_rows <- getReactableState(table_name, "selected")
     req(selected_rows)
     
-    new_variants <- filtered_data()[selected_rows, c("sample", "feature_name", "geneid", "pathway", "mean_log2fc")]
+    # Get all required columns from the original data, not filtered_data
+    # This ensures we have all necessary columns for the report
+    required_cols <- c("feature_name", "geneid", "pathway", "mean_log2fc")
+    available_cols <- intersect(required_cols, names(data()))
+    
+    new_variants <- data()[filtered_data()[selected_rows, which = TRUE], ..available_cols]
     new_variants$sample <- patient
+    
+    # Rename mean_log2fc to log2FC for consistency with report expectations
+    if ("mean_log2fc" %in% names(new_variants)) {
+      setnames(new_variants, "mean_log2fc", "log2FC")
+    }
     
     current_variants <- selected_genes()
     new_unique_variants <- new_variants[!(new_variants$feature_name %in% current_variants$feature_name &
                                             new_variants$geneid %in% current_variants$geneid), ]
     
-    if (nrow(new_unique_variants) > 0) selected_genes(rbind(current_variants, new_unique_variants))
+    if (nrow(new_unique_variants) > 0) {
+      selected_genes(rbindlist(list(current_variants, new_unique_variants), fill = TRUE))
+    }
     
     global_data <- expression_var()
     
@@ -629,12 +642,12 @@ create_expression_logic <- function(session, ns, data, tissue_list, colnames_lis
         feature_name = character(),
         geneid = character(),
         pathway = character(),
-        mean_log2fc = character()
+        log2FC = character()
       )
     }
     
     global_data <- global_data[sample != patient]
-    updated_global_data <- rbind(global_data, selected_genes())
+    updated_global_data <- rbindlist(list(global_data, selected_genes()), fill = TRUE)
     expression_var(updated_global_data)
   })
   
@@ -643,13 +656,13 @@ create_expression_logic <- function(session, ns, data, tissue_list, colnames_lis
     if (is.null(genes) || nrow(genes) == 0) {
       return(NULL)
     } else {
-      genes <- as.data.table(genes)[,.(feature_name, geneid, pathway, mean_log2fc)]
+      genes <- as.data.table(genes)[,.(feature_name, geneid, pathway, log2FC)]
       reactable(
         as.data.frame(genes),
         columns = list(
           feature_name = colDef(name = "Gene name"),
           geneid = colDef(name = "Gene ID"),
-          mean_log2fc = colDef(name = "mean log2FC")),
+          log2FC = colDef(name = "mean log2FC")),
         selection = "multiple", onClick = "select")
     }
   })
@@ -989,7 +1002,7 @@ filterTab_ui <- function(id, tissue_list){
                               fluidRow(tags$span("Tissue values:",style = "font-size: 1rem; font-weight: bold;"),lapply(tissue_list, function(tissue) {
                                 tid <- sanitize(tissue)
                                 fluidRow(style = "display: flex; justify-content: space-between;",
-                                  column(2.5, h6(tissue),style = "display: flex; align-items: center; padding-left: 15px;"),
+                                  column(2.5, h6(tissue, style = "margin-right: 10px;"),style = "display: flex; align-items: center; padding-left: 15px;"),
                                   column(9.5, checkboxGroupButtons(ns(paste0("select_filter_", tid)), NULL, choices = choices_list, selected = character(0), individual = TRUE))
                                 )}))
                           ))),

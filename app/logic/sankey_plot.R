@@ -9,15 +9,10 @@ box::use(
 
 # Create Sankey plot
 #' @export
-sankey_plot <- function(data, run){
-  # kegg_path <- paste0(getwd(),"/input_files/kegg_tab.tsv")
-  if (run == "docker") {
-    kegg_path <- paste0(getwd(),"/kegg_tab.tsv")
-  } else {
-    kegg_path <- paste0(getwd(),"/input_files/kegg_tab.tsv")
-  }
+sankey_plot <- function(data, kegg_tab_path){
+  # Use kegg_tab_path from shared_data config
   
-  df <- fread(kegg_path)
+  df <- fread(kegg_tab_path)
   data_sub <- data[,list(var_name,gene_symbol,`annotation source`,gene)]
   data_sub2_refseq <- df[, list(refseq_id,kegg_paths_name)]
   data_sub2_refseq[,refseq_id := as.character(refseq_id)]

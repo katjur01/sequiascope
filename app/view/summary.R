@@ -240,7 +240,8 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
         if (is.null(som_vars) || nrow(som_vars) == 0) {
           tags$div("No somatic variants selected")
         } else {
-          som_vars <- som_vars[grepl(patient, sample)]
+          patient_id <- patient  # Store in local variable to avoid column name collision
+          som_vars <- som_vars[sample == patient_id]
   
           if (nrow(som_vars) == 0) {
             return(tags$div("No somatic variants selected"))
@@ -289,7 +290,8 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
         if (is.null(germ_vars) || nrow(germ_vars) == 0) {
           tags$div("No germline variants selected")
         } else {
-          germ_vars <- germ_vars[grepl(patient, sample)]
+          patient_id <- patient  # Store in local variable to avoid column name collision
+          germ_vars <- germ_vars[sample == patient_id]
   
         if (nrow(germ_vars) == 0) {
           return(tags$div("No germline variants selected"))
@@ -342,13 +344,16 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
         if (is.null(fusion_vars) || nrow(fusion_vars) == 0) {
           tags$div("No fusion genes selected")
         } else {
-          fusion_vars <- fusion_vars[grepl(patient, sample)]
+          patient_id <- patient  # Store in local variable to avoid column name collision
+          fusion_vars <- fusion_vars[sample == patient_id]
   
         if (nrow(fusion_vars) == 0) {
           return(tags$div("No fusion genes selected"))
         } else {
           boxes <- lapply(1:nrow(fusion_vars), function(i) {
             fusion <- fusion_vars[i, ]
+            # Convert ordered factor to character to avoid numeric conversion
+            confidence_text <- as.character(fusion$arriba.confidence)
             div(class = "fusion-box",
                 box(solidHeader = TRUE, collapsed = TRUE, width = 12,
                     title = HTML(sprintf(
@@ -356,7 +361,7 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
                          <span style="display:inline-block; vertical-align:middle; margin:0 8px; border-left:1px solid #ccc; height:18px;"></span>
                          <span style="font-size:14px; font-weight:normal;">%s</span>',
                          paste0(fusion$gene1," - ", fusion$gene2),
-                         noNA_text(fusion$arriba.confidence))),
+                         noNA_text(confidence_text))),
                     fluidRow(
                       column(3,
                              tags$p(strong(sprintf("%s: ", fusion$gene1))),
@@ -368,7 +373,7 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
                              tags$p(sprintf("Arriba site: %s", fusion$arriba.site2))),
                       column(3,
                              tags$p(),
-                             # tags$p(sprintf("Frame: %s", "inframe or out-of-frame")),
+                             tags$p(sprintf("Frame: %s", noNA_text(fusion$arriba.reading_frame))),
                              tags$p(sprintf("Coverage: %s", fusion$overall_support))),
                       column(3)
                     )))})
@@ -381,12 +386,12 @@ server <- function(id, patient, shared_data, dataset_availability = NULL){ #,act
         exp_goi <- as.data.table(shared_data$expression.variants.goi())
         exp_all <- as.data.table(shared_data$expression.variants.all())
         deregulated_genes <- unique(rbind(exp_goi, exp_all, use.names = TRUE, fill = TRUE))
-  
         
         if (is.null(deregulated_genes) || nrow(deregulated_genes) == 0) {
           tags$div("None of the deregulated genes will be reported.")
         } else {
-          deregulated_genes <- deregulated_genes[grepl(patient, sample)]
+          patient_id <- patient  # Store in local variable to avoid column name collision
+          deregulated_genes <- deregulated_genes[sample == patient_id]
           
           if (nrow(deregulated_genes) == 0) {
             return(tags$div("No deregulated genes have been selected"))

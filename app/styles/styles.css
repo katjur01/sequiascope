@@ -4,3 +4,9 @@
   width: 100%;
   height: 2.5rem;
 }
+
+/* Hide dropdown arrow/caret for IGV dropdown buttons */
+.sw-dropdown-in > .btn.dropdown-toggle::after,
+.sw-dropdown > .btn.dropdown-toggle::after {
+  display: none !important;
+}

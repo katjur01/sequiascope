@@ -70,7 +70,7 @@ prepare_germline_table <- function(dt, all_colNames){
 }
 
 #' @export
-prepare_fusion_genes_table <- function(sample, data, manifest_dt, all_colNames,  session = NULL){
+prepare_fusion_genes_table <- function(sample, data, manifest_dt, all_colNames, shared_data, session = NULL){
   normalize_keys <- function(dt) {
     dt <- as.data.table(dt)
     if ("chrom1" %in% names(dt)) setnames(dt, c("chrom1","chrom2"), c("chr1","chr2"))
@@ -80,9 +80,10 @@ prepare_fusion_genes_table <- function(sample, data, manifest_dt, all_colNames, 
   }
   
   data <- normalize_keys(data)
-  
+  output_dir <- shared_data$output_path()
+
   if (is.null(manifest_dt)) {
-    message(sprintf("[fusion] Manifest not found: www/manifests/fusion/%s.tsv", sample))
+    message(sprintf("[fusion] Manifest not found: /%s/manifests/fusion/%s.tsv", output_dir, sample))
     data[, position1 := paste0(chr1, ":", pos1)]
     data[, position2 := paste0(chr2, ":", pos2)]
     data[,c("chr1","pos1","chr2","pos2") := NULL]
@@ -246,7 +247,7 @@ colFilter <- function(flag, all_column_var, tissues = NULL, session = NULL){
     
     default_selection <- c("gene1","gene2","arriba.called","starfus.called",
                            "arriba.confidence_sort","overall_support","visual_check","notes",
-                           "position1","strand1","position2","strand2","arriba.site1",
+                           "position1","strand1","position2","strand2","arriba.reading_frame","arriba.site1",
                            "arriba.site2","starfus.splice_type","DB_count","DB_list")
     
     map_list <- colnames_map_list(flag, session = session)

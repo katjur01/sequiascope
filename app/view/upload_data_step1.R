@@ -79,7 +79,7 @@ step1_ui <- function(id) {
   )
 }
 
-step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern, tissues) {
+step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern, tissues, shared_data) {
   moduleServer(id, function(input, output, session) {
     
     next1_btn <- reactiveVal(NULL)
@@ -95,7 +95,8 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
 
     observeEvent(input$dir, {
       chosen <- parseDirPath(wd, input$dir)
-      path(chosen)  # 🌍 uložíme do globálního reactiveVal
+      path(chosen)  # Local reactive value
+      shared_data$data_path(chosen)  # User-selected data path (e.g., /input_files/MOII_e117)
       updateTextInput(session, "dir_path", value = chosen)
     })
     
@@ -257,7 +258,7 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
     }
     
     return(list(
-      next1              = reactive(next1_btn(1)),
+      next1              = reactive(next1_btn()),
       load_request       = reactive(load_click()),
       restore_ui_inputs  = restore_ui_inputs
     ))

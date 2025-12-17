@@ -103,26 +103,13 @@ igv_server <- function(id, shared_data, root_path) {
       message("bam_list from IGV before: ", bam_list)
       if (is.null(bam_list) || !length(bam_list)) return(NULL)
       
-      # if (!is.null(root_path) && nzchar(root_path)) {
-      #   root_path <- sub("/+$", "", root_path)
-      #   message("root_path from IGV: ", root_path)
-      #   bam_list <- lapply(bam_list, function(x) {
-      #     x$file <- sub(paste0("^", root_path, "/?"), "", x$file)
-      #     x
-      #   })
-      # }
-      
-      
-      if (!is.null(root_path) && nzchar(root_path)) {
-        root_path <- sub("/+$", "", root_path)
-        message("root_path from IGV: ", root_path)
-        bam_list <- lapply(bam_list, function(x) {
-          x$file <- sub(paste0("^", root_path, "/?"), "", x$file)
-          # ✅ přidáme basename root_path (např. MOII_e117)
-          x$file <- file.path(basename(root_path), x$file)
-          x
-        })
-      }
+      # Remove /input_files prefix from paths since IGV server serves /input_files as root
+      bam_list <- lapply(bam_list, function(x) {
+        if (!is.null(x$file)) {
+          x$file <- sub("^/input_files/?", "", x$file)
+        }
+        x
+      })
       
       message("bam_list from IGV after: ", bam_list)
       

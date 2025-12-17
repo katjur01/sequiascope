@@ -61,7 +61,7 @@ ui <- function(id) {
           column(12,reactableOutput(ns("selectPathogenic_tab")))),
         tags$br(),
         fluidRow(
-          column(3,actionButton(ns("delete_button"), "Delete variants", icon = icon("trash-can"))))
+          column(4,actionButton(ns("delete_button"), "Delete variants", icon = icon("trash-can"))))
       ),
       dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
                pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
@@ -791,25 +791,25 @@ filterTab_ui <- function(id){
     dropdownButton(
       label = NULL,
       right = TRUE,
+      width = "1250px",
       icon = HTML('<i class="fa-solid fa-filter download-button"></i>'),
       fluidRow(style = "display: flex; align-items: stretch;",
-               column(8,
+               column(7,
                       box(width = 12,title = tags$div(style = "padding-top: 8px;","Filter data by:"),closable = FALSE, collapsible = FALSE,style = "height: 100%;",
                           fluidRow(
                             column(6, numericInput(ns("coverage_depth"), tags$strong("Coverage min"), value = 10, min = 0)),
                             column(6, numericInput(ns("gnomAD_min"), tags$strong("gnomAD NFE min"), value = 0.01, min = 0, max = 1))
                           ),
-                          div(class = "card-body two-col-checkbox-group",
                             div(
                               div(class = "two-col-checkbox-group", style = "margin-bottom: 15px;",
                                   prettyCheckboxGroup(ns("gene_regions"), label = tags$strong("Gene region"), choices = character(0))),
-                              div(class = "two-col-checkbox-group",
+                              div(class = "two-col-checkbox-group", style = "margin-bottom: 15px;",
                                   prettyCheckboxGroup(ns("clinvar_sig"),label = tags$strong("ClinVar significance"),choices = character(0)))),
                             div(class = "two-col-checkbox-group",
                                 prettyCheckboxGroup(ns("consequence"),label = tags$strong("Consequence"),choices = character(0)))
-                      ))
+                      )
                ),
-               column(4,
+               column(5,
                       box(width = 12,title = tags$div(style = "padding-top: 8px;","Select columns:"),closable = FALSE,collapsible = FALSE,height = "100%",
                           div(class = "two-col-checkbox-group",
                               prettyCheckboxGroup(ns("colFilter_checkBox"),label = NULL,choices = character(0))),

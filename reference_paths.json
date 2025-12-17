@@ -1,0 +1,8 @@
+{
+  "output_dir": "output_files",
+  "reference_files": {
+    "kegg_tab": "app/references/kegg_tab.tsv",
+    "report_template": "app/references/report_template.docx",
+    "genes_of_interest": "app/references/genes_of_interest.tsv"
+  }
+}

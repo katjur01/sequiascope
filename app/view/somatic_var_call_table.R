@@ -60,7 +60,7 @@ ui <- function(id) {
            column(12,reactableOutput(ns("selectPathogenic_tab")))),
          tags$br(),
          fluidRow(
-           column(3,actionButton(ns("delete_button"),"Delete variants", icon = icon("trash-can"))))
+           column(4,actionButton(ns("delete_button"),"Delete variants", icon = icon("trash-can"))))
        ),
        dropdown(label = "IGV", status = "primary", icon = icon("play"), right = TRUE, size = "md", width = "230px", 
          pickerInput(ns("idpick"), "Select patients for IGV:", choices = NULL, options = pickerOptions(actionsBox = FALSE, size = 4, maxOptions = 4, dropupAuto = FALSE, maxOptionsText = "Select max. 4 patients"),multiple = TRUE),
@@ -432,7 +432,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
     p <-reactiveVal()
 
     sankey_data <- reactive({
-      sankey_plot(filtered_data(), shared_data$run)
+      sankey_plot(filtered_data(), shared_data$kegg_tab_path())
     })
 
     output$sankey_plot <- renderSankeyNetwork({
@@ -847,7 +847,7 @@ filterTab_ui <- function(id) {
     dropdownButton(
       label = NULL,
       right = TRUE,
-      width = "1100px",
+      width = "1250px",
       icon = HTML('<i class="fa-solid fa-filter download-button"></i>'),
       fluidRow(style = "display: flex; align-items: stretch;",
         column(7,

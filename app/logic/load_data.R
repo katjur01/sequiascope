@@ -167,6 +167,11 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     # Rename chrom1/chrom2 to chr1/chr2 if present
     if ("chrom1" %in% names(dt)) setnames(dt, c("chrom1", "chrom2"), c("chr1", "chr2"))
     
+    # Check if arriba.reading_frame column exists, if not create empty one
+    if (!"arriba.reading_frame" %in% names(dt)) {
+      dt[, arriba.reading_frame := ""]
+    }
+    
     dt[, sample := sample]
     return(dt)
     

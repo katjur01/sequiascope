@@ -18,10 +18,10 @@ selectedTab_UI <- function(id){
 
       .selectedTab-visible {
         display: block !important;
-        resize: vertical;
-        overflow: auto;
+        overflow-x: auto;
+        overflow-y: hidden;
         border: none;
-        height: 155px;
+        height: auto;
       }
       .row-highlighted { background-color: #FFFF99 !important; }
     "))),
@@ -76,9 +76,17 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
                   p_value = colDef(name = "p-value"),
                   p_adj = colDef(show = F),
                   pathway = colDef(name = "Pathway name", minWidth = 140),
-                  num_of_paths = colDef(name = "Pathway Count",minWidth = 150),
+                  num_of_paths = colDef(name = "Pathway Count", minWidth = 150),
                   tissue = colDef(show = F),
-                  sample = colDef(show = F)
+                  sample = colDef(show = F),
+                  counts_tpm_round = colDef(show = F),
+                  size = colDef(show = F),
+                  mu = colDef(show = F),
+                  lower_than_p = colDef(show = F),
+                  higher_than_p = colDef(show = F),
+                  type = colDef(show = F),
+                  all_kegg_gene_names = colDef(show = F),
+                  gene_definition = colDef(show = F)
                 ),
                 resizable = TRUE,
                 defaultPageSize = 10,
@@ -188,7 +196,9 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
           gene_symbol = colDef(name = "Gene name", minWidth = 120, maxWidth = 140),
           var_name = colDef(name = "Variant", minWidth = 100, show = any(data$var_name != "")),  
           fusion = colDef(name = "Fusion", minWidth = 100, show = any(data$fusion != "")),  
-          pathway = colDef(name = "Pathway",minWidth = 180)
+          pathway = colDef(name = "Pathway", minWidth = 300, html = TRUE, cell = function(value) {
+            htmltools::div(style = "white-space: normal; word-wrap: break-word;", value)
+          })
         ),
         resizable = TRUE,
         pagination = FALSE,  
@@ -197,7 +207,7 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
         highlight = TRUE,
         striped = TRUE,
         wrap = FALSE,
-        style = list(maxHeight = "400px", overflowY = "auto")  
+        style = list(maxHeight = "400px", overflowY = "auto", overflowX = "auto")  
       )
     })
     
