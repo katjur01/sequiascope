@@ -4,5 +4,12 @@
     "kegg_tab": "app/references/kegg_tab.tsv",
     "report_template": "app/references/report_template.docx",
     "genes_of_interest": "app/references/genes_of_interest.tsv"
+  },
+  "custom_genome": {
+    "_comment": "Custom reference genome for IGV. Paths are relative to /input_files mount. Remove this section if not using custom genome.",
+    "display_name": "Custom genome",
+    "igv_id": "custom",
+    "genome": "genome/GRCh38.fa",
+    "index": "genome/GRCh38.fa.fai"
   }
 }

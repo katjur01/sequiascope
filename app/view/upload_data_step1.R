@@ -6,16 +6,19 @@ box::use(
         conditionalPanel,reactiveValues,showNotification],
   htmltools[tags,HTML,div,span,h2,h3,h4,h5,br],
   shinyFiles[shinyDirButton,shinyDirChoose,parseDirPath,getVolumes],
-  shinyWidgets[actionBttn,prettySwitch,updatePrettySwitch, dropdown,tooltipOptions,virtualSelectInput,updateVirtualSelect],
+  shinyWidgets[actionBttn,prettySwitch,updatePrettySwitch, dropdown,tooltipOptions,virtualSelectInput,updateVirtualSelect,pickerInput,pickerOptions,updatePickerInput],
   bs4Dash[box],
   stringi[stri_detect_regex],
   stringr[str_detect,regex],
   shinyalert[shinyalert],
+  shinyjs[useShinyjs,runjs],
+  app/logic/helper_igv[get_igv_genome_display_name, get_igv_genome_id]
 )
 
 # krok 1: cesta + pacienti
 step1_ui <- function(id) {
   ns <- NS(id)
+  useShinyjs()
   tagList(
     tags$script(HTML(sprintf("$(document).on('change', '#%s', function() {
                                 var selectedValues = $(this).val() || [];
@@ -61,9 +64,14 @@ step1_ui <- function(id) {
                        prettySwitch(ns("fusion_data"), label = "Fusion genes detection", status = "primary", slim = TRUE),
                        conditionalPanel(
                          condition = paste0("input['", ns("fusion_data"), "'] == true"),
-                         div(style = "display: flex; gap: 15px; padding-left: 40px;",
-                             textAreaInput(inputId = ns("fusion_tumor_pattern"), label = "Pattern for tumor BAM files:", placeholder = "e.g. tumor, fusion"),
-                             textAreaInput(inputId = ns("fusion_chimeric_pattern"), label = "Pattern for chimeric BAM files:", placeholder = "e.g. chimeric"))
+                         div(style = "display: flex;",
+                             column(4,textAreaInput(inputId = ns("fusion_tumor_pattern"), label = "Pattern for tumor BAM files:", placeholder = "e.g. tumor, fusion")),
+                             column(4,textAreaInput(inputId = ns("fusion_chimeric_pattern"), label = "Pattern for chimeric BAM files:", placeholder = "e.g. chimeric")),
+                             column(4,pickerInput(inputId = ns("igv_snapshot"),label = "Genome for IGV snapshot:", 
+                               choices = c("GRCh38/hg38","hg38 1kg/GATK","GRCh37/hg19","T2T CHM13-v2.0/hs1","Custom","Dont create IGV snapshots"),
+                               choicesOpt = list(icon = c("fa-check","fa-check","fa-check","fa-check","fa-sliders","fa-xmark")),
+                               options = pickerOptions(container = "body", iconBase = "fas"), width = "100%"))
+                             )
                        ),
                        prettySwitch(ns("expression_data"), label = "Expression profile", status = "primary", slim = TRUE),
                        conditionalPanel(
@@ -81,7 +89,7 @@ step1_ui <- function(id) {
 
 step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pattern, tissues, shared_data) {
   moduleServer(id, function(input, output, session) {
-    
+    #ns <- NS(id)
     next1_btn <- reactiveVal(NULL)
     load_click <- reactiveVal(NULL)
     
@@ -125,9 +133,15 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
           type = "message", 
           duration = 3
         )
+        
+        # Close dropdown after successful add
+     #   runjs("$('#" + ns("confirm_add") + "').closest('.dropdown').find('[data-toggle=dropdown]').dropdown('hide');")
       } else {
         showNotification("No valid patients to add.", type = "warning", duration = 3)
         updateTextAreaInput(session, "new_patients", value = "")
+        
+        # Close dropdown even if no valid patients
+    #    runjs("$('#" + ns("confirm_add") + "').closest('.dropdown').find('[data-toggle=dropdown]').dropdown('hide');")
       }
     })
     
@@ -160,6 +174,16 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
     observeEvent(input$next1, {
       
       if (is_valid()) {
+        # Save IGV genome selection to shared_data (convert display name → igv_id)
+        igv_selection <- input$igv_snapshot
+        if (!is.null(igv_selection)) {
+          igv_id <- get_igv_genome_id(igv_selection, shared_data$custom_genome_config)
+          shared_data$igv_genome(igv_id)
+          message("[UPLOAD] IGV genome selected: ", igv_selection, " -> ", igv_id)
+        } else {
+          shared_data$igv_genome("hg38")  # Default
+        }
+        
         next1_btn(input$next1)
       } else {
         missing_items <- c()
@@ -234,8 +258,7 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
       message("🔄 [restore_ui_inputs] Restoring patients: ", paste(p, collapse = ", "))
       
       # Update virtualSelect with existing patients
-      updateVirtualSelect(session = session, inputId = "patient_list", 
-                          choices = p, selected = p)
+      updateVirtualSelect(session = session, inputId = "patient_list", choices = p, selected = p)
       
       # Clear new_patients field (it's for adding NEW patients, not showing existing ones)
       updateTextAreaInput(session, "new_patients", value = "")
@@ -255,6 +278,14 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
       updateTextAreaInput(session, "fusion_tumor_pattern",    value = nz(tumor_pattern$fusion))
       updateTextAreaInput(session, "fusion_chimeric_pattern", value = nz(tumor_pattern$chimeric))
       updateTextAreaInput(session, "tissue_list",             value = nz(tissues()))
+      
+      # Restore IGV genome selection picker (convert igv_id → display name)
+      igv_genome_val <- shared_data$igv_genome()
+      if (!is.null(igv_genome_val) && length(igv_genome_val) > 0) {
+        selected_display <- get_igv_genome_display_name(igv_genome_val, shared_data$custom_genome_config)
+        updatePickerInput(session, "igv_snapshot", selected = selected_display)
+        message("🔄 [restore_ui_inputs] Restored IGV genome picker: ", igv_genome_val, " -> ", selected_display)
+      }
     }
     
     return(list(

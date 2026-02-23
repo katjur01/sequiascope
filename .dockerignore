@@ -12,6 +12,7 @@ app/UntitledR.R
 .renv.lock
 renv.lock
 .env
+.DS_Store
 
 # Cache files
 *.tar.gz
@@ -48,6 +49,7 @@ tests/
 www/
 2www2/
 !www/manifests/
+genome/
 _book/
 docker-compose.yml
 Dockefile

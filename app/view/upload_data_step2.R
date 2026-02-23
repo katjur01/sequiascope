@@ -374,8 +374,8 @@ step2_ui <- function(id) {
 
         confirmed_paths_state(build_confirmed_paths(data, path()))  # NO RED, NO ORANGE: pass data directly
         
-        # Note: Waiter will be shown in main.R observeEvent(upload$confirmed_paths())
-        # and Summary tab will be switched to automatically
+        # Show waiter after confirming - will be hidden when summary/expression profile loads
+        show_waiter("main-app", "Loading data and preparing modules...")
         
       })
 

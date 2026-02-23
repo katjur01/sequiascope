@@ -218,7 +218,7 @@ runIGVSnapshotParallel <- function(IGV_batch_file, timeout_seconds = 300, prog_f
 #' @param file_list List of files for this patient (fusion, tumor, chimeric)
 #' @param output_base_dir Base directory for output (usually "/output_files")
 #' @param prog_file Optional progress file to update during processing
-process_patient_igv <- function(sample, file_list, output_base_dir, prog_file = NULL) {
+process_patient_igv <- function(sample, file_list, output_base_dir, prog_file = NULL, genome_build) {
 
   # Get required files
   fusion_file <- file_list$fusion
@@ -287,13 +287,14 @@ process_patient_igv <- function(sample, file_list, output_base_dir, prog_file = 
       message("[IGV] Generating ", missing_count, "/", nrow(fusions_tab), " snapshots")
       fusions_to_process <- fusions_tab[png_exists == FALSE]
       
+      message("[IGV] Using genome build: ", genome_build)
       batch_file <- createIGVBatchFile(
         tumor_bam = tumor_bam,
         chimeric_bam = chimeric_bam,
         fusions_tab = fusions_to_process,
         batch_file = batch_file,
         output_dir = igv_snapshot_dir,
-        genome_build = "hg38")
+        genome_build = genome_build)
       
       # Calculate dynamic timeout based on number of missing fusions
       # Base: 300 seconds (5 min) + 0.5 seconds per fusion
@@ -476,6 +477,21 @@ create_fusion_manifest <- function(patient_id, fusion_file, arriba, output_base_
 prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
   message("Starting fusion data prerun...")
   output_base_dir <- shared_data$output_path()
+  
+  # Get IGV genome selection (set in upload_data step1)
+  genome_val <- shared_data$igv_genome()
+  igv_genome <- if (!is.null(genome_val) && length(genome_val) > 0 && genome_val != "no_snapshot") {
+    genome_val
+  } else {
+    "hg38"  # Default
+  }
+  message("[PRERUN] IGV genome: ", igv_genome)
+  
+  # Skip IGV snapshots if user selected "Don't create"
+  skip_igv <- !is.null(genome_val) && length(genome_val) > 0 && genome_val == "no_snapshot"
+  if (skip_igv) {
+    message("[PRERUN] Skipping IGV snapshot generation per user selection")
+  }
 
   # 1) Inicializace stavu
   if (!is.null(shared_data)) {
@@ -550,7 +566,12 @@ prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
         }
         
         # Process IGV snapshots (watcher will handle parallel execution safely)
-        igv_success <- process_patient_igv(sample, file_list)
+        igv_success <- if (!skip_igv) {
+          process_patient_igv(sample, file_list, output_base_dir, prog_file = NULL, genome_build = igv_genome)
+        } else {
+          message("[IGV] Skipping snapshots for patient ", sample)
+          TRUE  # Skip but don't fail
+        }
         
         # Process Arriba PDF
         arriba_success <- process_arriba_pdf(sample, file_list$arriba, output_base_dir = output_base_dir)
@@ -724,14 +745,20 @@ prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, outpu
     }
     
     # Step 1: Process IGV snapshots (5-85%)
+    # COMMENTED OUT FOR TESTING - IGV snapshots disabled
     if (!is.null(prog_file)) writeLines("5", prog_file)
-    igv_success <- process_patient_igv(patient_id, file_list, output_base_dir, prog_file = prog_file)
+    # igv_success <- process_patient_igv(patient_id, file_list, output_base_dir, prog_file = prog_file)
+    igv_success <- TRUE  # Skip IGV snapshot generation
+    message("[PRERUN] IGV snapshots SKIPPED for ", patient_id)
     if (!is.null(prog_file)) writeLines("85", prog_file)
     
     # Step 2: Process Arriba PDF (85-95%)
+    # COMMENTED OUT FOR TESTING - Arriba PDF conversion disabled
     arriba_success <- FALSE
     if (!is.null(file_list$arriba) && length(file_list$arriba) > 0) {
-      arriba_success <- process_arriba_pdf(patient_id, file_list$arriba, output_base_dir)
+      # arriba_success <- process_arriba_pdf(patient_id, file_list$arriba, output_base_dir)
+      arriba_success <- TRUE  # Skip Arriba PDF processing
+      message("[PRERUN] Arriba PDF processing SKIPPED for ", patient_id)
     }
     
     if (!is.null(prog_file)) writeLines("95", prog_file)

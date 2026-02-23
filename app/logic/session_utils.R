@@ -124,6 +124,16 @@ load_session <- function(file, shared_data, module_configs = NULL) {
     session_data <- session_json
   }
   
+  # Restore IGV genome selection
+  if (!is.null(session_json$igv_genome) && length(session_json$igv_genome) > 0 && session_json$igv_genome != "") {
+    message("🔄 Restoring IGV genome selection: ", session_json$igv_genome)
+    shared_data$igv_genome(session_json$igv_genome)
+  } else {
+    # Set default if not in session
+    shared_data$igv_genome("hg38")
+    message("🔄 No IGV genome in session, using default: hg38")
+  }
+  
   # Restore fusion prerun status
   if (!is.null(session_json$fusion_prerun_completed) && length(session_json$fusion_prerun_completed) > 0) {
     message("🔄 Restoring fusion prerun status")
@@ -246,8 +256,11 @@ save_session <- function(file = "session_data.json", shared_data, module_types =
     data = session,
     session_dir = nz(shared_data$session_dir(), NULL),
     saved_at = Sys.time(),
-    fusion_prerun_completed = fusion_prerun_completed  # Add fusion prerun status
+    fusion_prerun_completed = fusion_prerun_completed,  # Add fusion prerun status
+    igv_genome = nz(shared_data$igv_genome(), NULL)  # Add IGV genome selection
   )
+  
+  message("[SAVE] IGV genome value: ", nz(shared_data$igv_genome(), "NULL"))
   
   # Debug: Check file parameter
   if (!is.character(file) || length(file) != 1) {

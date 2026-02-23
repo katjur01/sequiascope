@@ -279,6 +279,16 @@ server <- function(id) {
     config <- jsonlite::fromJSON("reference_paths.json")
     output_dirname <- config$output_dir  # e.g. "output_files"
     
+    # Load custom genome configuration (if defined)
+    custom_genome_config <- if (!is.null(config$custom_genome)) {
+      config$custom_genome
+    } else {
+      NULL
+    }
+    if (!is.null(custom_genome_config)) {
+      message("🧬 Custom genome configured: ", custom_genome_config$display_name, " (", custom_genome_config$igv_id, ")")
+    }
+    
     # Detect environment: check if /output_files exists (Docker/K8s mount) or use local
     if (dir.exists(paste0("/", output_dirname))) {
       output_base <- paste0("/", output_dirname)
@@ -313,6 +323,8 @@ server <- function(id) {
       navigation_context = reactiveVal(NULL),     # somatic or germline or fusion     # from where are we opening IGV
       session_dir = reactiveVal(NULL),
       is_loading_session = reactiveVal(FALSE),
+      igv_genome = reactiveVal(character(0)), # genome for IGV
+      custom_genome_config = custom_genome_config, # custom genome configuration from reference_paths.json
       
       # Per-patient fusion prerun tracking (paralelní zpracování)
       fusion_prerun_status = list(),      # patient_id -> reactiveVal("not_started"|"running"|"completed"|"failed")
@@ -528,8 +540,13 @@ server <- function(id) {
   
           # start_static_server(root_path)
           
-          shared_data$igv_root(root_path)  
+          # Extract input_files directory (static server root)
+          # Remove everything after input_files to get the server root
+          igv_server_root <- sub("(.*input_files).*", "\\1", root_path)
           message("root_path in main: ", root_path)
+          message("igv_server_root in main: ", igv_server_root)
+          
+          shared_data$igv_root(igv_server_root)  
           shared_data$igv_server_started(TRUE)
       
           # session$onSessionEnded(function() {
@@ -556,7 +573,6 @@ server <- function(id) {
                 session_file <- file.path(session_dir, "session_data.json")
                 save_session(session_file, shared_data)
                 session$sendCustomMessage("allow-unload", list())  # Allow page unload after save
-                showNotification(paste0("✅ Session saved to: ", basename(session_dir)), type = "message", duration = 5)
               } else {
                 showNotification("⚠️ No session to save - please load data first.", type = "warning", duration = 5)
               }

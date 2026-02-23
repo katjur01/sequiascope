@@ -27,7 +27,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - ./input_files:/input_files:ro
+      - ./input_files:/input_files
       - ./output_files:/output_files
     environment:
       - INPUT_DIR=/input_files

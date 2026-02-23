@@ -145,16 +145,19 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
 evaluate_file_status <- function(files, patient, file_type, dataset_type, patterns = NULL) {
   file_configs <- list(
     variant_somatic = list(extensions = "\\.(vcf|tsv)$", keywords = "somatic", required = TRUE),
-    tumor_somatic   = list(extensions = "\\.(bam|bai)$", keywords = "somatic", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
-    normal_somatic  = list(extensions = "\\.(bam|bai)$", keywords = "somatic", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    # BAM files: No dataset-type keyword required - rely on user-provided patterns (FFPE, krev, etc.)
+    # This allows finding BAMs in primary_analysis folders that don't contain "somatic"/"germline"/"fusion"
+    tumor_somatic   = list(extensions = "\\.(bam|bai)$", keywords = NULL, exclude = "qc_|feature_count|flagstat|idxstats|species_|transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    normal_somatic  = list(extensions = "\\.(bam|bai)$", keywords = NULL, exclude = "qc_|feature_count|flagstat|idxstats|species_|transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
     TMB_somatic     = list(extensions = "mutation_loads\\.(tsv|xlsx|txt)$", keywords = "somatic", exclude = "report", required = FALSE),
     
     variant_germline = list(extensions = "\\.(vcf|tsv)$", keywords = "germline", required = TRUE),
-    normal_germline  = list(extensions = "\\.(bam|bai)$", keywords = "germline", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    normal_germline  = list(extensions = "\\.(bam|bai)$", keywords = NULL, exclude = "qc_|feature_count|flagstat|idxstats|species_|transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
     
-    fusion_fusion    = list(extensions = "\\.(tsv|xlsx)$", keywords = "fusion", exclude = "arriba|STAR", required = TRUE),
-    tumor_fusion     = list(extensions = "\\.(bam|bai)$", keywords = "fusion", exclude = "Chimeric|transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
-    chimeric_fusion  = list(extensions = "\\.(bam|bai)$", keywords = "fusion", exclude = "transcriptome", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    # Fusion table: Exclude QC files and feature_count files which also have .tsv extension
+    fusion_fusion    = list(extensions = "\\.(tsv|xlsx)$", keywords = "fusion|fuze", exclude = "arriba|STAR|qc_|feature_count|flagstat|idxstats|species_", required = TRUE),
+    tumor_fusion     = list(extensions = "\\.(bam|bai)$", keywords = NULL, exclude = "Chimeric|transcriptome|qc_|feature_count|flagstat|idxstats|species_", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
+    chimeric_fusion  = list(extensions = "\\.(bam|bai)$", keywords = NULL, exclude = "transcriptome|qc_|feature_count|flagstat|idxstats|species_", required = FALSE, check_pair = TRUE, pair = "bam_bai"),
     arriba_fusion    = list(extensions = "\\.(pdf|tsv)$", keywords = "arriba", exclude = "discarded|STAR", required = FALSE, check_pair = TRUE, pair = "pdf_tsv"),
     
     expression_expression = list(extensions = "\\.(tsv|xlsx)$", keywords = "expression|RNAseq", exclude = "report|genes_of_interest", required = TRUE),
@@ -164,15 +167,6 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
   config_key <- paste(file_type, dataset_type, sep = "_")
   config <- file_configs[[config_key]]
   if (is.null(config)) return("red")
-  
-  # DEBUG: Log for tumor_fusion to diagnose pattern issues
-  if (config_key %in% c("tumor_fusion", "chimeric_fusion", "tumor_somatic", "normal_somatic", "normal_germline")) {
-    message("[FILE_EVAL] Evaluating ", config_key, " for patient: ", patient)
-    message("[FILE_EVAL]   - patterns parameter: ", if(is.null(patterns)) "NULL" else paste(patterns, collapse=", "))
-    message("[FILE_EVAL]   - config keywords: ", config$keywords)
-    message("[FILE_EVAL]   - config exclude: ", if(!is.null(config$exclude)) config$exclude else "NULL")
-    message("[FILE_EVAL]   - number of files to check: ", length(files))
-  }
   
   pattern_list <- character(0)
   if (!is.null(patterns)) {
@@ -219,12 +213,18 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
   } else {
     # NEW LOGIC: When patterns are provided, require BOTH config keyword AND pattern
     # Exception: if search_without_pattern = TRUE (user specified "-"), use ONLY config keyword
+    # Exception: if config$keywords is NULL, use ONLY user patterns (for BAM files without dataset-type keywords)
     if (search_without_pattern) {
       # Search using only config keyword (e.g., "somatic", "fusion"), no additional pattern
-      all_keywords <- c(config$keywords)
+      # If config$keywords is NULL, this results in no keyword filtering (extension + exclude only)
+      all_keywords <- if (!is.null(config$keywords)) c(config$keywords) else character(0)
     } else {
       # Normal mode: combine config keyword + user patterns
-      all_keywords <- c(config$keywords, pattern_list)
+      # If config$keywords is NULL, use only user patterns
+      all_keywords <- c(
+        if (!is.null(config$keywords)) config$keywords else character(0),
+        pattern_list
+      )
     }
     all_keywords <- all_keywords[nzchar(all_keywords)]
     keyword_regex <- all_keywords  # Store as vector for AND logic
@@ -352,6 +352,9 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
                              (search_without_pattern || (length(pattern_list) > 0 && any(nzchar(pattern_list))))
   is_required <- config$required || is_required_by_pattern
   
+  # Keep copy of matched files before clearing (for debugging/UI display)
+  matched_before_clear <- matched
+  
   # BAM/BAI pairing
   if (!is.null(config$check_pair) && config$check_pair) {
     if (length(matched) == 0) {
@@ -447,7 +450,8 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
     reason = reason,
     tissues = if (config_key == "expression_expression") tissues_matched else rep("none", length(matched)),
     all_mapping = if (config_key == "expression_expression") attr(matched, "all_mapping") else NULL,
-    missing_tissues = if (config_key == "expression_expression") attr(matched, "missing_tissues") else NULL
+    missing_tissues = if (config_key == "expression_expression") attr(matched, "missing_tissues") else NULL,
+    found_files = matched_before_clear  # Keep original matched files for UI display (even when cleared)
   ))
 }
 
@@ -554,7 +558,14 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
     })
     
     patient_data$files <- sapply(patient_results, function(x) {
-      all_files <- unique(c(x$variant$files, x$tumor$files, x$normal$files, x$TMB$files))
+      # For debugging: show found_files when multiple_files or other issues occur
+      # Collect all found files (use found_files when available, fallback to files)
+      all_files <- unique(c(
+        if (!is.null(x$variant$found_files) && length(x$variant$found_files) > 0) x$variant$found_files else x$variant$files,
+        if (!is.null(x$tumor$found_files) && length(x$tumor$found_files) > 0) x$tumor$found_files else x$tumor$files,
+        if (!is.null(x$normal$found_files) && length(x$normal$found_files) > 0) x$normal$found_files else x$normal$files,
+        if (!is.null(x$TMB$found_files) && length(x$TMB$found_files) > 0) x$TMB$found_files else x$TMB$files
+      ))
       if (length(all_files) == 0) "" else paste(str_replace(all_files,path,""), collapse = ",\n")
     })
   } else if (dataset_type == "germline") {
@@ -583,7 +594,11 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
     })
     
     patient_data$files <- sapply(patient_results, function(x) {
-      all_files <- unique(c(x$variant$files, x$normal$files))
+      # For debugging: show found_files when multiple_files or other issues occur
+      all_files <- unique(c(
+        if (!is.null(x$variant$found_files) && length(x$variant$found_files) > 0) x$variant$found_files else x$variant$files,
+        if (!is.null(x$normal$found_files) && length(x$normal$found_files) > 0) x$normal$found_files else x$normal$files
+      ))
       if (length(all_files) == 0) "" else paste(str_replace(all_files,path,""), collapse = ",\n")
     })
     
@@ -616,7 +631,13 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
     })
     
     patient_data$files <- sapply(patient_results, function(x) {
-      all_files <- unique(c(x$fusion$files, x$tumor$files, x$chimeric$files, x$arriba$files))
+      # For debugging: show found_files when multiple_files or other issues occur
+      all_files <- unique(c(
+        if (!is.null(x$fusion$found_files) && length(x$fusion$found_files) > 0) x$fusion$found_files else x$fusion$files,
+        if (!is.null(x$tumor$found_files) && length(x$tumor$found_files) > 0) x$tumor$found_files else x$tumor$files,
+        if (!is.null(x$chimeric$found_files) && length(x$chimeric$found_files) > 0) x$chimeric$found_files else x$chimeric$files,
+        if (!is.null(x$arriba$found_files) && length(x$arriba$found_files) > 0) x$arriba$found_files else x$arriba$files
+      ))
       if (length(all_files) == 0) "" else paste(str_replace(all_files,path,""), collapse = ",\n")
     })
     
@@ -655,8 +676,12 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
         expr_lines <- str_replace(expr_lines, path, "")
         lines <- c(lines, expr_lines)
       } else {
-        # žádné tkáně zadané → držíme původní chování (single-file/none apod.)
-        expr_files <- x$expression$files
+        # For debugging: prefer found_files if available
+        expr_files <- if (!is.null(x$expression$found_files) && length(x$expression$found_files) > 0) {
+          x$expression$found_files
+        } else {
+          x$expression$files
+        }
         if (length(expr_files) > 0) {
           lines <- c(lines, str_replace(expr_files, path, ""))
         }

@@ -64,8 +64,8 @@ process_batch_file() {
     echo "[WATCHER] Using DISPLAY=${DISPLAY}"
     echo "[WATCHER] Starting Xvfb on ${DISPLAY}..."
     
-    # Start Xvfb for this display
-    Xvfb ${DISPLAY} -screen 0 1280x1024x24 &
+    # Start Xvfb for this display (with -nolisten tcp for security)
+    Xvfb ${DISPLAY} -screen 0 1280x1024x24 -nolisten tcp 2>&1 | sed 's/^/[XVFB] /' &
     local xvfb_pid=$!
     sleep 2
     

@@ -1,16 +1,17 @@
 box::use(
   shiny[br, NS,h3, tagList, div, observe, observeEvent, mainPanel, titlePanel, uiOutput, renderUI, fluidPage,fluidRow, moduleServer,
-        reactiveValues, column, req, reactive, reactiveVal,showModal,modalDialog,modalButton],
+        reactiveValues, column, req, reactive, reactiveVal,showModal,modalDialog,modalButton, conditionalPanel, textInput, updateTextInput],
   htmltools[tags,HTML],
   shinyalert[shinyalert],
   bs4Dash[actionButton,box],
-  shinyjs[useShinyjs, runjs],
+  shinyjs[useShinyjs, runjs, hide],
+  shinyWidgets[pickerInput, pickerOptions],
   reactable,
   reactable[reactableOutput,renderReactable,reactable,JS],
   # processx[process]
 )
 box::use(
-  app/logic/helper_igv[build_igv_tracks]#,start_static_server,stop_static_server]
+  app/logic/helper_igv[build_igv_tracks, get_igv_genome_id, build_custom_genome]#,start_static_server,stop_static_server]
 )
 
 #' @export
@@ -19,38 +20,32 @@ igv_ui <- function(id) {
   
   # titlePanel("IGV Viewer")
   tagList(
-    tags$style(HTML("
-       #igv_page {
-          width: 100%;
-          height: 600px;
-          margin: 0 auto;
-          padding: 20px;
-          box-sizing: border-box;
-      }
-      #igv-igvDiv {
-          width: 100%;
-          height: auto;
-          border: none; 
-          margin: 0 auto;
-          padding: 20px;
-          box-sizing: border-box;
-      }
-  ")),
+    tags$style(HTML("#igv_page { width: 100%; height: 600px; margin: 0 auto; padding: 20px; box-sizing: border-box;}
+                     #igv-igvDiv { width: 100%; height: auto;border: none; margin: 0 auto; padding: 20px; box-sizing: border-box;}")),
     useShinyjs(),
     tags$head(
       # tags$script(src = "https://cdn.jsdelivr.net/npm/igv@2.15.12/dist/igv.min.js")
-      tags$script(src = "https://cdn.jsdelivr.net/npm/igv@3.3.0/dist/igv.min.js")
+      tags$script(src = "https://cdn.jsdelivr.net/npm/igv@3.3.0/dist/igv.min.js")),
+    
+    fluidRow(
+      column(2, 
+        div(
+          textInput(ns("igv_genome_flag"), label = NULL, value = ""),
+          conditionalPanel(
+            condition = paste0("input['", ns("igv_genome_flag"), "'] == 'no_snapshot'"),
+            pickerInput(inputId = ns("igv_browser_genome"),label = "Select reference genome:",
+              choices = c("GRCh38/hg38", "hg38 1kg/GATK", "GRCh37/hg19", "T2T CHM13-v2.0/hs1"), selected = "GRCh38/hg38",
+              options = pickerOptions(container = "body",iconBase = "fas"),width = "100%")))),
+      column(2),
+      column(2, 
+        div(style = "display: flex; flex-direction: row-reverse; align-items: center; margin-top: 20px;",
+          actionButton(ns("loadIGVButton"), "Load IGV Viewer",status = "info"))),
     ),
+    br(),
     fluidRow(
       column(6, reactableOutput(ns("bookmarks")))),
     br(),
-    fluidRow(
-      column(2, actionButton(ns("loadIGVButton"), "Load IGV Viewer"))
-    ),
-    
-    br(),
     uiOutput(ns("igvDivOutput"))
-    
   )
 }
 
@@ -59,6 +54,24 @@ igv_server <- function(id, shared_data, root_path) {
   moduleServer(id, function(input, output, session) {
     
     igv_needs_refresh <- reactiveVal(FALSE)
+    
+    # Synchronize hidden input with shared_data for conditionalPanel
+    observe({
+      genome_val <- shared_data$igv_genome()
+      # Always update, handle empty/NULL values with default
+      if (!is.null(genome_val) && length(genome_val) > 0 && genome_val != "") {
+        updateTextInput(session, "igv_genome_flag", value = genome_val)
+        message("[IGV] Updated genome flag to: ", genome_val)
+      } else {
+        updateTextInput(session, "igv_genome_flag", value = "hg38")
+        message("[IGV] No genome value, using default: hg38")
+      }
+    })
+    
+    # Hide the flag input (used only for conditionalPanel condition)
+    observe({
+      hide("igv_genome_flag")
+    })
     
     selected_variants <- reactive({
       req(shared_data$navigation_context())
@@ -100,19 +113,10 @@ igv_server <- function(id, shared_data, root_path) {
                          germline = shared_data$germline.bam(),
                          fusion = shared_data$fusion.bam(),
                          NULL)
-      message("bam_list from IGV before: ", bam_list)
+      message("bam_list from IGV: ", bam_list)
       if (is.null(bam_list) || !length(bam_list)) return(NULL)
       
-      # Remove /input_files prefix from paths since IGV server serves /input_files as root
-      bam_list <- lapply(bam_list, function(x) {
-        if (!is.null(x$file)) {
-          x$file <- sub("^/input_files/?", "", x$file)
-        }
-        x
-      })
-      
-      message("bam_list from IGV after: ", bam_list)
-      
+      # Path transformation happens in build_igv_tracks()
       return(bam_list)
     })
     
@@ -177,8 +181,7 @@ igv_server <- function(id, shared_data, root_path) {
       message("Current selected_bams files: ", paste(selected_bams(), collapse = ", "))
       message("Current selected_variants files: ", paste(selected_variants(), collapse = ", "))
       
-      selected_empty <- is.null(selected_variants()) || 
-        (is.data.frame(selected_variants()) && nrow(selected_variants()) == 0)
+      selected_empty <- is.null(selected_variants()) || (is.data.frame(selected_variants()) && nrow(selected_variants()) == 0)
       bam_empty <- is.null(selected_bams()) || length(selected_bams()) == 0
 
       if (selected_empty) {
@@ -209,18 +212,6 @@ igv_server <- function(id, shared_data, root_path) {
     
       # # NOVÁ KONTROLA: Zkontroluj, jestli všichni vybraní pacienti mají BAM soubory
       selected_pats <- unique(selected_patients())
-      # patients_with_bams <- unique(sapply(selected_bams(), function(x) x$name))
-      # message("selected_bams(): ", selected_bams())
-      # message("patients_with_bams: ", patients_with_bams)
-      # # # Extrahuj patient ID z názvů (např. "DZ1601 RNA" -> "DZ1601")
-      # # patients_with_bams <- unique(gsub(" (RNA|Chimeric)$", "", patients_with_bams))
-      # # 
-      # missing_patients <- setdiff(selected_pats, patients_with_bams)
-      # message("selected_pats: ", selected_pats)
-      # předpoklad:
-      # selected_pats <- unique(selected_patients())   # vektor pacientů (může jich být víc)
-      # selected_bams()                               # list tracků; každý má $file (a často i $name)
-      # cílem je: pacienti, jejichž ID se nevyskytuje v žádné cestě (file)
       
       sb <- selected_bams()
       
@@ -246,11 +237,9 @@ igv_server <- function(id, shared_data, root_path) {
       missing_patients <- selected_pats[!has_file]
       
       # volitelně: log
-      message("missing_patients: ",
-              if (length(missing_patients)) paste(missing_patients, collapse = ", ") else "<none>")
+      message("missing_patients: ", if (length(missing_patients)) paste(missing_patients, collapse = ", ") else "<none>")
       
       if (length(missing_patients) > 0) {
-        
         shinyalert(
           title = "Missing BAM files",
           text = paste0("The following patients have no BAM files available for visualization:<br><br>",
@@ -263,22 +252,59 @@ igv_server <- function(id, shared_data, root_path) {
       }
       
       # Pokračuj s vykreslením IGV
-      output$igvDivOutput <- renderUI({
-        div(id = session$ns("igv-igvDiv"))
-      })
+      output$igvDivOutput <- renderUI({ div(id = session$ns("igv-igvDiv")) })
       
       message("###### build_igv_tracks selected_bams ######: ", selected_bams())
-      track_block <- build_igv_tracks(selected_bams())
+      track_block <- build_igv_tracks(selected_bams(), igv_root = shared_data$igv_root())
       
       message("##### track_block ##### : ", track_block)
       
+      # Get genome selection from shared_data (set in upload_data step1)
+      # or from the picker if snapshots were skipped
+      genome_val <- shared_data$igv_genome()
+
+      igv_genome <- if (!is.null(genome_val) && length(genome_val) > 0 && genome_val != "no_snapshot") {
+        genome_val  # Use genome selected in upload step1
+      } else if (!is.null(input$igv_browser_genome)) {
+        # Use genome selected in IGV module picker (convert display name → igv_id)
+        get_igv_genome_id(input$igv_browser_genome, shared_data$custom_genome_config)
+      } else {
+        "hg38"  # Default
+      }
+      message("[IGV] Using genome: ", igv_genome, " (from ", if (!is.null(genome_val) && length(genome_val) > 0 && genome_val != "no_snapshot") "upload_step1" else "IGV_picker", ")")
+      
+      # Check if custom genome is being used
+      custom_genome_config <- shared_data$custom_genome_config
+      is_custom_genome <- !is.null(custom_genome_config) && 
+                          !is.null(custom_genome_config$igv_id) && 
+                          igv_genome == custom_genome_config$igv_id
+      
+      # Build genome configuration for IGV.js
+      if (is_custom_genome) {
+        # Use helper function to build custom genome
+        genome_js <- build_custom_genome(custom_genome_config)
+        # For custom genomes, use specific locus instead of 'all' to avoid FAI parsing issues
+        # GRCh38 uses "1" not "chr1" naming
+        default_locus <- "1:1-100000"
+      } else {
+        # Built-in genome - just use ID string
+        genome_js <- sprintf("'%s'", igv_genome)
+        default_locus <- "all"
+      }
+      
       runjs(sprintf("
     setTimeout(function() {
+      if (typeof igv === 'undefined') {
+        console.error('IGV library not loaded');
+        alert('IGV library is not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
       var igvDiv = document.getElementById('%s');
       if (igvDiv) {
         var options = {
-          genome: 'hg38',
-          locus: 'all',
+          genome: %s,
+          locus: '%s',
           tracks: [%s],
           showNavigation: true,
           showRuler: true,
@@ -292,14 +318,16 @@ igv_server <- function(id, shared_data, root_path) {
           }
         };
         igv.createBrowser(igvDiv, options).then(function(browser) {
-          console.log('IGV browser created');
+          console.log('IGV browser created with genome: %s');
           window.igvBrowser = browser;
+        }).catch(function(error) {
+          console.error('Error creating IGV browser:', error);
         });
       } else {
         console.error('IGV div not found.');
       }
-    }, 20);
-    ", session$ns("igv-igvDiv"), track_block))
+    }, 500);
+    ", session$ns("igv-igvDiv"), genome_js, default_locus, track_block, igv_genome))
       # }
     })
 
