@@ -415,7 +415,18 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
   }
   
   cache_file <- file.path(session_dir, paste0("in_library_", variant_type, ".rds"))
-  
+
+  # Skip re-creation if cache already exists for exactly the same set of patients
+  if (file.exists(cache_file)) {
+    existing <- tryCatch(readRDS(cache_file), error = function(e) NULL)
+    cached_patients <- if (!is.null(existing)) names(existing$sample_files) else character(0)
+    if (setequal(cached_patients, all_patients)) {
+      message("♻️  Reusing existing ", variant_type, " cache (", length(all_patients), " samples unchanged)")
+      return(invisible(NULL))
+    }
+    message("🔄 Rebuilding ", variant_type, " cache - patient set changed")
+  }
+
   message("Creating in_library cache for ", variant_type, " from ", length(all_patients), " samples...")
   start_time <- Sys.time()
 

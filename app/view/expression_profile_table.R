@@ -186,8 +186,11 @@ server <- function(id, patient, shared_data, patient_files, file_list) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    observe({
-      req(tissue_list)
+    observeEvent(
+      list(data(), tissue_list(), prepare_goi_dt()),
+      ignoreNULL = FALSE,
+      ignoreInit = FALSE,
+      {
       req(data())
       req(tissue_list())
       
@@ -416,7 +419,11 @@ create_expression_logic <- function(session, ns, data, tissue_list, colnames_lis
     req(filter_state$selected_columns())
     
     if (!defaults_applied() && !is_restoring_session()) {
-      selected_tissues_final(filter_state$selected_tissue())
+      # NOTE: selected_tissues_final is intentionally NOT overwritten here.
+      # It is already initialised to the full tissue list by the observe above.
+      # filter_state$selected_tissue() may not yet be stable (picker not fully
+      # rendered) and overwriting it here caused the table to show only the first
+      # tissue until the user clicked Apply.
       selected_pathway_final(filter_state$selected_pathway())
       selected_columns(filter_state$selected_columns())
       
@@ -425,14 +432,10 @@ create_expression_logic <- function(session, ns, data, tissue_list, colnames_lis
         tissue_filter <- filter_state[[paste0("tissue_filter_", tissue)]]
         if (!is.null(tissue_filter)) {
           val <- tissue_filter()
-          message("tissue_filter for ", tissue, ": ", paste0(val, collapse = ", "))
           tissue_filters_final[[tissue]] <- val
-        } else {
-          message("tissue_filter for ", tissue, ": NOT FOUND")
         }
       }
 
-      message("selected_tissues_final: ", paste0(selected_tissues_final(), collapse = ", "))
       defaults_applied(TRUE)
     }
   })

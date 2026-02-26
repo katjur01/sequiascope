@@ -28,7 +28,8 @@ box::use(
   app/logic/prepare_table[prepare_somatic_table,colFilter],
   app/logic/helper_reactable[create_clinvar_filter,create_consequence_filter],
   app/logic/filter_columns[map_checkbox_names,colnames_map_list,generate_columnsDef],
-  app/logic/session_utils[create_session_handlers, register_module, safe_extract, nz, ch]
+  app/logic/session_utils[create_session_handlers, register_module, safe_extract, nz, ch],
+  app/logic/helper_main[get_files_by_patient]
 )
 
 
@@ -510,8 +511,9 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
             return(tracks)
           }
           
-          patient_files <- file_list[[patient_id]]
-          
+          fresh_fl      <- get_files_by_patient(isolate(shared_data$confirmed_paths()), "somatic")
+          patient_files <- if (patient_id %in% names(fresh_fl)) fresh_fl[[patient_id]] else list()
+
           # Add tumor BAM track if available
           if ("tumor" %in% names(patient_files) && length(patient_files$tumor) > 0) {
             tumor_bam <- patient_files$tumor[grepl("\\.bam$", patient_files$tumor)][1]

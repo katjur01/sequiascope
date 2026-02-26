@@ -678,8 +678,9 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
             return(tracks)
           }
           
-          patient_files <- file_list[[id_val]]
-          
+          fresh_fl      <- get_files_by_patient(isolate(shared_data$confirmed_paths()), "fusion")
+          patient_files <- if (id_val %in% names(fresh_fl)) fresh_fl[[id_val]] else list()
+
           # Add tumor RNA BAM track if available
           if ("tumor" %in% names(patient_files) && length(patient_files$tumor) > 0) {
             tumor_bam <- patient_files$tumor[grepl("\\.bam$", patient_files$tumor)][1]

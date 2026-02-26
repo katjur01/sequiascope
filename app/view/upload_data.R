@@ -240,7 +240,7 @@ server <- function(id, shared_data) {
           choices  = choices_named,
           selected = default_name,
           width    = "100%",
-          options  = list(placeholder = "Search...", onInitialize = I('function() { this.setValue(""); }'))
+          options  = list(placeholder = "Search...")
         ),
         footer = tagList(
           modalButton("Cancel"),

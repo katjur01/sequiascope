@@ -348,7 +348,8 @@ server <- function(id) {
       fusion_modules = reactiveVal(list()),
       fusion_pending = reactiveVal(list()),
       expression_modules = reactiveVal(list()),
-      expression_pending = reactiveVal(list())
+      expression_pending = reactiveVal(list()),
+      confirmed_paths = reactiveVal(NULL)  # Always-current file index — updated on every re-confirm so modules can read fresh BAM paths
     )
     ############################
     ### Output path setup (already detected above)
@@ -398,6 +399,7 @@ server <- function(id) {
       if (check_and_show_fusion_dialog(confirmed_paths, output_dir, shared_data)) return()
       
       # No existing outputs - proceed directly with data loading
+      shared_data$fusion_prerun_started(FALSE)    # Allow re-run check on every re-confirm
       shared_data$fusion_prerun_user_confirmed(TRUE)
       shared_data$pending_data_load(confirmed_paths)
     }, ignoreInit = TRUE)
@@ -418,7 +420,13 @@ server <- function(id) {
       # Show waiter with progress bar
       show_waiter_with_progress(session)
       update_waiter_progress(session, 10, "Initializing...")
-      
+
+      # Save previous file index before publishing the new one (needed for expression diff below)
+      prev_confirmed_paths <- isolate(shared_data$confirmed_paths())
+
+      # Publish current file index so all module servers can read fresh BAM paths reactively
+      shared_data$confirmed_paths(confirmed_paths)
+
       somatic_patients <- get_patients(confirmed_paths, "somatic")
       germline_patients <- get_patients(confirmed_paths, "germline")
       fusion_patients <- get_patients(confirmed_paths, "fusion")
@@ -582,8 +590,38 @@ server <- function(id) {
       if (length(fusion_patients) > 0) add_dataset_tabs(session, confirmed_paths, "fusion", fusion_patients, shared_data, added_tab_values, "fusion_tabset", "fus_", fusion_genes_table, reactive(input$load_session_btn))
         
       update_waiter_progress(session, 80, "Loading expression data...")
-      # # ## Expression & network graph
+      # ## Expression & network graph
+      # Per-patient rebuild: only remove+re-add tabs whose tissue_list or goi flag changed.
+      # This avoids spawning duplicate module servers (which caused infinite re-loading).
       if (length(expression_patients) > 0) {
+        prev_expr_files <- if (!is.null(prev_confirmed_paths)) get_files_by_patient(prev_confirmed_paths, "expression") else list()
+        new_expr_files  <- get_files_by_patient(confirmed_paths, "expression")
+
+        expr_sig <- function(pf) {
+          if (is.null(pf)) return(list(tissues = character(0), goi = FALSE))
+          tissues <- sort(unique(pf$tissues[!is.na(pf$tissues) & pf$tissues != "none"]))
+          list(tissues = tissues, goi = !is.null(pf$files$goi))
+        }
+
+        for (pid in expression_patients) {
+          old_sig <- expr_sig(prev_expr_files[[pid]])
+          new_sig <- expr_sig(new_expr_files[[pid]])
+          if (!identical(old_sig, new_sig)) {
+            # Tissue list or GOI changed — remove the old tab so add_dataset_tabs re-creates it
+            tab_val <- paste0("expr_", pid)
+            net_val <- paste0("net_",  pid)
+            if (tab_val %in% added_tab_values$expression) {
+              removeTab(inputId = "expression_tabset", target = tab_val)
+              added_tab_values$expression <- setdiff(added_tab_values$expression, tab_val)
+            }
+            if (net_val %in% added_tab_values$network) {
+              removeTab(inputId = "network_graph", target = net_val)
+              added_tab_values$network <- setdiff(added_tab_values$network, net_val)
+            }
+            message("🔄 Rebuilding expression tab for ", pid, " (tissue/goi changed)")
+          }
+        }
+
         add_dataset_tabs(session, confirmed_paths, "expression", expression_patients, shared_data, added_tab_values, "expression_tabset", "expr_", expression_profile_table, reactive(input$load_session_btn))
         update_waiter_progress(session, 85, "Loading network graph...")
         add_dataset_tabs(session, confirmed_paths, "network", expression_patients, shared_data, added_tab_values, "network_graph", "net_", networkGraph_cytoscape)
@@ -662,6 +700,31 @@ server <- function(id) {
         if (is.null(current_session_dir) || current_session_dir == "") {
           message("[PRERUN INIT] No session directory - skipping fusion prerun")
         } else {
+          # For patients that gained BAMs since their last prerun, the manifest will have
+          # 0 expected PNGs (snapshots were skipped). Delete such manifests so
+          # fusion_patients_to_prerun re-includes them for a snapshot run.
+          current_fusion_files <- get_files_by_patient(confirmed_paths, "fusion")
+          for (pid in fusion_patients) {
+            pf       <- if (pid %in% names(current_fusion_files)) current_fusion_files[[pid]] else list()
+            has_bams <- length(pf$tumor) > 0 || length(pf$chimeric) > 0
+            if (has_bams) {
+              manifest_file <- file.path(current_session_dir, "manifests", "fusion", paste0(pid, ".tsv"))
+              if (file.exists(manifest_file)) {
+                manifest_dt   <- tryCatch(data.table::fread(manifest_file), error = function(e) NULL)
+                expected_pngs <- if (!is.null(manifest_dt) && "png_path" %in% names(manifest_dt)) {
+                  data.table::uniqueN(manifest_dt$png_path, na.rm = TRUE)
+                } else 0L
+                if (expected_pngs == 0L) {
+                  message("[PRERUN RESET] ", pid, " — BAMs newly available, deleting stale manifest to force snapshot re-run")
+                  file.remove(manifest_file)
+                  if (pid %in% names(shared_data$fusion_prerun_status)) {
+                    shared_data$fusion_prerun_status[[pid]]("not_started")
+                  }
+                }
+              }
+            }
+          }
+
           patients_to_run <- fusion_patients_to_prerun(fusion_patients, current_session_dir)
 
         if (length(patients_to_run) > 0) {
