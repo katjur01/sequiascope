@@ -787,11 +787,13 @@ server <- function(id) {
           current_session_dir <- isolate(shared_data$session_dir())
           
           # Get IGV genome selection
+          # NOTE: pass "no_snapshot" through as-is — prerun_fusion_patient
+          # uses it to skip IGV generation.  Do NOT replace it with "hg38" here.
           genome_val <- isolate(shared_data$igv_genome())
-          current_igv_genome <- if (!is.null(genome_val) && length(genome_val) > 0 && genome_val != "no_snapshot") {
+          current_igv_genome <- if (!is.null(genome_val) && length(genome_val) > 0) {
             genome_val
           } else {
-            "hg38"  # Default
+            "hg38"  # Default when nothing selected
           }
           
           patient_future <- future({

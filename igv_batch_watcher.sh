@@ -4,7 +4,10 @@
 
 # Use environment variables with defaults
 OUTPUT_BASE_DIR="${OUTPUT_BASE_DIR:-/output_files}"
-WATCH_DIR="${WATCH_DIR:-${OUTPUT_BASE_DIR}/igv_snapshots}"
+# Sessions are stored under ${OUTPUT_BASE_DIR}/sessions — batch files live inside
+# each session's igv_snapshots subfolder.  The old default (/output_files/igv_snapshots)
+# was a relic; the correct subtree to watch is /output_files/sessions.
+WATCH_DIR="${WATCH_DIR:-${OUTPUT_BASE_DIR}/sessions}"
 PROCESSED_DIR="${PROCESSED_DIR:-${OUTPUT_BASE_DIR}/.processed_batches}"
 IGV_SCRIPT="/opt/IGV_2.16.2/igv.sh"
 XVFB_DISPLAY_START=100
@@ -93,8 +96,29 @@ process_batch_file() {
     echo "[WATCHER] Expected snapshots: $expected_count in $snapshot_dir"
     wlog INFO "Očekávaných PNG: $expected_count | Výstupní složka: $snapshot_dir"
 
+    # ── Pre-IGV diagnostics ──────────────────────────────────────────────────
+    echo "[WATCHER] --- Pre-IGV diagnostics ---"
+    echo "[WATCHER] whoami    : $(whoami 2>/dev/null || id)"
+    echo "[WATCHER] id        : $(id)"
+    echo "[WATCHER] HOME      : $HOME"
+    echo "[WATCHER] DISPLAY   : $DISPLAY"
+    echo "[WATCHER] IGV_SCRIPT: $IGV_SCRIPT"
+    echo "[WATCHER] igv.sh exists: $(test -f $IGV_SCRIPT && echo YES || echo NO)"
+    echo "[WATCHER] igv.sh executable: $(test -x $IGV_SCRIPT && echo YES || echo NO)"
+    echo "[WATCHER] /root perms       : $(ls -la / 2>/dev/null | grep ' root$' || echo 'cannot read')"
+    echo "[WATCHER] /root/.igv        : $(ls -la /root/.igv 2>/dev/null || echo 'does not exist')"
+    echo "[WATCHER] /root/.java       : $(ls -la /root/.java 2>/dev/null || echo 'does not exist')"
+    echo "[WATCHER] write test /root/.igv: $(touch /root/.igv/.wtest 2>/dev/null && echo OK && rm -f /root/.igv/.wtest || echo FAILED)"
+    echo "[WATCHER] snapshot_dir exists: $(test -d "$snapshot_dir" && echo YES || echo NO)"
+    echo "[WATCHER] snapshot_dir writable: $(touch "${snapshot_dir}/.wtest" 2>/dev/null && echo YES && rm -f "${snapshot_dir}/.wtest" || echo NO)"
+    echo "[WATCHER] batch file contents:"
+    cat "$batch_file"
+    echo "[WATCHER] --- End diagnostics ---"
+    wlog INFO "Pre-IGV: whoami=$(whoami 2>/dev/null || id) | HOME=$HOME | igv.sh=$(test -x $IGV_SCRIPT && echo OK || echo MISSING)"
+    # ─────────────────────────────────────────────────────────────────────────
+
     # Run IGV with a hard timeout (30 min max per patient) in the background
-    timeout 1800 /opt/IGV_2.16.2/igv.sh -b "$batch_file" \
+    timeout 1800 $IGV_SCRIPT -b "$batch_file" \
         > "${batch_file}.log" 2>&1 &
     local igv_pid=$!
     echo "[WATCHER] IGV started (PID: $igv_pid)"

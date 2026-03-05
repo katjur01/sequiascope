@@ -3,6 +3,7 @@
 .RData
 .Rproj.user/
 *.log
+sequiaScope_paper.md
 
 # Local environment configuration
 .Renviron
@@ -29,3 +30,4 @@ www/
 2www2/
 sessions/
 output_files/
+input_files/igv-static

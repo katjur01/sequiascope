@@ -253,7 +253,16 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
               )
             ),
             tags$p(
-              paste0("Processing IGV snapshots and Arriba images... ", progress, "%"),
+              {
+                stage <- if (progress <= 15) {
+                  "Processing Arriba images"       # 0–15 %: Arriba PDF → PNG
+                } else if (progress <= 90) {
+                  "Processing IGV snapshots"       # 15–90 %: IGV batch watcher
+                } else {
+                  "Creating fusion manifest"       # 90–100 %: writing .tsv manifest
+                }
+                paste0(stage, "... ", progress, "%")
+              },
               style = "color: #e9ecef; margin-top: 15px; font-size: 1.1em; font-weight: 500;"
             ),
             tags$p(

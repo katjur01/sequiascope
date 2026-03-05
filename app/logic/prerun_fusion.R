@@ -938,6 +938,12 @@ check_fusion_status <- function(patient_id, session_dir, fusion_file, arriba_fil
 #' @param igv_genome IGV genome build (e.g., "hg38", "hg19") - default "hg38"
 #' @export
 prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, session_dir, igv_genome = "hg38") {
+  # Handle "no_snapshot" — user chose not to create IGV snapshots
+  skip_igv_patient <- identical(igv_genome, "no_snapshot")
+  if (skip_igv_patient) {
+    message("[PRERUN] IGV snapshots disabled (no_snapshot) for ", patient_id)
+    igv_genome <- "hg38"  # unused but keep valid for any downstream code
+  }
   message("[PRERUN] Starting for ", patient_id)
   message("[PRERUN] Session directory: ", session_dir)
   
@@ -960,19 +966,28 @@ prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, sessi
       if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
     }
     
-    # Step 1: Process Arriba PDF (5-15%) — fast, seconds
+    # Step 1: Process Arriba PDF (5–15 %) — fast, seconds
+    # UI shows: "Processing Arriba images... X%"
     if (!is.null(prog_file)) writeLines("5", prog_file)
     arriba_success <- FALSE
     if (!is.null(file_list$arriba) && length(file_list$arriba) > 0) {
       arriba_success <- process_arriba_pdf(patient_id, file_list$arriba, session_dir)
     }
-    if (!is.null(prog_file)) writeLines("15", prog_file)
+    if (!is.null(prog_file)) writeLines("20", prog_file)
 
-    # Step 2: Process IGV snapshots (15-90%) — slow, minutes
-    igv_success <- process_patient_igv(patient_id, file_list, session_dir, prog_file = prog_file, genome_build = igv_genome)
+    # Step 2: Process IGV snapshots (15–90 %) — slow, minutes
+    # UI shows: "Processing IGV snapshots... X%"
+    igv_success <- if (!skip_igv_patient) {
+      process_patient_igv(patient_id, file_list, session_dir, prog_file = prog_file, genome_build = igv_genome)
+    } else {
+      message("[IGV] Skipping snapshots for ", patient_id, " (no_snapshot selected)")
+      if (!is.null(prog_file)) writeLines("90", prog_file)
+      TRUE
+    }
     if (!is.null(prog_file)) writeLines("90", prog_file)
 
-    # Step 3: Create manifest (90-100%)
+    # Step 3: Create fusion manifest (90–100 %)
+    # UI shows: "Creating fusion manifest... X%"
     fusion_file <- file_list$fusion
     if (length(fusion_file) > 0 && !is.null(file_list$arriba)) {
       create_fusion_manifest(patient_id, fusion_file[1], file_list$arriba, session_dir)
