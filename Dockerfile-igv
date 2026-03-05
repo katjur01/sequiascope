@@ -62,6 +62,9 @@ RUN chmod 777 /root \
 # Create X11 socket directory for Xvfb (needed for non-root containers in Kubernetes)
 RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
 
+# Pre-create /srv so that uid=1000 (K8s runAsUser) can create the igv-static symlink at runtime
+RUN mkdir -p /srv && chmod 777 /srv
+
 # Zkopírovat wrapper skript pro IGV Desktop
 COPY igv_wrapper.sh /usr/local/bin/igv_wrapper.sh
 RUN chmod +x /usr/local/bin/igv_wrapper.sh

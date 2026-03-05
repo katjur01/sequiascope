@@ -15,6 +15,7 @@ services:
     environment:
       - IGV_HOST=localhost
       - IGV_PORT=8081
+      - IGV_PATH_PREFIX=/igv-static
 
 
 
