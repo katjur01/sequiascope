@@ -50,7 +50,7 @@ ui <- function(id) {
       div(class = "download-dropdown-wrapper", style = "width: 100%; text-align: right; display: flex; flex-direction: row-reverse;",
         dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
                        selectInput(ns("export_data_table"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
-                       selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
+                       selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx"), selected = "tsv"),
                        downloadButton(ns("Table_download"),"Download")),
         filterTab_ui(ns("filterTab_dropdown")))),
     use_spinner(reactableOutput(ns("germline_var_call_tab"))),
@@ -730,6 +730,9 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, is_
     # ===== RESTORE =====
     restore_ui_inputs <- function(state) {
       message("🎯 Restoring germline filter UI inputs")
+      # Mark as initialized BEFORE updating UI so the main observe
+      # doesn't reset everything to defaults when is_restoring -> FALSE.
+      initialized(TRUE)
       
       if (!is.null(state$gnomAD_min)) {
         val <- safe_extract(state$gnomAD_min)

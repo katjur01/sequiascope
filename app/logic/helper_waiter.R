@@ -12,6 +12,8 @@ box::use(
 #' @param session Shiny session object
 #' @export
 show_waiter_with_progress <- function(session) {
+  # Add body class immediately so CSS hides underlying content before waiter renders
+  session$sendCustomMessage("waiter-show-active", list())
   waiter_show(
     id = NA,
     html = tagList(
@@ -38,6 +40,17 @@ show_waiter_with_progress <- function(session) {
   )
 }
 
+#' Hide the full-page waiter overlay
+#'
+#' Uses the session object explicitly to avoid getDefaultReactiveDomain() issues
+#' inside box modules.
+#' @param session Shiny session object
+#' @export
+hide_waiter_progress <- function(session) {
+  session$sendCustomMessage("waiter-hide", list(id = NA))  # waiter package built-in handler
+  session$sendCustomMessage("waiter-body-hide", list())    # our CSS class cleanup
+}
+
 #' Update waiter progress
 #' 
 #' @param session Shiny session object
@@ -62,15 +75,36 @@ wait_for_summary_rendered <- function(session, ns) {
 
 #' Get JavaScript code for waiter progress handlers
 #' 
-#' @return HTML script tag with JavaScript handlers
+#' @return HTML tagList with CSS and JavaScript handlers
 #' @export
 get_waiter_js <- function() {
-  tags$script(HTML("
+  tagList(
+    # Ensure the waiter overlay is always on top of Shiny re-renders.
+    # invalidateLater() observers cause Shiny outputs to briefly flash above the
+    # overlay during recalculation. Setting z-index to INT_MAX and hiding
+    # content under the overlay via body.waiter-active prevents the flash.
+    tags$style(HTML("
+      .waiter-overlay {
+        z-index: 2147483647 !important;
+      }
+      body.waiter-active > *:not(.waiter-overlay):not(script):not(style) {
+        visibility: hidden !important;
+      }
+    ")),
+    tags$script(HTML("
     Shiny.addCustomMessageHandler('waiter-update', function(data) {
       var bar = document.getElementById('waiter-progress-bar');
       var text = document.getElementById('waiter-progress-text');
       if (bar) bar.style.width = data.percent + '%';
       if (text) text.textContent = data.text;
+    });
+
+    Shiny.addCustomMessageHandler('waiter-show-active', function(data) {
+      document.body.classList.add('waiter-active');
+    });
+
+    Shiny.addCustomMessageHandler('waiter-body-hide', function(data) {
+      document.body.classList.remove('waiter-active');
     });
     
     // Monitor when Summary tab is fully rendered
@@ -84,9 +118,13 @@ get_waiter_js <- function() {
         var checkRendered = setInterval(function() {
           var summaryBoxes = document.querySelectorAll('[id*=\"summary_table\"]');
           if (summaryBoxes.length > 0) {
-            console.log('Summary tab fully rendered!');
             clearInterval(checkRendered);
-            Shiny.setInputValue(data.inputId, Math.random(), {priority: 'event'});
+            // Wait 800ms after DOM appears so renderText outputs have time
+            // to populate before the waiter is hidden.
+            setTimeout(function() {
+              console.log('Summary tab fully rendered!');
+              Shiny.setInputValue(data.inputId, Math.random(), {priority: 'event'});
+            }, 800);
           }
         }, 100); // Check every 100ms
         
@@ -99,4 +137,5 @@ get_waiter_js <- function() {
       }, 100);
     });
   "))
+  )
 }

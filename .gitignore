@@ -23,16 +23,23 @@ sequiaScope_paper.md
 *.xls
 *.tsv
 *temp_batch.txt
+
+# Reference files - INCLUDE (override rules above)
+!app/references/*.tsv
+!app/references/*.docx
+!app/references/*.txt
 app/view/reactable.extras_module.R
 app/reactable.extras.R
 create_demo_data_germ.R
 
 # renv and input data directories
+_book/
+genome/
 renv/
-input_files/
+input_files/*
+!input_files/demo_data/
 report_results/
 www/
-2www2/
 sessions/
 output_files/
 input_files/igv-static

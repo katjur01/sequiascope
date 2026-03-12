@@ -50,7 +50,7 @@ ui <- function(id) {
         div(class = "download-dropdown-wrapper", style = "width: 100%; text-align: right; display: flex; flex-direction: row-reverse;",
             dropdownButton(label = NULL,right = TRUE,width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
                            selectInput(ns("export_data_table"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
-                           selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
+                           selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx"), selected = "tsv"),
                            downloadButton(ns("Table_download"),"Download")),
             filterTab_ui(ns("filterTab_dropdown")))),
       use_spinner(reactableOutput(ns("fusion_genes_tab"))),
@@ -202,21 +202,26 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
           NULL
         }
         
-        # Estimate time (approximately 0.5-1 second per fusion for IGV snapshots)
-        # For very large datasets, this helps users understand the wait time
-        est_time_text <- ""
-        if (!is.null(total_fusions) && total_fusions > 0) {
-          est_minutes <- ceiling(total_fusions * 0.5 / 60)  # Conservative estimate
-          if (est_minutes > 5) {
-            est_time_text <- sprintf(" (estimated time: ~%d minutes)", est_minutes)
+        # Show elapsed time — predictions are unreliable because progress is not
+        # linear (Arriba: seconds; IGV: minutes; no BAMs: IGV skipped entirely).
+        elapsed_text <- ""
+        fut_data <- shared_data$fusion_prerun_future[[patient_id]]
+        if (!is.null(fut_data) && !is.null(fut_data$start_time)) {
+          elapsed_mins <- as.integer(difftime(Sys.time(), fut_data$start_time, units = "mins"))
+          elapsed_text <- if (elapsed_mins < 1) {
+            " \u2022 just started"
+          } else if (elapsed_mins == 1) {
+            " \u2022 running for 1 minute"
+          } else {
+            sprintf(" \u2022 running for %d minutes", elapsed_mins)
           }
         }
         
         # Fusion count text
         fusion_info <- if (!is.null(total_fusions) && total_fusions > 0) {
-          paste0(total_fusions, " fusion", if(total_fusions > 1) "s" else "", " detected", est_time_text)
+          paste0(total_fusions, " fusion", if(total_fusions > 1) "s" else "", " detected", elapsed_text)
         } else {
-          "Counting fusions..."
+          "Processing in background\u2026"
         }
         
         div(
@@ -649,7 +654,7 @@ server <- function(id, selected_samples, shared_data, file, file_list, load_sess
       
       if (selected_empty) {
         shinyalert(
-          title = "No gene fusionselected",
+          title = "No gene fusion selected",
           text = "Please select at least one gene fusion before inspecting them in IGV.",
           type = "warning",
           showCancelButton = FALSE,
@@ -854,6 +859,9 @@ filterTab_server <- function(id,colnames_list,data,mapped_checkbox_names, is_res
     
     restore_ui_inputs <- function(state) {
       message("🎯 Restoring filter UI inputs")
+      # Mark as initialized BEFORE updating UI so the main observe
+      # doesn't reset everything to defaults when is_restoring -> FALSE.
+      initialized(TRUE)
       
       if (!is.null(state$selected_cols)) {
         wanted <- ch(safe_extract(state$selected_cols))

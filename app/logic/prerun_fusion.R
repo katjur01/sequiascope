@@ -4,9 +4,7 @@ box::use(
   shiny[reactiveVal],
   data.table[fread, fwrite, as.data.table, setnames, tstrsplit, uniqueN],
   openxlsx[read.xlsx],
-  stringr[str_replace_all, str_remove],
-  future[future, value, resolved],
-  promises[then, catch]
+  stringr[str_replace_all, str_remove]
 )
 
 box::use(
@@ -451,18 +449,29 @@ process_arriba_pdf <- function(sample, arriba, session_dir) {
   if (is.na(pages)) stop("Cannot determine PDF page count for ", sample)
   message("[Arriba] ", sample, ": PDF has ", pages, " pages → converting to SVG in ", output_dir)
   
-  success_count <- 0
-  if (length(list.files(output_dir, pattern = "\\.svg$", ignore.case = TRUE)) == 0) {
-    message("[PDF] Converting ", pages, " pages to SVG...")
+  success_count <- length(list.files(output_dir, pattern = "\\.svg$", ignore.case = TRUE))
+
+  if (success_count >= pages) {
+    message("[Arriba] ", sample, ": SVG files already complete (", success_count, "/", pages, "), skipping conversion")
+  } else {
+    if (success_count > 0) {
+      message("[Arriba] ", sample, ": incomplete previous run (", success_count, "/", pages, " SVGs), resuming...")
+    } else {
+      message("[PDF] Converting ", pages, " pages to SVG...")
+    }
     for (i in seq_len(pages)) {
       output_svg <- file.path(output_dir, sprintf("%s_%03d.svg", sample, i))
-      system2("pdftocairo", args = c("-svg", "-f", as.character(i), "-l", as.character(i), shQuote(arriba_pdf), shQuote(output_svg)), wait = TRUE)
-      if (file.exists(output_svg)) success_count <- success_count + 1
+      if (file.exists(output_svg)) next  # already done in a previous (partial) run
+      exit_code <- system2("pdftocairo", args = c("-svg", "-f", as.character(i), "-l", as.character(i), shQuote(arriba_pdf), shQuote(output_svg)), wait = TRUE)
+      if (exit_code != 0) {
+        message("[Arriba] WARNING: pdftocairo returned exit code ", exit_code, " for page ", i, " of ", sample)
+      } else if (!file.exists(output_svg)) {
+        message("[Arriba] WARNING: page ", i, " — exit code 0 but SVG not created")
+      } else {
+        success_count <- success_count + 1
+      }
     }
     message("[PDF] Created ", success_count, "/", pages, " SVG files")
-  } else {
-    success_count <- length(list.files(output_dir, pattern = "\\.svg$", ignore.case = TRUE))
-    message("[Arriba] ", sample, ": SVG files already exist (", success_count, "), skipping conversion")
   }
   
   message("[Arriba] ", sample, ": done (success_count=", success_count, ")")
@@ -476,10 +485,11 @@ process_arriba_pdf <- function(sample, arriba, session_dir) {
 #' @param fusion_file Path to fusion file
 #' @param arriba Vector of arriba file paths (TSV and PDF)
 #' @param session_dir Session directory where manifests will be stored
-create_fusion_manifest <- function(patient_id, fusion_file, arriba, session_dir) {
+create_fusion_manifest <- function(patient_id, fusion_file, arriba, session_dir, has_bam = TRUE) {
   
   message("[MANIFEST] Creating manifest for patient: ", patient_id)
   message("[MANIFEST] Session dir: ", session_dir)
+  message("[MANIFEST] has_bam: ", has_bam)
   
   # --- 1) Fusion file (required - provides base rows & IGV png paths) ---
   if (!file.exists(fusion_file)) {
@@ -502,7 +512,11 @@ create_fusion_manifest <- function(patient_id, fusion_file, arriba, session_dir)
                gene2 = paste(unique(gene2), collapse = ",")),
            by = .(chr1, pos1, chr2, pos2)]
   dt[, id := seq_len(.N)]
-  dt[, path := sprintf("igv_snapshots/%s/%s_%03d.png", patient_id, patient_id, id)]
+  dt[, path := if (has_bam) {
+    sprintf("igv_snapshots/%s/%s_%03d.png", patient_id, patient_id, id)
+  } else {
+    NA_character_
+  }]
   dt <- unique(dt)
   dt <- split_genes(dt)
   setnames(dt, "path", "png_path")
@@ -670,7 +684,10 @@ prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
         # Create manifest
         fusion_file <- file_list$fusion
         if (length(fusion_file) > 0) {
-          create_fusion_manifest(sample, fusion_file[1], file_list$arriba, session_dir = session_dir)
+          tumor_bams_s    <- if (!is.null(file_list$tumor))    file_list$tumor[grepl("\\.bam$",    file_list$tumor)]    else character(0)
+          chimeric_bams_s <- if (!is.null(file_list$chimeric)) file_list$chimeric[grepl("\\.bam$", file_list$chimeric)] else character(0)
+          will_have_pngs_s <- !skip_igv && length(tumor_bams_s) > 0 && length(chimeric_bams_s) > 0
+          create_fusion_manifest(sample, fusion_file[1], file_list$arriba, session_dir = session_dir, has_bam = will_have_pngs_s)
         }
         
         list(success = TRUE, fusions = patient_fusions, error = NULL)
@@ -937,7 +954,7 @@ check_fusion_status <- function(patient_id, session_dir, fusion_file, arriba_fil
 #' @param session_dir Session directory for output
 #' @param igv_genome IGV genome build (e.g., "hg38", "hg19") - default "hg38"
 #' @export
-prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, session_dir, igv_genome = "hg38") {
+prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, count_file = NULL, session_dir, igv_genome = "hg38") {
   # Handle "no_snapshot" — user chose not to create IGV snapshots
   skip_igv_patient <- identical(igv_genome, "no_snapshot")
   if (skip_igv_patient) {
@@ -946,6 +963,25 @@ prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, sessi
   }
   message("[PRERUN] Starting for ", patient_id)
   message("[PRERUN] Session directory: ", session_dir)
+  
+  # Count total fusions here (in background worker) — avoids blocking main R thread
+  total_fusions <- tryCatch({
+    fusion_file <- file_list$fusion
+    if (!is.null(fusion_file) && length(fusion_file) > 0 && file.exists(fusion_file[1])) {
+      if (grepl("\\.xlsx?$", fusion_file[1])) {
+        nrow(openxlsx::read.xlsx(fusion_file[1]))
+      } else {
+        nrow(data.table::fread(fusion_file[1]))
+      }
+    } else 0L
+  }, error = function(e) 0L)
+  message("[PRERUN] ", patient_id, " total fusions: ", total_fusions)
+
+  # Write count immediately so the main session observer can display it within
+  # the next 500 ms tick — long before arriba/IGV finishes.
+  if (!is.null(count_file) && nzchar(count_file)) {
+    writeLines(as.character(total_fusions), count_file)
+  }
   
   # Initialize progress
   if (!is.null(prog_file) && nzchar(prog_file)) writeLines("0", prog_file)
@@ -990,7 +1026,10 @@ prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, sessi
     # UI shows: "Creating fusion manifest... X%"
     fusion_file <- file_list$fusion
     if (length(fusion_file) > 0 && !is.null(file_list$arriba)) {
-      create_fusion_manifest(patient_id, fusion_file[1], file_list$arriba, session_dir)
+      tumor_bams    <- if (!is.null(file_list$tumor))    file_list$tumor[grepl("\\.bam$",    file_list$tumor)]    else character(0)
+      chimeric_bams <- if (!is.null(file_list$chimeric)) file_list$chimeric[grepl("\\.bam$", file_list$chimeric)] else character(0)
+      will_have_pngs <- !skip_igv_patient && length(tumor_bams) > 0 && length(chimeric_bams) > 0
+      create_fusion_manifest(patient_id, fusion_file[1], file_list$arriba, session_dir, has_bam = will_have_pngs)
     } else {
       errors <- c(errors, paste0(patient_id, ": Missing files for manifest creation"))
     }
@@ -1024,6 +1063,7 @@ prerun_fusion_patient <- function(patient_id, file_list, prog_file = NULL, sessi
     warnings = warnings,
     messages = messages,
     progress = 100,
-    patient_id = patient_id
+    patient_id = patient_id,
+    total_fusions = total_fusions
   )
 }

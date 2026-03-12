@@ -111,8 +111,6 @@ process_batch_file() {
     echo "[WATCHER] write test /root/.igv: $(touch /root/.igv/.wtest 2>/dev/null && echo OK && rm -f /root/.igv/.wtest || echo FAILED)"
     echo "[WATCHER] snapshot_dir exists: $(test -d "$snapshot_dir" && echo YES || echo NO)"
     echo "[WATCHER] snapshot_dir writable: $(touch "${snapshot_dir}/.wtest" 2>/dev/null && echo YES && rm -f "${snapshot_dir}/.wtest" || echo NO)"
-    echo "[WATCHER] batch file contents:"
-    cat "$batch_file"
     echo "[WATCHER] --- End diagnostics ---"
     wlog INFO "Pre-IGV: whoami=$(whoami 2>/dev/null || id) | HOME=$HOME | igv.sh=$(test -x $IGV_SCRIPT && echo OK || echo MISSING)"
     # ─────────────────────────────────────────────────────────────────────────

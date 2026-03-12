@@ -1,9 +1,5 @@
 # app/logic/igv_helper.R
 
-box::use(
-  processx[process]
-)
-
 options(igv.port = 8080)
 
 # -----------------------------------------------------------------------------

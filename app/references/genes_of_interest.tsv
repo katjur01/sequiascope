@@ -1,0 +1,243 @@
+gene,pathway
+ACO1,Metabolic Signaling
+ACO2,Metabolic Signaling
+BRAF,MAPK Signaling
+AKT1,PI3K/AKT/mTOR Signaling
+AKT2,PI3K/AKT/mTOR Signaling
+AKT3,PI3K/AKT/mTOR Signaling
+ALK,RTK Signaling
+APAF1,Apoptosis
+APC,WNT signaling
+AR,Hormone Signaling
+ARAF,MAPK Signaling
+ASNS,Metabolic Signaling
+ASXL1,Epigenetics
+ATM,DNA damage/repair
+ATR,DNA damage/repair
+ATRX,DNA damage/repair
+AURKA,Cell cycle control
+AURKB,Cell cycle control
+AXIN1,WNT signaling
+BAK1,Apoptosis
+BAX,Apoptosis
+BCL2,Apoptosis
+ABL1,RTK Signaling
+BID,Apoptosis
+BRCA1,DNA damage/repair
+BRCA2,DNA damage/repair
+BRIP1,DNA damage/repair
+BTK,Immune Response
+BTRC,WNT signaling
+C11orf30,DNA damage/repair
+CASP3,Apoptosis
+CASP8,Apoptosis
+CASP9,Apoptosis
+CBL,RTK Signaling
+CCNA1,Cell cycle control
+CCNA2,Cell cycle control
+CCNB1,Cell cycle control
+CCNB2,Cell cycle control
+CCNB3,Cell cycle control
+CCND1,Cell cycle control
+CCND2,Cell cycle control
+CCND3,Cell cycle control
+CCNE1,Cell cycle control
+CCNE2,Cell cycle control
+CD274,Immune Checkpoints
+CD79A,Immune Response
+CD79B,Immune Response
+CDK1,Cell cycle control
+CDK12,Cell cycle control
+CDK2,Cell cycle control
+CDK3,Cell cycle control
+CDK4,Cell cycle control
+CDK6,Cell cycle control
+CDK8,Cell cycle control
+CDKN1B,Cell cycle control
+CDKN2A,Cell cycle control
+CDKN2B,Cell cycle control
+CDKN2C,Cell cycle control
+CRAF,MAPK Signaling
+CRKL,MAPK Signaling
+CRLF2,JAK/STAT Signaling
+CS,Metabolic Signaling
+CSF1R,RTK Signaling
+CSNK1A1,WNT signaling
+CTNNA1,WNT signaling
+CTNNB1,WNT signaling
+DDR2,RTK Signaling
+DNMT3A,Epigenetics
+DOT1L,Epigenetics
+DRD2,Metabolic Signaling
+DVL1,WNT signaling
+E2F1,Cell cycle control
+EGFR,RTK Signaling
+EMSY,DNA damage/repair
+EPHA3,RTK Signaling
+EPHA5,RTK Signaling
+EPHB1,RTK Signaling
+ERBB2,RTK Signaling
+ERBB3,RTK Signaling
+ERBB4,RTK Signaling
+ESR1,Hormone Signaling
+EZH2,Epigenetics
+FAM46C,Immune Response
+FANCA,DNA damage/repair
+FANCC,DNA damage/repair
+FANCD2,DNA damage/repair
+FANCE,DNA damage/repair
+FANCF,DNA damage/repair
+FANCG,DNA damage/repair
+FANCL,DNA damage/repair
+FAS,Apoptosis
+FASLG,Apoptosis
+FGF10,RTK Signaling
+FGF14,RTK Signaling
+FGF19,RTK Signaling
+FGF23,RTK Signaling
+FGF3,RTK Signaling
+FGF4,RTK Signaling
+FGF6,RTK Signaling
+FGFR1,RTK Signaling
+FGFR2,RTK Signaling
+FGFR3,RTK Signaling
+FGFR4,RTK Signaling
+FH,Metabolic Signaling
+FLT1,RTK Signaling
+FLT3,RTK Signaling
+FLT4,RTK Signaling
+FZD1,WNT signaling
+GSK3B,WNT signaling
+HGF,RTK Signaling
+HRAS,MAPK Signaling
+CHEK1,DNA damage/repair
+CHEK2,DNA damage/repair
+IDH1,Metabolic Signaling
+IDH2,Metabolic Signaling
+IDO1,Metabolic Signaling
+IGF1R,RTK Signaling
+IKZF1,Epigenetics
+IL13RA1,Immune Response
+IL13RA2,Immune Response
+IL4R,Immune Response
+IL7R,Immune Response
+INHBA,TGF-B Signaling
+IRF4,Immune Response
+IRS2,PI3K/AKT/mTOR Signaling
+JAK1,JAK/STAT Signaling
+JAK2,JAK/STAT Signaling
+JAK3,JAK/STAT Signaling
+KAT6A,Epigenetics
+KDM5A,Epigenetics
+KDM5C,Epigenetics
+KDM6A,Epigenetics
+KDR,RTK Signaling
+KIT,RTK Signaling
+KLHL6,Immune Response
+KMT2D,Epigenetics
+KRAS,MAPK Signaling
+LDHA,Metabolic Signaling
+LDHB,Metabolic Signaling
+LRP1B,Hormone Signaling
+LRP5,WNT signaling
+LRP6,WNT signaling
+MAP2K1,MAPK Signaling
+MAP2K2,MAPK Signaling
+MAP2K4,MAPK Signaling
+MAP3K1,MAPK Signaling
+MAPK1,MAPK Signaling
+MDH2,Metabolic Signaling
+MDM2,Cell cycle control
+MDM4,Cell cycle control
+MET,RTK Signaling
+MLH1,DNA damage/repair
+MLL2,Epigenetics
+MPI,Metabolic Signaling
+MPL,Immune Response
+MRE11A,Epigenetics
+MSH2,Epigenetics
+MSH6,Epigenetics
+MTOR,PI3K/AKT/mTOR Signaling
+MUTYH,DNA damage/repair
+MYC,Cell cycle control
+MYD88,Immune Response
+NF1,MAPK Signaling
+NFKBIA,Immune Response
+NPM1,DNA damage/repair
+NRAS,MAPK Signaling
+NTRK1,RTK Signaling
+NTRK2,RTK Signaling
+NTRK3,RTK Signaling
+OGDH,Metabolic Signaling
+PALB2,DNA damage/repair
+PBRM1,Epigenetics
+PC,Metabolic Signaling
+PDCD1,Immune Checkpoints
+PDGFRA,RTK Signaling
+PDGFRB,RTK Signaling
+PDHA1,Metabolic Signaling
+PDHB,Metabolic Signaling
+PGR,Hormone Signaling
+PIK3CA,PI3K/AKT/mTOR Signaling
+PIK3CG,PI3K/AKT/mTOR Signaling
+PIK3R1,PI3K/AKT/mTOR Signaling
+PIK3R2,PI3K/AKT/mTOR Signaling
+PKM,Metabolic Signaling
+PPP2R1A,DNA damage/repair
+PTEN,PI3K/AKT/mTOR Signaling
+PTCH1,Hedgehog Signaling
+PTK2,Non-receptor kinases
+PTPN11,RTK Signaling
+RAD23B,DNA damage/repair
+RAD50,DNA damage/repair
+RAD51,DNA damage/repair
+RAF1,MAPK Signaling
+RB1,Cell cycle control
+RET,RTK Signaling
+RICTOR,PI3K/AKT/mTOR Signaling
+RNF43,WNT signaling
+ROS1,RTK Signaling
+RPTOR,PI3K/AKT/mTOR Signaling
+SETD2,Epigenetics
+SMAD2,TGF-B Signaling
+SMAD3,TGF-B Signaling
+SMAD4,TGF-B Signaling
+SMO,Hedgehog Signaling
+SOCS1,JAK/STAT Signaling
+SRC,Non-receptor kinases
+STAG2,DNA damage/repair
+STAT1,JAK/STAT Signaling
+STAT2,JAK/STAT Signaling
+STAT3,JAK/STAT Signaling
+STAT4,JAK/STAT Signaling
+STAT5A,JAK/STAT Signaling
+STAT5B,JAK/STAT Signaling
+STAT6,JAK/STAT Signaling
+SUCLA2,Metabolic Signaling
+SUCLG1,Metabolic Signaling
+SUCLG2,Metabolic Signaling
+SUFU,Hedgehog Signaling
+TERT,Epigenetics
+TET2,Epigenetics
+TGFB1,TGF-B Signaling
+TGFBR1,TGF-B Signaling
+TGFBR2,TGF-B Signaling
+TGFBR3,TGF-B Signaling
+TNFAIP3,Immune Response
+TP53,Cell cycle control
+TSC1,PI3K/AKT/mTOR Signaling
+TSC2,PI3K/AKT/mTOR Signaling
+TSHR,Hormone Signaling
+VEGFA,RTK Signaling
+VEGFB,RTK Signaling
+VEGFC,RTK Signaling
+WISP3,WNT signaling
+WNT1,WNT signaling
+WT1,WNT signaling
+LAG3,Immune Checkpoints
+TIGIT,Immune Checkpoints
+CTLA4,Immune Checkpoints
+HAVCR2,Immune Checkpoints
+TNFRSF9,Immune Checkpoints
+TNFRSF18,Immune Checkpoints
+EZHIP,Epigenetics

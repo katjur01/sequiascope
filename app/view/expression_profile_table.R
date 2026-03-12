@@ -111,7 +111,7 @@ ui <- function(id, tissue_list, goi = FALSE) {
                              div(class = "download-dropdown-wrapper",
                              dropdownButton(inputId = ns("download_btn_goi"),label = NULL, right = TRUE, width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
                                             selectInput(ns("export_data_table_goi"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
-                                            selectInput(ns("export_format_table_goi"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
+                                            selectInput(ns("export_format_table_goi"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx"), selected = "tsv"),
                                             downloadButton(ns("table_download_goi"), "Download"))
                              ),
                              div(class = "expression-filter-wrapper",
@@ -156,7 +156,7 @@ ui <- function(id, tissue_list, goi = FALSE) {
                    div(class = "download-dropdown-wrapper",
                    dropdownButton(inputId = ns("download_btn"), label = NULL, right = TRUE, width = "240px",icon = HTML('<i class="fa-solid fa-download download-button"></i>'),
                                   selectInput(ns("export_data_table"), "Select data:", choices = c("All data" = "all", "Filtered data" = "filtered")),
-                                  selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx")),
+                                  selectInput(ns("export_format_table"), "Select format:", choices = c("CSV" = "csv", "TSV" = "tsv", "Excel" = "xlsx"), selected = "tsv"),
                                   downloadButton(ns("table_download"), "Download"))
                    ),
                    div(class = "expression-filter-wrapper",

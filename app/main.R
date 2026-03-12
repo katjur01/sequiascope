@@ -47,18 +47,66 @@ box::use(
   # parallel[detectCores],
   data.table[data.table, as.data.table, fread],
   shinyalert[shinyalert],
-  future[future, value, resolved, plan, multicore, multisession],
-  promises[then, catch],
+  mirai[mirai, daemons, unresolved],
+  later[later],
   parallel[detectCores],
   openxlsx[read.xlsx],
   jsonlite[fromJSON]
 )
 
-  # Dynamic worker configuration based on available physical CPU cores (Kubernetes safe)
-  n_workers <- min(parallel::detectCores(logical = FALSE), 2)
-  message("Setting up ", n_workers, " parallel workers")
-  plan(multisession, workers = n_workers)
-  options(future.fork.enable = FALSE)
+  # Set up mirai daemon pool — one daemon per physical core minus one for Shiny.
+  # mirai() NEVER blocks the main thread regardless of how many tasks are queued.
+  # Tasks in excess of the pool size are automatically queued without blocking.
+  #
+  # WARNING: in Kubernetes/containers, detectCores() reads the HOST core count,
+  # not the container CPU limit — this can spawn hundreds of R processes (OOMKill).
+  # Priority: MIRAI_WORKERS env var > cgroup CPU quota > detectCores() fallback.
+  env_workers <- suppressWarnings(as.integer(Sys.getenv("MIRAI_WORKERS", unset = NA)))
+
+  get_container_cpu_limit <- function() {
+    # cgroups v2 (modern k8s nodes)
+    cg2 <- "/sys/fs/cgroup/cpu.max"
+    if (file.exists(cg2)) {
+      val <- trimws(readLines(cg2, n = 1L))
+      if (!startsWith(val, "max")) {
+        parts <- strsplit(val, " ")[[1]]
+        quota  <- as.numeric(parts[1])
+        period <- as.numeric(parts[2])
+        if (!is.na(quota) && !is.na(period) && period > 0)
+          return(max(floor(quota / period), 1L))
+      }
+    }
+    # cgroups v1
+    quota_file  <- "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
+    period_file <- "/sys/fs/cgroup/cpu/cpu.cfs_period_us"
+    if (file.exists(quota_file) && file.exists(period_file)) {
+      quota  <- as.numeric(readLines(quota_file,  n = 1L))
+      period <- as.numeric(readLines(period_file, n = 1L))
+      if (!is.na(quota) && quota > 0 && !is.na(period) && period > 0)
+        return(max(floor(quota / period), 1L))
+    }
+    return(NULL)
+  }
+
+  detected_cores  <- parallel::detectCores(logical = FALSE)
+  container_cores <- get_container_cpu_limit()
+
+  n_workers <- if (!is.na(env_workers) && env_workers >= 1L) {
+    env_workers
+  } else if (!is.null(container_cores)) {
+    max(container_cores - 1L, 1L)
+  } else {
+    max(detected_cores - 1L, 1L)
+  }
+
+  message(sprintf(
+    "Setting up %d mirai daemons [MIRAI_WORKERS=%s, cgroup_cores=%s, host_cores=%d]",
+    n_workers,
+    Sys.getenv("MIRAI_WORKERS", unset = "unset"),
+    if (is.null(container_cores)) "unavailable" else as.character(container_cores),
+    detected_cores
+  ))
+  daemons(n = n_workers)
 
 
 box::use(
@@ -75,7 +123,7 @@ box::use(
   app/logic/prerun_fusion[fusion_patients_to_prerun,prerun_fusion_data,prerun_fusion_patient,get_fusion_prerun_status,check_fusion_status,cleanup_patient_fusion_outputs],
   app/logic/test_background_process[test_background_worker_single,test_background_worker],
   app/logic/helper_main[get_patients, get_files_by_patient, add_dataset_tabs, add_summary_boxes],
-  app/logic/helper_waiter[show_waiter_with_progress, update_waiter_progress, wait_for_summary_rendered, get_waiter_js],
+  app/logic/helper_waiter[show_waiter_with_progress, update_waiter_progress, hide_waiter_progress, wait_for_summary_rendered, get_waiter_js],
   app/logic/navigation_lock[lock_navigation, unlock_navigation, get_navigation_lock_css, get_navigation_lock_js],
   app/logic/helper_prerun_dialog[check_and_show_fusion_dialog],
 )
@@ -283,7 +331,7 @@ server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns 
     session$userData$parent_session <- session  # for going to different navbarMenu from other modules
-    message("[future plan] ", paste(class(future::plan()), collapse = " / "))
+    message("[mirai] daemon pool ready")
 
     # Load output directory from config
     config <- jsonlite::fromJSON("reference_paths.json")
@@ -425,7 +473,9 @@ server <- function(id) {
       output_dir <- shared_data$output_path()
       mounted_summary <- reactiveValues(mounted = character(0))
       
-      # Show waiter with progress bar
+      # Show waiter with progress bar — reset flag so the summary_rendered observer
+      # fires again on this data load (guard against stale TRUE from previous load)
+      waiter_hidden(FALSE)
       show_waiter_with_progress(session)
       update_waiter_progress(session, 10, "Initializing...")
 
@@ -719,9 +769,31 @@ server <- function(id) {
         
         # Get file list for all fusion patients
         fusion_files <- get_files_by_patient(confirmed_paths, "fusion")
-        
+
+        # Switch to summary tab then dispatch mirai jobs.
+        # The waiter stays visible until JS confirms the summary DOM is rendered
+        # (observeEvent(input$summary_rendered) calls hide_waiter_progress).
+        # This prevents the flash of upload-data UI between waiter-hide and tab-render.
+        update_waiter_progress(session, 100, "Preparing summary...")
+        updateNavbarTabs(session, "navbarMenu", selected = ns("summary"))
+        wait_for_summary_rendered(session, ns)  # JS polls DOM, fires summary_rendered input
+        # Server-side fallback: if JS message is lost (K8s proxy, slow browser),
+        # force-hide after 8 s so the user is never permanently stuck.
+        later(function() {
+          if (!isolate(waiter_hidden())) {
+            message("⏱️ Waiter fallback (8s) — forcing hide")
+            hide_waiter_progress(session)
+            waiter_hidden(TRUE)
+            session$sendCustomMessage("data-loaded", list())
+          }
+        }, delay = 8)
+        message("⏳ Waiter visible — waiting for summary DOM before hiding")
+
         # ═══════════════════════════════════════════════════════════════════════════
-        # Launch one future per patient (parallel execution with REAL processing)
+        # Launch one mirai job per patient.
+        # mirai() NEVER blocks the main thread — tasks queue inside the daemon pool.
+        # Pool size = detectCores()-1 (set at startup). All patients are dispatched
+        # instantly; excess tasks wait in the queue without freezing Shiny.
         # ═══════════════════════════════════════════════════════════════════════════
         for (patient_id in patients_to_run) {
           message("[LAUNCH] Starting REAL background process for patient: ", patient_id)
@@ -730,43 +802,16 @@ server <- function(id) {
           shared_data$fusion_prerun_status[[patient_id]] <- reactiveVal("running")
           message("[STATUS] ", patient_id, " -> running")
           shared_data$fusion_prerun_progress[[patient_id]] <- reactiveVal(0)
+          shared_data$fusion_prerun_total_fusions[[patient_id]] <- reactiveVal(0)  # updated from future result
           
           # Create progress file for this patient
-          prog_file <- file.path(tempdir(), paste0("fusion_", patient_id, "_", as.integer(Sys.time()), ".progress"))
+          prog_file  <- file.path(tempdir(), paste0("fusion_", patient_id, "_", as.integer(Sys.time()), ".progress"))
+          count_file <- file.path(tempdir(), paste0("fusion_", patient_id, "_", as.integer(Sys.time()), ".count"))
           
           # Get file list for this patient
           file_list <- fusion_files[[patient_id]]
           
-          # Count total fusions for this patient for UI display
-          total_fusions <- 0
-          if (!is.null(file_list$fusion) && length(file_list$fusion) > 0 && file.exists(file_list$fusion[1])) {
-            tryCatch({
-              if (grepl("\\.xlsx?$", file_list$fusion[1])) {
-                fusion_dt <- as.data.table(openxlsx::read.xlsx(file_list$fusion[1]))
-              } else {
-                fusion_dt <- data.table::fread(file_list$fusion[1])
-              }
-              total_fusions <- nrow(fusion_dt)
-            }, error = function(e) {
-              message("[FUSION COUNT] Error counting fusions for ", patient_id, ": ", e$message)
-            })
-          }
-          shared_data$fusion_prerun_total_fusions[[patient_id]] <- reactiveVal(total_fusions)
-          message("[FUSION COUNT] Patient ", patient_id, " has ", total_fusions, " fusions")
-          message("[MAIN] file_list for ", patient_id, ":")
-          message("[MAIN]   - is.null: ", is.null(file_list))
-          message("[MAIN]   - class: ", paste(class(file_list), collapse=", "))
-          if (!is.null(file_list)) {
-            message("[MAIN]   - names: ", paste(names(file_list), collapse=", "))
-            message("[MAIN]   - fusion: ", if(!is.null(file_list$fusion)) paste(file_list$fusion, collapse=", ") else "NULL")
-            message("[MAIN]   - arriba: ", if(!is.null(file_list$arriba)) paste(file_list$arriba, collapse=", ") else "NULL")
-          }
-          
-          # Launch future for this patient with REAL processing
-          message("[MAIN] About to launch future for ", patient_id)
-          
           # Use explicit globals list to speed up future creation
-          # Pass session_dir instead of output_dir for fusion outputs
           current_session_dir <- isolate(shared_data$session_dir())
           
           # Get IGV genome selection
@@ -779,29 +824,41 @@ server <- function(id) {
             "hg38"  # Default when nothing selected
           }
           
-          patient_future <- future({
-            prerun_fusion_patient(patient_id, file_list, prog_file, session_dir = current_session_dir, igv_genome = current_igv_genome)
-          }, globals = list(
-            patient_id = patient_id,
-            file_list = file_list, 
-            prog_file = prog_file,
-            current_session_dir = current_session_dir,
-            current_igv_genome = current_igv_genome,
+          message("[MAIN] Dispatching mirai job for ", patient_id)
+
+          # mirai() returns immediately — job is queued in the daemon pool.
+          # If all daemons are busy the task waits in the queue WITHOUT blocking
+          # the main R thread (unlike future() which would block).
+          patient_job <- mirai(
+            {
+              prerun_fusion_patient(patient_id, file_list, prog_file,
+                                    count_file  = count_file,
+                                    session_dir = current_session_dir,
+                                    igv_genome  = current_igv_genome)
+            },
+            patient_id            = patient_id,
+            file_list             = file_list,
+            prog_file             = prog_file,
+            count_file            = count_file,
+            current_session_dir   = current_session_dir,
+            current_igv_genome    = current_igv_genome,
             prerun_fusion_patient = prerun_fusion_patient
-          ), seed = TRUE, stdout = TRUE, conditions = "message")
-          
-          message("[MAIN] Future launched for ", patient_id)
-          
+          )
+
+          message("[MAIN] mirai job dispatched for ", patient_id)
+
           shared_data$fusion_prerun_future[[patient_id]] <- list(
-            future = patient_future,
-            prog_file = prog_file,
-            start_time = Sys.time()  # Track when future started
+            mirai      = patient_job,
+            prog_file  = prog_file,
+            count_file = count_file,
+            start_time = Sys.time()
           )
           
           # Create observer for this patient
           local({
-            pid <- patient_id  # Capture in closure
-            pfile <- prog_file
+            pid        <- patient_id
+            pfile      <- prog_file
+            cfile      <- count_file
             
             observer <- observe({
               invalidateLater(500)  # Check twice per second
@@ -824,6 +881,7 @@ server <- function(id) {
                 
                 # Cleanup
                 if (file.exists(pfile)) unlink(pfile)
+                if (file.exists(cfile)) unlink(cfile)
                 shared_data$fusion_prerun_future[[pid]] <- NULL
                 observer$destroy()
                 return()
@@ -834,40 +892,49 @@ server <- function(id) {
                 p <- suppressWarnings(as.integer(readLines(pfile, n = 1)))
                 if (!is.na(p)) {
                   shared_data$fusion_prerun_progress[[pid]](p)
-                  # message("[OBSERVER] ", pid, " progress: ", p, "%")  # Comment out to reduce console spam
+                }
+              }
+
+              # Read fusion count as soon as worker writes it (within first 500ms tick)
+              if (isolate(shared_data$fusion_prerun_total_fusions[[pid]]()) == 0 &&
+                  file.exists(cfile)) {
+                n <- suppressWarnings(as.integer(readLines(cfile, n = 1)))
+                if (!is.na(n) && n > 0) {
+                  shared_data$fusion_prerun_total_fusions[[pid]](n)
+                  message("[FUSION COUNT] ", pid, " = ", n, " fusions (early read from count_file)")
                 }
               }
               
-              # Check if this patient's future completed
+              # Check if this patient's mirai job completed
               fut_data <- shared_data$fusion_prerun_future[[pid]]
-              if (!is.null(fut_data) && future::resolved(fut_data$future)) {
-                
+              if (!is.null(fut_data) && !unresolved(fut_data$mirai)) {
+
                 result <- tryCatch({
-                  val <- future::value(fut_data$future)
-                  
-                  # Print captured stdout/stderr from worker
-                  if (!is.null(attr(val, "stdout"))) {
-                    cat("[WORKER OUTPUT ", pid, "]\n", attr(val, "stdout"), "\n", sep = "")
+                  val <- fut_data$mirai$data
+
+                  # mirai signals errors as a mirai_error object
+                  if (inherits(val, "mirai_error")) {
+                    stop(paste0("Worker error: ", as.character(val)))
                   }
-                  
+
                   # Print messages captured in result structure
                   if (!is.null(val$messages) && length(val$messages) > 0) {
                     message("[MESSAGES from ", pid, "]:")
                     for (msg in val$messages) message("  ", msg)
                   }
-                  
+
                   # Print warnings
                   if (!is.null(val$warnings) && length(val$warnings) > 0) {
                     message("[WARNINGS from ", pid, "]:")
                     for (wrn in val$warnings) warning("  ", wrn, call. = FALSE)
                   }
-                  
-                  # Print errors
+
+                  # Print errors logged inside the worker
                   if (!is.null(val$errors) && length(val$errors) > 0) {
                     message("[ERRORS from ", pid, "]:")
                     for (err in val$errors) message("  ", err)
                   }
-                  
+
                   val
                 }, error = function(e) {
                   message("[ERROR] ", pid, ": ", e$message)
@@ -875,7 +942,13 @@ server <- function(id) {
                 })
                 
                 message("[COMPLETED] ", pid, " - Success: ", result$success)
-                
+
+                # Update total_fusions count from worker result
+                if (!is.null(result$total_fusions) && result$total_fusions > 0) {
+                  shared_data$fusion_prerun_total_fusions[[pid]](result$total_fusions)
+                  message("[FUSION COUNT] ", pid, " = ", result$total_fusions, " fusions")
+                }
+
                 # Update status
                 new_status <- if (result$success) "completed" else "failed"
                 shared_data$fusion_prerun_status[[pid]](new_status)
@@ -890,6 +963,7 @@ server <- function(id) {
                 
                 # Cleanup
                 if (file.exists(pfile)) unlink(pfile)
+                if (file.exists(cfile)) unlink(cfile)
                 shared_data$fusion_prerun_future[[pid]] <- NULL
                 observer$destroy()
                 
@@ -901,7 +975,7 @@ server <- function(id) {
           })
         }
         
-        message("[PARALLEL LAUNCH] All ", length(patients_to_run), " patient futures started")
+        message("[PARALLEL LAUNCH] All ", length(patients_to_run), " mirai jobs dispatched")
         
         # Global notification when all complete (runs once, then destroys itself)
         all_complete_observer <- observe({
@@ -956,37 +1030,26 @@ server <- function(id) {
         message("[PRERUN INIT] Fusion prerun already started - skipping")
       }
 
-      # Optionally focus the whole Variant calling page
-      update_waiter_progress(session, 98, "Finalizing...")
+      # Fallback: for code paths that didn't go through the futures branch
+      # (no patients to run, already processed, no fusion data, etc.)
+      if (!isolate(waiter_hidden())) {
+        update_waiter_progress(session, 100, "Preparing summary...")
+        updateNavbarTabs(session, "navbarMenu", selected = ns("summary"))
+        wait_for_summary_rendered(session, ns)
+        later(function() {
+          if (!isolate(waiter_hidden())) {
+            message("\u23f1\ufe0f Waiter fallback (8s) \u2014 forcing hide (no futures path)")
+            hide_waiter_progress(session)
+            waiter_hidden(TRUE)
+            session$sendCustomMessage("data-loaded", list())
+          }
+        }, delay = 8)
+        message("\u23f3 Waiter visible \u2014 waiting for summary DOM (no futures path)")
+      }
 
-      # updateNavbarTabs(session, "navbarMenu", selected = ns("expression_profile"))
-      
-      # Wait for UI to switch tabs and render Summary
-      update_waiter_progress(session, 100, "Complete!")
-      updateNavbarTabs(session, "navbarMenu", selected = ns("summary"))
-      
-      # Request JS to notify when Summary is fully rendered (with proper namespace)
-      wait_for_summary_rendered(session, ns)
-      
       # Reset flags for this data load
-      waiter_hidden(FALSE)
       shared_data$pending_data_load(NULL)
       shared_data$fusion_prerun_user_confirmed(FALSE)  # Reset to prevent re-triggering
-
-      # Server-side fallback: in K8s / slow environments the 'wait-for-summary'
-      # custom message may arrive before JS has registered its handler (page still
-      # loading behind a reverse proxy). The message is silently dropped, so the
-      # JS setInterval and its own 5-second safeguard never start.
-      # This later() fires once after 10 s; if JS already triggered waiter_hidden
-      # it is a no-op, otherwise it force-hides the waiter from R.
-      later::later(function() {
-        if (!isolate(waiter_hidden())) {
-          message("\u23f1\ufe0f Waiter server-side fallback (10s) - JS message likely lost, forcing hide")
-          waiter_hide(id = NA)
-          waiter_hidden(TRUE)
-          session$sendCustomMessage("data-loaded", list())
-        }
-      }, delay = 10)
   
     })
     
@@ -1021,7 +1084,7 @@ server <- function(id) {
       # Only hide waiter once per data load
       if (!waiter_hidden()) {
         message("✅ Summary tab fully rendered - hiding waiter")
-        waiter_hide(id = NA)
+        hide_waiter_progress(session)
         waiter_hidden(TRUE)
         
         # Signal JavaScript that data is loaded - enable beforeunload warning

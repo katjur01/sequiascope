@@ -6,8 +6,7 @@ box::use(
   stats[setNames],
 )
 box::use(
-  app/view/create_report,
-  app/logic/waiters[hide_waiter]
+  app/view/create_report
 )
 
 #' @export
@@ -125,8 +124,6 @@ add_summary_boxes <- function(session,
     
     if (length(new_pats)) {
       mounted_ref$mounted <- union(already, new_pats)
-      # Hide waiter after summary boxes are mounted
-      hide_waiter("main-app")
     }
   })
   
@@ -222,40 +219,48 @@ add_dataset_tabs <- function(session,
       select = FALSE
     )
     
-    # Start server for this patient
-    if (identical(dataset_name, "fusion") && !is.null(load_session_btn)) { # just for fusion dataset
-      module_obj$server(
-        paste0(dataset_name, "_tab_", patient_id), 
-        patient_id, 
-        shared_data, 
-        patient_files, 
-        file_list,
-        load_session_btn)
-    } else if (identical(dataset_name, "network")) {
-      # LAZY LOADING: Initialize network graph only when user clicks on it
-      # Skip initialization - will be triggered only when user navigates to this tab
+    # Start server for this patient.
+    # network: LAZY — mount only when user first navigates to that tab
+    #          (network graph is heavy and purely optional).
+    # All others: EAGER — must mount immediately so overview stats
+    #          (somatic.overview, germline.overview, etc.) are computed
+    #          and the Summary tab shows correct numbers.
+    if (identical(dataset_name, "network")) {
       initialized <- reactiveVal(FALSE)
+      local_tab_value  <- tab_value
+      local_patient_id <- patient_id
+      local_files      <- patient_files
+
       observeEvent(session$input[[tabset_input_id]], {
         current_tab <- session$input[[tabset_input_id]]
-        if (!initialized() && !is.null(current_tab) && current_tab == tab_value) {
-          message("🚀 Lazy initializing network graph for patient: ", patient_id)
+        if (!initialized() && !is.null(current_tab) && current_tab == local_tab_value) {
+          message("\U0001f680 Lazy initializing network for patient: ", local_patient_id)
           module_obj$server(
-            paste0(dataset_name, "_tab_", patient_id),
-            patient_id, 
-            shared_data, 
-            patient_files,
+            paste0(dataset_name, "_tab_", local_patient_id),
+            local_patient_id,
+            shared_data,
+            local_files,
             file_list,
             tabset_input_id,
-            tab_value)
+            local_tab_value)
           initialized(TRUE)
         }
-      }, ignoreInit = TRUE)  # CRITICAL: Don't trigger on initialization
+      }, ignoreInit = TRUE)
+    } else if (identical(dataset_name, "fusion") && !is.null(load_session_btn)) {
+      module_obj$server(
+        paste0(dataset_name, "_tab_", patient_id),
+        patient_id,
+        shared_data,
+        patient_files,
+        file_list,
+        load_session_btn)
     } else {
-      module_obj$server(paste0(dataset_name, "_tab_", patient_id),
-                        patient_id, 
-                        shared_data, 
-                        patient_files,
-                        file_list)
+      module_obj$server(
+        paste0(dataset_name, "_tab_", patient_id),
+        patient_id,
+        shared_data,
+        patient_files,
+        file_list)
     }
     
     # Use <<- to modify parent scope variable from within lapply

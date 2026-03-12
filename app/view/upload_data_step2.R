@@ -376,6 +376,8 @@ step2_ui <- function(id) {
         confirmed_paths_state(NULL)  # force-invalidate so identical paths still re-trigger
         confirmed_paths_state(build_confirmed_paths(data, path()))  # NO RED, NO ORANGE: pass data directly
         
+            # Show waiter after confirming - will be hidden when summary/expression profile loads
+        show_waiter("main-app", "Loading data and preparing modules...")
       })
 
       return(list(prev2 = reactive(input$prev2),
