@@ -152,12 +152,6 @@ The app reads a `reference_paths.json` from the working directory. The default c
 
 ---
 
-## Documentation
-
-Full docs are in the [`docs/`](docs/index.html) folder.
-
----
-
 ## Troubleshooting
 
 **App doesn't start**
