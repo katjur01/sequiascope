@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Fusion Genes | SeqUIaSCOPE Documentation</title>
+<meta name="author" content="Kateřina Jurásková">
+<meta name="generator" content="bookdown 0.46 with bs4_book()">
+<meta property="og:title" content="Fusion Genes | SeqUIaSCOPE Documentation">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fusion Genes | SeqUIaSCOPE Documentation">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="custom-styles.css">
+<meta name="description" content="The Fusion Genes module enables users to review, validate, and flag causal gene fusions for inclusion in the clinical report. It integrates supporting evidence from Arriba and STARFusion, IGV...">
+<meta property="og:description" content="The Fusion Genes module enables users to review, validate, and flag causal gene fusions for inclusion in the clinical report. It integrates supporting evidence from Arriba and STARFusion, IGV...">
+<meta name="twitter:description" content="The Fusion Genes module enables users to review, validate, and flag causal gene fusions for inclusion in the clinical report. It integrates supporting evidence from Arriba and STARFusion, IGV...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">SeqUIaSCOPE Documentation</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
+<li><a class="" href="data-requirements.html">Data Requirements</a></li>
+<li><a class="" href="upload-data.html">Upload Data</a></li>
+<li><a class="" href="working-with-tables.html">Working with Tables</a></li>
+<li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="active" href="fusion-genes.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile.html">Expression Profile</a></li>
+<li><a class="" href="igv.html">IGV</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="configuration-1.html">Configuration</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="fusion-genes" class="section level1 unnumbered">
+<h1>Fusion Genes<a class="anchor" aria-label="anchor" href="#fusion-genes"><i class="fas fa-link"></i></a>
+</h1>
+<p>The Fusion Genes module enables users to review, validate, and flag causal gene fusions for
+inclusion in the clinical report. It integrates supporting evidence from Arriba and STARFusion,
+IGV snapshots of fusion breakpoints, and Arriba visualisation reports directly within the table.</p>
+<p>For general information about working with tables (sorting, filtering, column visibility,
+export, and flagging), see <a href="working-with-tables.html#working-with-tables">Working with Tables</a>.</p>
+<hr>
+<div id="background-pre-processing" class="section level2 unnumbered">
+<h2>Background Pre-processing<a class="anchor" aria-label="anchor" href="#background-pre-processing"><i class="fas fa-link"></i></a>
+</h2>
+<p>Before the fusion table becomes available, the application runs a background pre-processing
+step that generates IGV snapshots of each fusion breakpoint and extracts images from Arriba
+reports. This runs in the background — you can explore other modules while it is in progress.
+The fusion table loads immediately and updates progressively as snapshots become available.</p>
+<p>For more details on this step, see <a href="upload-data.html#fusion-pre-processing">Upload Data — Fusion Pre-processing</a>.</p>
+<hr>
+</div>
+<div id="the-fusion-table" class="section level2 unnumbered">
+<h2>The Fusion Table<a class="anchor" aria-label="anchor" href="#the-fusion-table"><i class="fas fa-link"></i></a>
+</h2>
+<p>The table displays all detected fusions with columns from both Arriba and STARFusion callers.
+By default, the table is sorted by Arriba confidence (high first), then by whether Arriba
+and STARFusion both called the fusion.</p>
+<p>Two additional columns are specific to the fusion table and are not part of the input file:</p>
+<ul>
+<li>
+<strong>Visual check</strong> — use the ✔ and ✖ buttons to mark a fusion as true positive or false
+positive after reviewing the evidence. This helps track which fusions have been manually
+reviewed without committing to flagging them for the report.</li>
+<li>
+<strong>Notes</strong> — a free-text field for adding case-specific observations, such as reasons for
+marking a fusion as false positive or notes about low coverage.</li>
+</ul>
+<p>The filter menu provides column visibility control. There are no additional pre-set filters
+for fusion data — all fusions are shown on load.</p>
+<hr>
+</div>
+<div id="expanded-row-preview" class="section level2 unnumbered">
+<h2>Expanded Row Preview<a class="anchor" aria-label="anchor" href="#expanded-row-preview"><i class="fas fa-link"></i></a>
+</h2>
+<p>Each row can be expanded to reveal a side-by-side view of the Arriba visualisation report
+and the IGV snapshot for that fusion. This allows quick assessment of whether a fusion is
+supported by sequencing evidence at both breakpoints.</p>
+<div class="alert alert-info">
+<p>The expanded row preview requires Arriba output files (<code>.pdf</code> + <code>.tsv</code>) for the Arriba
+report images, and BAM files for IGV snapshots. If these were not provided during upload,
+the expanded row will be empty or partially available.</p>
+</div>
+<div class="alert alert-success">
+<p><strong>Tip:</strong> Use the expanded row preview to quickly identify obvious false positives — for
+example, fusions where no signal is visible at one of the breakpoint positions in the IGV
+snapshot.</p>
+</div>
+<hr>
+</div>
+<div id="flagging-fusions" class="section level2 unnumbered">
+<h2>Flagging Fusions<a class="anchor" aria-label="anchor" href="#flagging-fusions"><i class="fas fa-link"></i></a>
+</h2>
+<p>Select fusions from the table and click <strong>Select fusion as causal</strong> to flag them for the
+report. Flagged fusions appear in the review panel below the table where you can also remove
+items from the selection.</p>
+<p>Flagged fusions can be opened in the IGV viewer for detailed read-level inspection. Use the
+<strong>IGV</strong> dropdown to select one or more patients (up to 4) and click <strong>Go to IGV</strong>.</p>
+<div class="alert alert-danger">
+<p><strong>IGV requires BAM files.</strong> If no BAM files were provided during upload,
+the IGV dropdown will not be available.</p>
+</div>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="variant-calling.html">Variant Calling</a></div>
+<div class="next"><a href="expression-profile.html">Expression Profile</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#fusion-genes">Fusion Genes</a></li>
+<li><a class="nav-link" href="#background-pre-processing">Background Pre-processing</a></li>
+<li><a class="nav-link" href="#the-fusion-table">The Fusion Table</a></li>
+<li><a class="nav-link" href="#expanded-row-preview">Expanded Row Preview</a></li>
+<li><a class="nav-link" href="#flagging-fusions">Flagging Fusions</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>SeqUIaSCOPE Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2026-03-23.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

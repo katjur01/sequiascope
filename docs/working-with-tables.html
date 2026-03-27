@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Working with Tables | SeqUIaSCOPE Documentation</title>
+<meta name="author" content="Kateřina Jurásková">
+<meta name="generator" content="bookdown 0.46 with bs4_book()">
+<meta property="og:title" content="Working with Tables | SeqUIaSCOPE Documentation">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Working with Tables | SeqUIaSCOPE Documentation">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="custom-styles.css">
+<meta name="description" content="All data in SeqUIaSCOPE — variants, fusions, and expression results — is displayed using interactive tables built with the reactable package. This page describes the features common to all tables....">
+<meta property="og:description" content="All data in SeqUIaSCOPE — variants, fusions, and expression results — is displayed using interactive tables built with the reactable package. This page describes the features common to all tables....">
+<meta name="twitter:description" content="All data in SeqUIaSCOPE — variants, fusions, and expression results — is displayed using interactive tables built with the reactable package. This page describes the features common to all tables....">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">SeqUIaSCOPE Documentation</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
+<li><a class="" href="data-requirements.html">Data Requirements</a></li>
+<li><a class="" href="upload-data.html">Upload Data</a></li>
+<li><a class="active" href="working-with-tables.html">Working with Tables</a></li>
+<li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile.html">Expression Profile</a></li>
+<li><a class="" href="igv.html">IGV</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="configuration-1.html">Configuration</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="working-with-tables" class="section level1 unnumbered">
+<h1>Working with Tables<a class="anchor" aria-label="anchor" href="#working-with-tables"><i class="fas fa-link"></i></a>
+</h1>
+<p>All data in SeqUIaSCOPE — variants, fusions, and expression results — is displayed using
+interactive tables built with the <code>reactable</code> package. This page describes the features
+common to all tables. You do not need to read it before exploring the modules, but it is
+worth coming back to if something in a table behaves unexpectedly.</p>
+<hr>
+<div id="default-filters" class="section level2 unnumbered">
+<h2>Default Filters<a class="anchor" aria-label="anchor" href="#default-filters"><i class="fas fa-link"></i></a>
+</h2>
+<p>When you first open a module, the table is not necessarily showing all available data.
+Each module applies a set of default filters on load to focus the view on the most
+clinically relevant entries and keep the application responsive with large datasets.</p>
+<p>For <strong>somatic and germline variant calling</strong>, the default filters are the most restrictive —
+see <a href="#default-filters-applied">Variant Calling — Default Filters</a> for the exact criteria.
+For <strong>fusion gene detection</strong> and <strong>expression profile</strong>, default filters are less aggressive
+but the column selection in the filter menu may hide some columns by default.</p>
+<div class="alert alert-warning">
+<p><strong>If the table appears empty or unexpectedly small</strong>, check the active filters before assuming
+data is missing. The filter menu and the column filter inputs above each column header show
+what is currently applied.</p>
+</div>
+<hr>
+</div>
+<div id="sorting" class="section level2 unnumbered">
+<h2>Sorting<a class="anchor" aria-label="anchor" href="#sorting"><i class="fas fa-link"></i></a>
+</h2>
+<p>Click any column header to sort the table by that column. Clicking again reverses the order.
+A third click removes the sort.</p>
+<p><strong>Multi-column sorting</strong> is supported by holding <code>Shift</code> while clicking additional column
+headers. This sorts first by the primary column, then by each additional column in the order
+you clicked them. To remove a secondary sort, hold <code>Shift</code> and click the column header again
+until it cycles back to unsorted.</p>
+<div class="inline-figure"><img src="screenshots/variant-table-sort.png" width="100%"></div>
+<hr>
+</div>
+<div id="filtering-and-column-visibility" class="section level2 unnumbered">
+<h2>Filtering and Column Visibility<a class="anchor" aria-label="anchor" href="#filtering-and-column-visibility"><i class="fas fa-link"></i></a>
+</h2>
+<p>Each column has a filter input directly below the header. Typing in a filter box narrows
+the table to rows matching your input in that column. Filters across multiple columns are
+combined — a row must satisfy all active filters to remain visible.</p>
+<p>The <strong>filter menu</strong> (accessible via the filter icon above the table) provides additional
+filtering options specific to each module, as well as a column visibility selector that
+lets you show or hide individual columns to focus on what matters for your analysis.</p>
+<div class="inline-figure"><img src="screenshots/variant-calling-filter.png" width="100%"></div>
+<div class="alert alert-success">
+<p><strong>Tip:</strong> Apply filters before flagging variants or fusions for the report. Working with a
+filtered subset significantly reduces table reload times and keeps the application responsive.</p>
+</div>
+<hr>
+</div>
+<div id="resizing-columns" class="section level2 unnumbered">
+<h2>Resizing Columns<a class="anchor" aria-label="anchor" href="#resizing-columns"><i class="fas fa-link"></i></a>
+</h2>
+<p>Column widths can be adjusted by dragging the border between column headers left or right.
+This is available in all main data tables (variants, fusions, expression).</p>
+<hr>
+</div>
+<div id="exporting-data" class="section level2 unnumbered">
+<h2>Exporting Data<a class="anchor" aria-label="anchor" href="#exporting-data"><i class="fas fa-link"></i></a>
+</h2>
+<p>All tables can be exported using the download buttons above the table. Two export options
+are available:</p>
+<ul>
+<li>
+<strong>Export filtered</strong> — exports only the rows currently visible after applying your filters</li>
+<li>
+<strong>Export all</strong> — exports the complete dataset regardless of active filters</li>
+</ul>
+<p>Supported export formats are TSV, XLSX, and CSV.</p>
+<div class="inline-figure"><img src="screenshots/variant-calling-download.png" width="100%"></div>
+<hr>
+</div>
+<div id="flagging-items-for-the-report" class="section level2 unnumbered">
+<h2>Flagging Items for the Report<a class="anchor" aria-label="anchor" href="#flagging-items-for-the-report"><i class="fas fa-link"></i></a>
+</h2>
+<p>In each analysis module you can flag variants, fusions, or genes directly from the table
+for inclusion in the final clinical report. Flagged items appear in a dedicated review
+panel below the table where you can check your selection and remove items if needed.</p>
+<div class="inline-figure"><img src="screenshots/variant-calling-pathogenic.png" width="100%"></div>
+<p>Flagged items also become available for inspection in the IGV genome browser within the same module.</p>
+<div class="inline-figure"><img src="screenshots/variant-calling-igv.png" width="100%"></div>
+<div class="alert alert-warning">
+<p><strong>Only flagged items are included in the final report.</strong></p>
+</div>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="upload-data.html">Upload Data</a></div>
+<div class="next"><a href="variant-calling.html">Variant Calling</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#working-with-tables">Working with Tables</a></li>
+<li><a class="nav-link" href="#default-filters">Default Filters</a></li>
+<li><a class="nav-link" href="#sorting">Sorting</a></li>
+<li><a class="nav-link" href="#filtering-and-column-visibility">Filtering and Column Visibility</a></li>
+<li><a class="nav-link" href="#resizing-columns">Resizing Columns</a></li>
+<li><a class="nav-link" href="#exporting-data">Exporting Data</a></li>
+<li><a class="nav-link" href="#flagging-items-for-the-report">Flagging Items for the Report</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>SeqUIaSCOPE Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2026-03-23.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

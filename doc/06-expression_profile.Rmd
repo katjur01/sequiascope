@@ -1,0 +1,66 @@
+---
+output:
+  bookdown::bs4_book:
+    bootswatch: dark
+    css: "custom-styles.css"
+---
+
+# Expression Profile {-}
+
+The Expression Profile module enables exploration of gene expression changes across one or
+more reference tissues. It provides two views: **Genes of Interest** (available when a GOI
+file is configured) and **All Genes**, each with its own interactive table, filter menu, and
+volcano plot.
+
+For general information about working with tables (sorting, filtering, column visibility,
+export, and flagging), see [Working with Tables](#working-with-tables).
+
+---
+
+## The Expression Table {-}
+
+Expression data is displayed with colour-coded rows to highlight deregulated genes at a glance:
+
+- <span style="background-color:#FFE9E9; padding: 2px 6px; border-radius: 3px;">Red</span> — upregulated genes (`log2FC > 1`)
+- <span style="background-color:#E6F7FF; padding: 2px 6px; border-radius: 3px;">Blue</span> — downregulated genes (`log2FC < -1`)
+- <span style="background-color:#FFEFDE; padding: 2px 6px; border-radius: 3px;">Orange</span> — genes with `p-value < 0.05`
+- <span style="background-color:#E7FAEF; padding: 2px 6px; border-radius: 3px;">Green</span> — genes with `p-adj < 0.05`
+
+When multiple reference tissues are available, each tissue has its own set of `log2FC`,
+`p-value`, and `p-adj` columns, grouped under the tissue name.
+
+---
+
+## Filtering {-}
+
+The filter menu provides the following options:
+
+- **Tissues** — show or hide specific tissue comparisons using toggle buttons. Hidden tissues
+  are removed from the column groups in the table.
+- **Pathways** — filter rows by pathway classification using a searchable dropdown.
+- **Tissue values** — for each tissue, apply quick preset filters: `log2FC > 1`,
+  `log2FC < -1`, `p-value < 0.05`, or `p-adj < 0.05`. Multiple filters for the same tissue
+  are combined with OR logic.
+- **Column visibility** — show or hide individual columns.
+
+---
+
+## Volcano Plot {-}
+
+Each module view includes a volcano plot available as a collapsible panel below the table.
+The plot shows `log2FC` on the x-axis and `-log10(p-adj)` on the y-axis.
+
+You can adjust the plot interactively:
+
+- **p-adj cutoff** — threshold line on the y-axis (default 0.05)
+- **log2FC cutoff** — threshold lines on the x-axis (default ±1)
+- **Gene labels** — number of top genes to label on the plot (default 0)
+
+---
+
+## Flagging Genes {-}
+
+Select genes from the table and click **Select deregulated genes for report** to flag them
+for inclusion in the final clinical report. Flagged genes appear in the review panel below
+the table where you can also remove items from the selection.
+

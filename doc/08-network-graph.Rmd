@@ -7,154 +7,101 @@ output:
 
 # Network Graph {-}
 
-The **Network Graph** module provides an interactive visualization of protein-protein interactions and pathway-level insights using patient-specific gene data. This module leverages Cytoscape.js for dynamic graph rendering and integrates [STRING DB](https://string-db.org/) interactions with pathway annotations from [KEGG DB](https://www.genome.jp/kegg/).
+The Network Graph module provides an interactive visualisation of protein-protein interactions
+within biological pathways, contextualising molecular alterations identified in previous modules.
+The network is built using interaction data from [STRING DB](https://string-db.org/) and pathway
+annotations from [KEGG](https://www.genome.jp/kegg/), rendered with Cytoscape.js.
 
-## Overview {-}
+The module consists of two interconnected views: a **main graph** showing all genes within a
+selected pathway, and a **subgraph** showing a focused selection of nodes for detailed analysis.
 
-The module consists of two interconnected graph views:
+---
 
-- **Main Graph**: Displays all genes within a selected pathway and their interactions
-- **Subgraph**: Displays a focused view of selected nodes from the main graph for detailed analysis
+## Graph Elements {-}
 
-Both graphs share common visualization settings and respond to the same filtering criteria, ensuring consistent analysis across views.
+**Nodes** represent genes. They are coloured by `log2FC` value from the expression data:
 
-```{r, echo=FALSE, out.width="100%"}
-# knitr::include_graphics("./screenshots/network-graph.png")
-```
+- Red (increasing intensity) — upregulated genes (`log2FC > 1`)
+- White — no significant change
+- Blue (increasing intensity) — downregulated genes (`log2FC < -1`)
 
-## Graph Visualization Elements {-}
+Node borders are coloured to highlight variants and fusions flagged in previous modules:
 
-<span style="font-weight: bold; font-size: 20px;">Nodes</span> represent genes, colored by log2FC values between tumor and matched healthy control tissues (if available).
-
-- **Upregulated Genes** (log2FC > 1): Nodes are colored red, with intensity increasing as the log2FC value increases
-- **No Change** (log2FC ≈ 0): Nodes are colored white
-- **Downregulated Genes** (log2FC < -1): Nodes are colored blue, with intensity increasing as the log2FC value becomes more negative
-
-<span style="font-weight: bold; font-size: 20px;">Edges</span>  represent STRING DB protein-protein interactions
-
-
-```{r, echo=FALSE, out.width="100%"}
-# knitr::include_graphics("./screenshots/network-comparison.png")
-```
-
-
-## Working with the Main Graph {-}
-
-### Pathway and Layout Selection {-}
-
-- **Pathway**: Select a pathway to display interactions among genes within it
-- **Layout Algorithms**: Choose from two layout algorithms to optimize graph readability.
-  - **cola**: Ideal for hierarchical structures and smaller graphs (less than 100 nodes)
-  - **FCoSE**: Best for large and complex networks (above 100 nodes)
-  - For more information about the layout algorithms, refer to the [Cytoscape.js Layouts Blog](https://blog.js.cytoscape.org/2020/05/11/layouts/).
- 
- - **Tissue**: Choose a reference tissue (if available) to color the network accordingly (under the main graph)
-
-### Edge Display and Filtering {-}
-
-- **Evidence-based display**: Shows multiple edges between nodes, with each edge representing a different type of evidence (experiments, databases, textmining, gene fusion, neighborhood, co‑expression, co‑occurrence).
-- **Confidence-based display**: Shows a single edge between nodes, with edge properties reflecting the combined confidence score
-- **Interaction sources**: Display edges based on specific evidence types (e.g., experimental, text mining, co-expression)
-- **Interaction score**: Selection of confidence threshold (0-1) to filter edges based on interaction confidence
-
-
-```{r, echo=FALSE, out.width="100%"}
-# knitr::include_graphics("./screenshots/network-customization.png")
-```
+- Toggle **Add somatic variants**, **Add germline variants**, or **Add fusions** using the
+  switches above the main graph to highlight the corresponding genes with distinctive border colours.
 
 ::: {.alert .alert-success}
-**Tip:** Adjusting confidence thresholds may significantly alter the network structure in both graphs. Use this feature to focus on high-confidence interactions.
+**Tip:** Use variant highlighting to quickly identify genes with actionable mutations within
+pathway contexts.
 :::
 
+**Edges** represent STRING DB protein-protein interactions. Two display modes are available:
 
-### Highlighting Variants and Genes {-}
+- **Confidence** (default) — one edge per gene pair, with edge width reflecting the combined
+  confidence score
+- **Evidence** — multiple edges per gene pair, one for each type of supporting evidence
+  (experiments, databases, textmining, coexpression, neighborhood, gene fusion, cooccurrence)
 
-Mark specific genes of interest by highlighting their node borders with distinctive colors.
+---
 
-- **Add Selected**: Highlight variants or fusions from previous modules in the network.
-  - **Oncogenic variants** (from somatic module)
-  - **Pathogenic variants** (from germline module)
-  - **Fusion genes** (from fusion module)
+## Controls {-}
 
-Node borders will be colored according to the variant type, making them easily identifiable in both the main graph.
+### Pathway and Layout {-}
 
-```{r, echo=FALSE, out.width="100%"}
-# knitr::include_graphics("./screenshots/network-pathway.png")
-```
+- **Pathway** — select a KEGG pathway to display. Only pathways relevant to the patient's
+  expression data are shown.
+- **Layout** — choose between `cola` (recommended for smaller graphs, up to ~100 nodes) and
+  `fcose` (recommended for large complex networks).
+- **Tissue** — when multiple reference tissues are available, select which tissue's `log2FC`
+  values are used for node colouring.
+
+### Edge Filtering {-}
+
+- **Interaction sources** — select which types of STRING evidence to include in the network.
+  All sources are selected by default.
+- **Interaction score** — set a minimum confidence threshold for displayed edges. Available
+  levels: lowest confidence (0.15), medium (0.4, default), high (0.7), highest (0.9). Higher
+  thresholds produce fewer but more reliable interactions.
 
 ::: {.alert .alert-success}
-**Tip:** Use variant highlighting to quickly identify genes with actionable mutations within pathway contexts.
+**Tip:** Adjusting the confidence threshold significantly changes network density. Start with
+medium confidence (0.4) and increase if the graph is too dense to interpret.
 :::
 
-### Node Selection and Interaction {-}
+### Graph Manipulation {-}
 
-- Select nodes by clicking on them
-- Drag selected nodes to reposition them within the graph
-- Unselect nodes by clicking on the same node again
+Three buttons are available below the main graph:
 
-<br>
+- **Fit graph** — adjusts the view to fit all nodes within the visible area. If nodes are
+  selected, fits the selection instead.
+- **Clear selection** — deselects all selected nodes.
+- **Select first neighbors** — selects all nodes directly connected to the currently selected
+  node, useful for exploring the local network neighbourhood.
 
-Three buttons are available for **graph manipulation**:
+Nodes can be dragged to reposition them. Click a node to select it; click again to deselect.
 
-- **Fit Graph**: Automatically adjust the view to fit all nodes within the visible area. If nodes are selected, it will fit the selection instead
-- **Clear Selection**: Unselect all selected nodes
-- **Select First Neighbors**: Select all nodes directly connected to the currently selected nodes (useful for exploring local network neighborhoods)
+---
 
-## Creating and Managing the Subgraph {-}
+## Subgraph {-}
 
-The subgraph provides a focused view for analyzing specific genes and their interactions in detail. 
-It is **automatically created** when you select one or more nodes in the main graph. 
+The subgraph is created automatically when you select one or more nodes in the main graph.
+It shows the selected nodes and their interactions in an isolated view.
 
-You can add or remove nodes from the subgraph in two ways:
-
-**Via Main Graph Selection:**
-
-- Click nodes in the main graph to add them to the subgraph
-- Click selected nodes again to remove them from the subgraph
-
-**Via Subgraph Controls:**
-
-- **Add Genes**: Include genes not present in the current pathway by entering gene names
-- **Remove Nodes**: Remove specific nodes from the subgraph
+Additional genes can be added to the subgraph by entering gene names in the **Add new genes**
+field, even if they are not present in the currently selected pathway. Nodes can be removed
+from the subgraph using the **Remove nodes** field. Both the main graph and subgraph share
+the same edge display settings and confidence thresholds.
 
 ::: {.alert .alert-warning}
-**Note:** When adding genes not present in the original pathway, ensure that the gene names are correctly formatted to avoid unrecognized entries.
+**Note:** When adding genes not present in the original pathway, ensure that gene names are
+correctly formatted to avoid unrecognised entries.
 :::
 
+---
 
-## Understanding Graph Data Tables {-}
+## Data Tables {-}
 
-**Tables Under Graphs:**  
+Both the main graph and the subgraph have associated tables below them showing gene name,
+`log2FC`, p-value, pathway name, and number of pathways the gene participates in.
+Clicking a row in a table highlights the corresponding node in yellow in the graph.
 
-Both the main graph and subgraph have associated tables that provide detailed information:
-
-- Gene names
-- Log2FC values
-- P-values
-- Pathway names
-- Number of pathways the gene is present in
-
-**Table Interaction:**
-
-- **Sort** tables by clicking on column names
-- **Search** for specific genes using the search box
-- Click on a row in the table to **highlight** the corresponding node in yellow in the graph
-
-## Summary of Key Concepts {-}
-
-::: {.alert .alert-info}
-**Understanding the Workflow:**
-
-1. **Start with the Main Graph**: Select a pathway and configure layout/visualization settings
-2. **Configure Edge Display**: Choose between evidence-based or confidence-based edge display
-3. **Apply Filters**: Set confidence thresholds and evidence type filters to focus on relevant interactions
-4. **Highlight Important Genes**: Mark pathogenic, oncogenic, or fusion genes for easy identification
-5. **Select Nodes of Interest**: Click nodes in the main graph to create a focused subgraph
-6. **Refine the Subgraph**: Add additional genes or remove unwanted nodes as needed
-7. **Analyze**: Use both graphs together, knowing they share the same filtering and display settings
-:::
-
-
-::: {.alert .alert-success}
-**Tip:** Use the drag-and-drop functionality to rearrange nodes for a clearer view of pathway interactions.
-:::

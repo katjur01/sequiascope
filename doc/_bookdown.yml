@@ -4,12 +4,14 @@ rmd_files: [
   "index.Rmd",
   "01-data-requirements.Rmd",
   "02-upload-data.Rmd",
-  "03-common-features.Rmd",
-  "04-summary-report.Rmd",
-  "05-variant-calling.Rmd",
-  "06-fusion-genes.Rmd",
-  "07-expression_profile.Rmd",
-  "08-network-graph.Rmd"
+  "03-working-with-tables.Rmd",
+  "04-variant-calling.Rmd",
+  "05-fusion-genes.Rmd",
+  "06-expression_profile.Rmd",
+  "07-igv.Rmd",
+  "08-network-graph.Rmd",
+  "09-summary-report.Rmd",
+  "10-configuration.Rmd"
 ]
 output_dir: "../docs"
 delete_merged_file: true

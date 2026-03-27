@@ -1,0 +1,66 @@
+---
+output:
+  bookdown::bs4_book:
+    bootswatch: dark
+    css: "custom-styles.css"
+---
+
+# IGV {-}
+
+The IGV module provides an embedded genome browser powered by
+[igv.js](https://github.com/igvteam/igv.js), allowing read-level validation of flagged
+variants and fusion breakpoints directly within the application without any external tools.
+
+---
+
+## Opening IGV {-}
+
+The IGV module is not opened directly from the navigation menu. Instead, it is launched
+from within the **Variant Calling** or **Fusion Genes** modules using the **IGV** dropdown
+button. Select one or more patients (up to 4) and click **Go to IGV** — the application
+navigates to the IGV tab with the appropriate BAM tracks and loci pre-loaded.
+
+Only variants or fusions that have been flagged in the respective module are available for
+IGV inspection.
+
+::: {.alert .alert-danger}
+**IGV requires BAM files.** If no BAM files were provided during upload, the IGV dropdown
+in the analysis modules will not be available.
+:::
+
+---
+
+## Reference Genome {-}
+
+The reference genome is set during upload in Step 1. The following genomes are available:
+`GRCh38/hg38`, `hg38 1kg/GATK`, `GRCh37/hg19`, `T2T CHM13-v2.0/hs1`, and a custom genome
+configured via `reference_paths.json` (see [Configuration](#configuration)).
+
+If **Don't create IGV snapshots** was selected during upload, the genome picker was not set
+and the IGV module will display a genome selector allowing you to choose the reference genome
+directly before loading the viewer.
+
+---
+
+## Bookmarks Table {-}
+
+Above the IGV viewer, a bookmarks table lists all flagged variants or fusions for the
+selected patients. Clicking any row in the table navigates the IGV viewer directly to the
+genomic position of that variant or fusion breakpoint. For fusions, both breakpoint positions
+are shown and the viewer jumps to a split view of both loci simultaneously.
+
+---
+
+## Loading and Reloading {-}
+
+Click **Load IGV Viewer** to initialise the browser with the current tracks and locus.
+If you change the patient selection after IGV has already been loaded, a dialog will ask
+whether you want to reload the viewer with the new patient data or continue with the
+current view.
+
+::: {.alert .alert-info}
+IGV.js is a web-based implementation of the IGV desktop application. While it covers the
+essential functionality needed for read-level validation, some advanced features of the
+desktop version are not available.
+:::
+

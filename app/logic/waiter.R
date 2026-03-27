@@ -1,11 +1,42 @@
-# Waiter Progress Bar Helpers
-# Functions for managing waiter with progress bar and DOM-based completion detection
+# Waiter helpers — progress overlay + per-element spinners
 
 box::use(
   shiny[...],
-  waiter[waiter_show, waiter_hide, spin_fading_circles],
+  waiter[waiter_show, waiter_hide, spin_fading_circles, useWaiter],
+  shinycssloaders[withSpinner],
   htmltools[tagList, tags, h3]
 )
+
+#' Spinner wrapper for reactable/plot outputs
+#' @export
+use_spinner <- function(ui_element) {
+  withSpinner(ui_element, type = 3, color = "#74c0fc", color.background = "#EEEEEE")
+}
+
+#' Initialize waiter for a module
+#' @export
+use_waiter <- function() {
+  useWaiter()
+}
+
+#' Show waiter overlay for an element
+#' @export
+show_waiter <- function(id, text = "Loading...") {
+  waiter_show(
+    id = id,
+    html = tagList(
+      spin_fading_circles(),
+      shiny::h3(text, style = "color: white; margin-top: 20px;")
+    ),
+    color = "rgba(0, 0, 0, 0.8)"
+  )
+}
+
+#' Hide waiter overlay for an element
+#' @export
+hide_waiter <- function(id) {
+  waiter_hide(id)
+}
 
 #' Show waiter with progress bar
 #' 
@@ -70,7 +101,9 @@ update_waiter_progress <- function(session, percent, text = NULL) {
 #' @param ns Namespace function
 #' @export
 wait_for_summary_rendered <- function(session, ns) {
-  session$sendCustomMessage("wait-for-summary", list(inputId = ns("summary_rendered")))
+  session$sendCustomMessage("wait-for-summary", list(
+    inputId = ns("summary_rendered")
+  ))
 }
 
 #' Get JavaScript code for waiter progress handlers
@@ -109,32 +142,18 @@ get_waiter_js <- function() {
     
     // Monitor when Summary tab is fully rendered
     Shiny.addCustomMessageHandler('wait-for-summary', function(data) {
-      console.log('Waiting for Summary tab to render...');
-      console.log('Received inputId:', data.inputId);
-      
-      // Wait for tab switch and DOM update
-      setTimeout(function() {
-        // Check if summary boxes are rendered
-        var checkRendered = setInterval(function() {
-          var summaryBoxes = document.querySelectorAll('[id*=\"summary_table\"]');
-          if (summaryBoxes.length > 0) {
-            clearInterval(checkRendered);
-            // Wait 800ms after DOM appears so renderText outputs have time
-            // to populate before the waiter is hidden.
-            setTimeout(function() {
-              console.log('Summary tab fully rendered!');
-              Shiny.setInputValue(data.inputId, Math.random(), {priority: 'event'});
-            }, 800);
-          }
-        }, 100); // Check every 100ms
-        
-        // Safety timeout after 5 seconds
-        setTimeout(function() {
+      var attempts = 0;
+      var maxAttempts = 60; // 60 * 250ms = 15s safety timeout
+      var checkRendered = setInterval(function() {
+        attempts++;
+        var summaryBoxes = document.querySelectorAll('[id*=summary_table]');
+        if (summaryBoxes.length > 0 || attempts >= maxAttempts) {
           clearInterval(checkRendered);
-          console.log('Summary render timeout - forcing completion');
-          Shiny.setInputValue(data.inputId, Math.random(), {priority: 'event'});
-        }, 5000);
-      }, 100);
+          setTimeout(function() {
+            Shiny.setInputValue(data.inputId, String(Date.now()), {priority: 'event'});
+          }, summaryBoxes.length > 0 ? 300 : 0);
+        }
+      }, 250);
     });
   "))
   )

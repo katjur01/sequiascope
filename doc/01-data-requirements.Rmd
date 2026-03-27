@@ -1,4 +1,3 @@
-
 ---
 output:
   bookdown::bs4_book:
@@ -6,461 +5,409 @@ output:
     css: "custom-styles.css"
 ---
 
-# **Data requirements** {-}
+# Data Requirements {-}
 
-## **Input file types and formats** {-}
+SeqUIaSCOPE accepts four types of genomic data: somatic variant calling results,
+germline variant calling results, fusion gene detection results, and gene expression profiles.
+Not all four are required — you can upload any combination depending on your analysis needs.
 
-SequiaViz integrates results from four types of genomic datasets:
+Before uploading, make sure your files follow the naming and format rules described on this page.
+The application automatically scans your directory for files and uses these rules to identify
+which file belongs to which patient and dataset type. Errors at upload time are almost always
+caused by naming issues.
 
-### **1. Somatic Variant Calling** {-}
-Exploration and visualization of somatic mutations in tumor-normal paired samples
+---
 
-- **Required files**: 
-  - `.tsv` | `.vcf` file with annotated variants
-  
-- **Optional files** (needed for IGV visualization):     
-  - Tumor DNA `.bam` + `.bai` files
-  - Normal DNA `.bam` + `.bai` files
-  - Tumor mutational burden (TMB) `.tsv` | `.xlsx` | `.txt` file
+## Input Files Overview {-}
 
-### **2. Germline Variant Calling** {-}
-Exploration and visualization of germline mutations in normal samples
+```{=html}
+<div class="file-cards-grid">
 
-- **Required files**:
-  - `.tsv` | `.vcf` file with annotated variants
-  
-- **Optional files** (needed for IGV visualization):  
-    - Normal `.bam` + `.bai` files
+<!-- SOMATIC -->
+<div class="file-card">
+<div class="file-card-header somatic-header"><i class="fa-solid fa-dna"></i> Somatic Variant Calling</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required"><span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> — annotated somatic variants</span></div>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Tumor DNA <code>.bam</code> + <code>.bai</code> — for IGV</span></div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Normal DNA <code>.bam</code> + <code>.bai</code> — for IGV</span></div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-file-csv"></i></span><span><code>mutation_loads.tsv</code> — tumour mutational burden</span></div>
+</div>
+</div>
 
-### **3. Fusion Genes Detection** {-}
-Exploration and visualization of gene fusions from RNA-seq tumor samples
+<!-- GERMLINE -->
+<div class="file-card">
+<div class="file-card-header germline-header"><i class="fa-solid fa-microscope"></i> Germline Variant Calling</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required"><span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> — annotated germline variants</span></div>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Normal DNA <code>.bam</code> + <code>.bai</code> — for IGV</span></div>
+</div>
+</div>
 
-- **Required files**:
-  - `.tsv` | `.xlsx` files with detected genes fusion  (`.tsv` is not implemented yet)
-  
-- **Optional files** (needed for IGV visualization and row expansion preview):  
-  - Tumor RNA `.bam` + `.bai` files
-  - Chimeric `.bam` + `.bai` files
-  - Arriba `.pdf` + `.tsv` files (for embedded report display and quality metrics)
+<!-- FUSION -->
+<div class="file-card">
+<div class="file-card-header fusion-header"><i class="fa-solid fa-code-merge"></i> Fusion Gene Detection</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required"><span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> or <code>.xlsx</code> — combined Arriba + STARFusion results</span></div>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Tumor RNA <code>.bam</code> + <code>.bai</code> — for IGV snapshots</span></div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Chimeric <code>.bam</code> + <code>.bai</code> — for IGV snapshots</span></div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-file-pdf"></i></span><span>Arriba <code>.pdf</code> + <code>.tsv</code> — for expanded row preview</span></div>
+</div>
+</div>
 
-### **4. Expression Profile** {-}
-Exploration and visualization of gene expression in different tissues
+<!-- EXPRESSION -->
+<div class="file-card">
+<div class="file-card-header expression-header"><i class="fa-solid fa-chart-area"></i> Expression Profile</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required"><span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> or <code>.xlsx</code> — gene expression data</span></div>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional"><span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span>One file per tissue if comparing multiple reference tissues</span></div>
+</div>
+</div>
 
-- **Required files**:
-  - `.tsv` | `.xlsx` | `.txt` file with expression data of sample OR files with tissue-matched reference expression data
-  
-- **Optional files**:  
-  - Genes of interest (GOI) `.tsv` | `.xlsx` | `.txt` file
+</div>
+```
 
 ::: {.alert .alert-success}
-**Tip:** If you can choose, **always** prioritize **`.tsv`** files over `.xlsx` or `vcf` files because they are faster to load and process.
+**Tip:** When you have a choice, always prefer `.tsv` over `.xlsx`. TSV files load faster and are less likely to cause formatting issues.
+:::
+
+::: {.alert .alert-info}
+**Fusion gene detection** requires results from both **Arriba** and **STARFusion** as upstream tools.
+The required input file is a pre-processed table combining the output of both callers.
+The Arriba `.pdf` and `.tsv` output files are separate and optional — they unlock the expanded row preview in the Fusion Genes module.
 :::
 
 ---
 
-## Data organization and directory structure {-}
+## File Naming Rules {-}
 
-### Recommended Directory Structure {-}
+SeqUIaSCOPE identifies files by scanning the full file path (folder names + file name together).
+It looks for specific **keywords** anywhere in the path to decide what type each file is.
+This means a keyword can appear in the filename itself **or** in a parent folder name — both work.
 
-```
-project_root/
-├── somatic_data/
-│   ├── mutation_loads.tsv                    # tumor mutational burden table
-│   ├── patient_001/
-│   │   ├── variants.tsv                      # somatic variants table
-│   │   ├── tumor.bam                         # tumor DNA BAM
-│   │   ├── tumor.bam.bai                     # index for tumor DNA BAM
-│   │   ├── normal.bam                        # normal DNA BAM
-│   │   └── normal.bam.bai                    # index for normal DNA BAM
-│   ├── patient_002/
-│   │   └── ... (same structure)
-│   └── patient_N/
-│       └── ... (same structure)
-├── germline_data/
-│   ├── patient_001/
-│   │   ├── variants.tsv                      # germline variants table
-│   │   ├── normal.bam                        # normal DNA BAM
-│   │   └── normal.bam.bai                    # index for normal DNA BAM
-│   ├── patient_002/
-│   │   └── ... (same structure)
-│   └── patient_N/
-│       └── ... (same structure)
-├── fusion_data/
-│   ├── patient_001/
-│   │   ├── fusions.tsv                       # detected gene fusions table
-│   │   ├── fusion.bam                        # tumor RNA BAM
-│   │   ├── fusion.bam.bai                    # index for tumor RNA BAM
-│   │   ├── chimeric.bam                      # chimeric BAM
-│   │   ├── chimeric.bam.bai                  # index for chimeric BAM
-│   │   ├── arriba_report.pdf                 # arriba report
-│   │   └── arriba_results.tsv                # arriba result table
-│   ├── patient_002/
-│   │   └── ... (same structure)
-│   └── patient_N/
-│       └── ... (same structure)                  
-└── expression_data/
-    ├── genes_of_interest.tsv                 # table of genes of interest
-    ├── patient_001/
-    │   └── expression.tsv                    # gene expression table
-    ├── patient_002/
-    │   └── ... (same structure)
-    └── patient_N/
-        └── ... (same structure)   
-```
-... or in case of multiple tissue-matched reference expression data:
+### Keyword Reference {-}
+
+| File type | Path must contain | Path must NOT contain |
+|-----------|------------------|-----------------------|
+| Somatic variant file | `somatic` | — |
+| Germline variant file | `germline` | — |
+| Fusion gene file | `fusion` or `fuze` | `arriba`, `STAR` |
+| Tumor RNA BAM | user-defined pattern (set during upload) | `Chimeric`, `transcriptome` |
+| Chimeric BAM | user-defined pattern (set during upload) | `transcriptome` |
+| Arriba output files | `arriba` | `discarded`, `STAR` |
+| Expression file | `expression` or `RNAseq` | `report`, `genes_of_interest` |
+| TMB file | filename must be exactly `mutation_loads` | — |
+
+The keyword can live anywhere in the path — these two examples both work:
 
 ```
-└── expression_data/
-    ├── genes_of_interest.tsv                 # list of genes of interest
-    ├── patient_001/
-    │   ├── blood_expression.tsv              # expression in blood
-    │   └── liver_expression.tsv              # expression in liver
-    ├── patient_002/
-    │   └── ... (same structure)
-    └── patient_N/
-        └── ... (same structure)   
-
-
+project_root/patient_001/somatic_variants.tsv    # keyword in filename
+project_root/somatic_data/patient_001/variants.tsv  # keyword in folder name
 ```
 
-### Alternative Directory Structures {-}
-
-
-#### Option 1: BAM + BAI files in separate folders {-}
-
-```
-project_root/
-├── primary_analysis/
-│   ├── DNA_alignment/
-│   │   ├── patient_001/       
-│   │   │   └── mapped/
-│   │   │       ├── tumor.bam                 # tumor DNA BAM
-│   │   │       ├── tumor.bam.bai             # index for tumor DNA BAM
-│   │   │       ├── normal.bam                # normal DNA BAM
-│   │   │       └── normal.bam.bai            # index for normal DNA BAM
-│   │   └── patient_N/
-│   │       └── ... 
-│   └── RNA_alignment/
-│       ├── patient_001/       
-│       │   └── mapped/
-│       │       ├── fusion.bam                # tumor RNA BAM
-│       │       ├── fusion.bam.bai            # index for tumor RNA BAM
-│       │       ├── chimeric.bam              # chimeric BAM
-│       │       └── chimeric.bam.bai          # index for chimeric BAM
-│       └── patient_N/
-│           └── ... 
-└── secondary_analysis/
-    ├── somatic_data/
-    │   ├── mutation_loads.tsv                    # tumor mutational burden table
-    │   ├── patient_001/
-    │   │   └── variants.tsv                      # somatic variants table
-    │   └── patient_N/
-    │       └── ... 
-    ├── germline_data/
-    │   ├── patient_001/
-    │   │   └── variants.tsv                      # germline variants table
-    │   └── patient_N/
-    │       └── ...
-    ├── fusion_data/
-    │   ├── patient_001/
-    │   │   ├── fusions.tsv                       # detected gene fusions table
-    │   │   ├── arriba_report.pdf                 # arriba report
-    │   │   └── arriba_results.tsv                # arriba result table
-    │   └── patient_N/
-    │       └── ... 
-    └── expression_data/
-        ├── genes_of_interest.tsv                 # table of genes of interest
-        ├── patient_001/
-        │   └── expression.tsv                    # gene expression table
-        └── patient_N/
-           └── ...
-```
-
-#### Option 2: All files in patient directories {-}
-```
-project_root/
-├── genes_of_interest.tsv                     # table of genes of interest
-├── mutation_loads.tsv                        # tumor mutational burden table
-├── patient_001/
-│   ├── somatic_variants.tsv                  # somatic variants table
-│   ├── germline_variants.tsv                 # germline variants table
-│   ├── fusions.tsv                           # detected gene fusions table
-│   ├── tumor.bam                             # tumor DNA BAM
-│   ├── tumor.bam.bai                         # index for tumor DNA BAM
-│   ├── normal.bam                            # normal DNA BAM
-│   ├── normal.bam.bai                        # index for normal DNA BAM
-│   ├── fusion.bam                            # tumor RNA BAM
-│   ├── fusion.bam.bai                        # index for tumor RNA BAM
-│   ├── chimeric.bam                          # chimeric BAM
-│   ├── chimeric.bam.bai                      # index for chimeric BAM
-│   ├── arriba_report.pdf                     # arriba report
-│   ├── arriba_results.tsv                    # arriba result table
-│   └── expression.tsv                        # gene expression table
-├── patient_002/
-│   └── ... 
-└── patient_N/
-    └── ... 
-```
-
-
-### File Naming {-}
-
-#### General Rules {-}
-- Use consistent naming across all patients
-- Avoid special characters and spaces
-- Use underscores or dots as separators
-- All file names must be unique within their directory
-- All per-patient files must have **patient ID** and **dataset type** (somatic, germline, fusion, expression|RNAseq) somewhere **in their path name**
-
-
-**Examples:**
-
-| Variant A                                | Variant B                                 |
-|------------------------------------------|-------------------------------------------|
-| <code style = "color: #000000;">project_root/patient_001/<span style="font-weight:bold; color: #D63384;">somatic</span>_variants.tsv</code> | <code style = "color: #000000;">project_root/<span style="font-weight:bold; color: #D63384;">somatic</span>_data/patient_001_variants.tsv</code> |
-| <code style = "color: #000000;">project_root/patient_001/<span style="font-weight:bold; color: #D63384;">expression</span>.tsv</code> | <code style = "color: #000000;">project_root/<span style="font-weight:bold; color: #D63384;">RNAseq</span>/patient_001.tsv</code> |
-
-<br>
-
-::: {.alert .alert-info}
-**Note:** GOI and TMB files are not considered per-patient files because they contain information about all samples
+::: {.alert .alert-warning}
+**Patient ID in path:** Every per-patient file must have the patient ID somewhere in its full path
+(either in the filename or a parent folder). Files without the patient ID will not be matched.
+The TMB file (`mutation_loads`) and the Genes of Interest file are the only exceptions —
+they are shared across all patients and do not need a patient ID in the path.
 :::
 
-#### Specific Patterns {-}
-- **Variants**:
-    - No specific patterns for this file
-- **Fusions**:
-    - File cannot contain the strings **arriba** or **STAR** in their filename. These strings are exclusively reserved for Arriba and STARFusion files
-- **Arriba files**:
-    - For each `.pdf` arriba report there must be a corresponding `.tsv` arriba results table
-    - File name must contain string **arriba**
-    - Files cannot contain the strings **discarded** or **STAR** in their filename. These strings are exclusively reserved for arriba_discarded.tsv and STARfusion files
-- **Expression**:
-    - In case of multiple tissue-matched reference expression data, files must contain `{tissue_name}` otherwise the name must contain `{patient_id}`
-    - Files cannot contain the strings **report** or **genes_of_interest** in their filename. These strings are exclusively reserved for Arriba and GOI files
-- **BAM + BAI**:
-    - For each `file.bam` there must be corresponding `file.bam.bai` or `file.bai`
-    - BAM and BAI files must be named the same pattern in the same directory
-    - Tumor RNA BAM files cannot contain the strings **chimeric** or **transcriptome** in their filename. These strings are exclusively reserved for chimeric BAM files
-- **GOI**:
-    - File must be named as `genes_of_interest`
-    - File must be placed in the **root directory** of expression data
-    - File is common to all samples
-- **TMB**: 
-    - File must be named as `TMB` or `mutation_loads`
-    - File must be placed in the **root directory** of somatic data
-    - File is common to all samples
+### BAM Files {-}
 
-Examples of placement `genes_of_interest` and `TMB` files in different directory structures:
+BAM files don't use the keyword system. Instead, you define **patterns** during upload
+(e.g. `tumor`, `FFPE`, `chimeric`) and the application finds BAM files whose names match those patterns.
+See [Upload Data — Step 1](#step-1-directory-patient-and-dataset-selection) for details.
+
+For every `.bam` file, a corresponding index file must exist in the same directory,
+named either `file.bam.bai` or `file.bai`.
+
+### Arriba Output Files {-}
+
+If you provide Arriba output files, both the `.pdf` and `.tsv` must be present as a matched pair
+(same base name, different extension). A `.pdf` without a matching `.tsv` will be ignored, and vice versa.
+
+### Expression Files with Multiple Tissues {-}
+
+When comparing against multiple reference tissues, provide one file per tissue.
+The tissue name must appear in the filename (e.g. `blood_expression.tsv`, `liver.tsv`).
+Use underscores instead of spaces — `blood_vessel.tsv`, not `blood vessel.tsv`.
+
+Tissue names you enter in the upload form must match the names in the filenames.
+If no tissue names are provided, the application looks for a single expression file per patient
+containing `expression` or `RNAseq` in its path.
+
+---
+
+## Directory Layouts {-}
+
+SeqUIaSCOPE is flexible — your data can be organised in many different ways as long as the naming
+rules above are respected. Below are three common layouts that all work correctly.
+The key principle is that the **patient ID** and **dataset keyword** must both appear
+somewhere in each file's path.
+
+::: {.alert .alert-warning}
+**Choose your root directory carefully.** In the upload form you select a single root directory
+that contains all your patient data. Pick the most specific folder that still contains everything —
+selecting a very broad directory (e.g. your home folder) may cause the scanner to pick up
+unrelated files and confuse file matching.
+:::
+
+**Option A — one folder per data type**
+
+Best when your pipeline already separates outputs by analysis type.
+
 ```
-project_root/                                 # root directory for both somatic and expression data
-├── genes_of_interest.tsv                     # table of genes of interest
-├── mutation_loads.tsv                        # tumor mutational burden table
-├── patient_001/
-│   ├── somatic_variants.tsv 
-│   └── expression.tsv 
-└── patient_N/
-        └── ...
-```
-<br>
-or 
-```
-project_root/                       
-├── somatic_data/                             # root directory for somatic data
-│   ├── mutation_loads.tsv                    # tumor mutational burden table
+project_root/                           ← select this as root
+├── somatic_data/
+│   ├── mutation_loads.tsv
 │   ├── patient_001/
-│   │   └── variants.tsv                      
-│   └── patient_N/
-│       └── ...            
-└── expression_data/                          # root directory for expression data
-    ├── genes_of_interest.tsv                 # table of genes of interest
+│   │   ├── somatic_variants.tsv
+│   │   ├── tumor.bam  +  tumor.bam.bai
+│   │   └── normal.bam  +  normal.bam.bai
+│   └── patient_002/ ...
+├── germline_data/
+│   ├── patient_001/
+│   │   ├── germline_variants.tsv
+│   │   └── normal.bam  +  normal.bam.bai
+│   └── patient_002/ ...
+├── fusion_data/
+│   ├── patient_001/
+│   │   ├── fusions.tsv
+│   │   ├── fusion.bam  +  fusion.bam.bai
+│   │   ├── chimeric.bam  +  chimeric.bam.bai
+│   │   ├── arriba_report.pdf
+│   │   └── arriba_results.tsv
+│   └── patient_002/ ...
+└── expression_data/
     ├── patient_001/
     │   └── expression.tsv
-    └── patient_N/
-        └── ... 
+    └── patient_002/ ...
 ```
---- 
 
-## Required and Optional Columns {-}
+**Option B — BAM files stored separately from analysis results**
 
-### Somatic variants {-}
-- **Required columns:**
+Common when primary (alignment) and secondary (variant/fusion calling) outputs live in separate trees.
+
+```
+project_root/                           ← select this as root
+├── alignments/
+│   ├── DNA/
+│   │   ├── patient_001/
+│   │   │   ├── tumor.bam  +  tumor.bam.bai
+│   │   │   └── normal.bam  +  normal.bam.bai
+│   │   └── patient_002/ ...
+│   └── RNA/
+│       ├── patient_001/
+│       │   ├── fusion.bam  +  fusion.bam.bai
+│       │   └── chimeric.bam  +  chimeric.bam.bai
+│       └── patient_002/ ...
+└── results/
+    ├── somatic_data/
+    │   ├── mutation_loads.tsv
+    │   ├── patient_001/ somatic_variants.tsv
+    │   └── patient_002/ ...
+    ├── germline_data/
+    │   ├── patient_001/ germline_variants.tsv
+    │   └── patient_002/ ...
+    ├── fusion_data/
+    │   ├── patient_001/
+    │   │   ├── fusions.tsv
+    │   │   ├── arriba_report.pdf
+    │   │   └── arriba_results.tsv
+    │   └── patient_002/ ...
+    └── expression_data/
+        ├── patient_001/ expression.tsv
+        └── patient_002/ ...
+```
+
+**Option C — all files flat per patient**
+
+Works for smaller projects or when a single pipeline writes everything into one folder per patient.
+
+```
+project_root/                           ← select this as root
+├── mutation_loads.tsv                  ← in root (shared across patients)
+├── patient_001/
+│   ├── somatic_variants.tsv
+│   ├── germline_variants.tsv
+│   ├── fusions.tsv
+│   ├── tumor.bam  +  tumor.bam.bai
+│   ├── normal.bam  +  normal.bam.bai
+│   ├── fusion.bam  +  fusion.bam.bai
+│   ├── chimeric.bam  +  chimeric.bam.bai
+│   ├── arriba_report.pdf
+│   ├── arriba_results.tsv
+│   └── expression.tsv
+└── patient_002/ ...
+```
+
+---
+
+## Required Columns {-}
+
+Each data file must contain a set of required columns. Column names are case-sensitive.
+Any additional columns in your file are allowed — they will appear in the table but without
+custom formatting or labels.
+
+### Somatic Variant File {-}
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `var_name` | char | Variant identifier |
-| `gene_symbol` | char | Gene symbol |
-| `tumor_variant_freq` | num | Tumor variant frequency |
-| `tumor_depth` | int | Tumor sequencing depth |
-| `gene_region` | char | Gene region (exon, intron, etc.) |
-| `gnomAD_NFE` | num | gnomAD Non-Finnish European allele frequency |
-| `consequence` | char | Variant consequence (missense, nonsense, etc.) |
-| `HGVSc` | char | HGVS coding sequence notation |
-| `HGVSp` | char | HGVS protein sequence notation |
-| `variant_type` | char | Type of variant (SNV, insertion, deletion, etc.) |
-| `all_full_annot_name` | char | Full annotation name |
+| `var_name` | string | Variant identifier |
+| `gene_symbol` | string | Gene symbol |
+| `tumor_variant_freq` | numeric | Variant allele frequency in tumour |
+| `tumor_depth` | integer | Sequencing depth at variant position in tumour |
+| `gene_region` | string | Genomic region (e.g. `exon`, `intron`, `splice`) |
+| `gnomAD_NFE` | numeric | gnomAD Non-Finnish European allele frequency |
+| `consequence` | string | Variant consequence (e.g. `missense_variant`, `stop_gained`) |
+| `HGVSc` | string | HGVS coding sequence notation |
+| `HGVSp` | string | HGVS protein sequence notation |
+| `variant_type` | string | Variant type (e.g. `SNV`, `insertion`, `deletion`) |
+| `all_full_annot_name` | string | Full annotation name |
 
-- **Optional columns:**
+**Optional columns** recognised with custom labels:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `in_library` | num | Number of times the `var_name` is observed in the sample cohort (added automatically) |
-| `clinvar_sig` | char | ClinVar clinical significance |
-| `clinvar_DBN` | char | ClinVar disease name |
-| `CGC_Somatic` | char | Cancer Gene Census somatic annotation |
-| `fOne` | char | fOne database annotation |
-| `COSMIC` | char | COSMIC database annotation |
-| `HGMD` | char | HGMD database annotation |
-| `snpDB` | char | dbSNP annotation |
+| Column | Description |
+|--------|-------------|
+| `in_library` | Number of times `var_name` was observed in the project cohort (added automatically if absent) |
+| `clinvar_sig` | ClinVar clinical significance |
+| `clinvar_DBN` | ClinVar disease name |
+| `CGC_Somatic` | Cancer Gene Census somatic annotation |
+| `fOne` | fOne database annotation |
+| `COSMIC` | COSMIC database annotation |
+| `HGMD` | HGMD database annotation |
+| `snpDB` | dbSNP annotation |
 
-
-#### TMB {-}
-- **Required columns:**
+### TMB File (`mutation_loads`) {-}
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `patient` | char | Patient ID |
-| `TMB` | num | Tumor mutational burden value |
+| `patient` | string | Patient ID — must match the IDs entered in the upload form |
+| `TMB` | numeric | Tumour mutational burden value |
 
-<br>
-
-Example of `mutation_loads.tsv`
-
-::: {.example-table}
 | patient | TMB  |
 |---------|------|
 | P001    | 0.17 |
 | P002    | 0.74 |
-:::
 
-
-### Germline variants {-}
-
-- **Required columns:* {-}**
+### Germline Variant File {-}
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `var_name` | char | Variant identifier |
-| `gene_symbol` | char | Gene symbol |
-| `variant_freq` | num | Variant frequency |
-| `coverage_depth` | int | Sequencing coverage depth |
-| `gene_region` | char | Gene region (exon, intron, etc.) |
-| `gnomAD_NFE` | num | gnomAD Non-Finnish European allele frequency |
-| `clinvar_sig` | char | ClinVar clinical significance |
-| `consequence` | char | Variant consequence (missense, nonsense, etc.) |
-| `HGVSc` | char | HGVS coding sequence notation |
-| `HGVSp` | char | HGVS protein sequence notation |
-| `variant_type` | char | Type of variant (SNV, insertion, deletion, etc.) |
-| `all_full_annot_name` | char | Full annotation name |
+| `var_name` | string | Variant identifier |
+| `gene_symbol` | string | Gene symbol |
+| `variant_freq` | numeric | Variant allele frequency |
+| `coverage_depth` | integer | Sequencing depth at variant position |
+| `gene_region` | string | Genomic region (e.g. `exon`, `intron`, `splice`) |
+| `gnomAD_NFE` | numeric | gnomAD Non-Finnish European allele frequency |
+| `clinvar_sig` | string | ClinVar clinical significance |
+| `consequence` | string | Variant consequence |
+| `HGVSc` | string | HGVS coding sequence notation |
+| `HGVSp` | string | HGVS protein sequence notation |
+| `variant_type` | string | Variant type (e.g. `SNV`, `insertion`, `deletion`) |
+| `all_full_annot_name` | string | Full annotation name |
 
-- **Optional columns:**
+**Optional columns:**
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `in_library` | num | Number of times the `var_name` is observed in the sample cohort (added automatically if not present) |
-| `clinvar_DBN` | char | ClinVar disease name |
-| `CGC_Germline` | char | Cancer Gene Census germline annotation |
-| `trusight_genes` | char | TruSight gene panel annotation |
-| `fOne` | char | fOne database annotation |
-| `snpDB` | char | dbSNP annotation |
+| Column | Description |
+|--------|-------------|
+| `in_library` | Number of times `var_name` was observed in the project cohort (added automatically if absent) |
+| `clinvar_DBN` | ClinVar disease name |
+| `CGC_Germline` | Cancer Gene Census germline annotation |
+| `trusight_genes` | TruSight gene panel annotation |
+| `fOne` | fOne database annotation |
+| `snpDB` | dbSNP annotation |
 
-
-### Fusion Genes {-}
+### Fusion Gene File {-}
 
 ::: {.alert .alert-info}
-**Note:** 
-- Data must contain results from **Arriba** and **StarFusion** callers
-- Both `chr1`/`chr2` and `chrom1`/`chrom2` column names are accepted
-- If `chrom1`/`chrom2` are present, they will be automatically renamed to `chr1`/`chr2` during data loading
+This is a pre-processed file combining results from both **Arriba** and **STARFusion**.
+Column names `chrom1`/`chrom2` are accepted as alternatives to `chr1`/`chr2` and will be renamed automatically.
 :::
 
-- **Required columns:**
+| Column | Type | Description |
+|--------|------|-------------|
+| `gene1` | string | First fusion partner gene name |
+| `gene2` | string | Second fusion partner gene name |
+| `chr1` (or `chrom1`) | string | Chromosome of first partner (with `chr` prefix, e.g. `chr2`) |
+| `chr2` (or `chrom2`) | string | Chromosome of second partner |
+| `pos1` | numeric | Genomic position of first partner breakpoint |
+| `pos2` | numeric | Genomic position of second partner breakpoint |
+| `strand1` | string | Strand orientation of first partner (`+` or `-`) |
+| `strand2` | string | Strand orientation of second partner (`+` or `-`) |
+| `arriba.called` | boolean | Whether Arriba called this fusion |
+| `starfus.called` | boolean | Whether STARFusion called this fusion |
+| `overall_support` | numeric | Overall read support for the fusion |
+| `arriba.confidence` | string | Arriba confidence level (`high`, `medium`, or `low`) |
+| `arriba.site1` | string | Breakpoint site annotation for first partner |
+| `arriba.site2` | string | Breakpoint site annotation for second partner |
+
+**Optional columns:**
+
+| Column | Description |
+|--------|-------------|
+| `DB_count` | Number of databases listing this fusion |
+| `DB_list` | Database names |
+| `arriba.split_reads` | Split reads supporting the fusion (Arriba) |
+| `arriba.discordant_mates` | Discordant mate pairs (Arriba) |
+| `arriba.break_coverage` | Coverage at first breakpoint (Arriba) |
+| `arriba.break2_coverage` | Coverage at second breakpoint (Arriba) |
+| `arriba.break_seq` | Sequence at breakpoint (Arriba) |
+| `starfus.split_reads` | Split reads supporting the fusion (STARFusion) |
+| `starfus.discordant_mates` | Discordant mate pairs (STARFusion) |
+| `starfus.counter_fusion1` | Counter fusion reads for first gene (STARFusion) |
+| `starfus.counter_fusion2` | Counter fusion reads for second gene (STARFusion) |
+| `starfus.splice_type` | Splice junction type (STARFusion) |
+| `starfus.break_seq` | Breakpoint sequence (STARFusion) |
+
+### Expression Profile File {-}
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `gene1` | char | Gene name of first fusion partner |
-| `gene2` | char | Gene name of second fusion partner |
-| `chr1` or `chrom1` | char | Chromosome of first fusion partner (with "chr" prefix) |
-| `chr2` or `chrom2` | char | Chromosome of second fusion partner (with "chr" prefix) |
-| `pos1` | num | Genomic position of first fusion partner |
-| `pos2` | num | Genomic position of second fusion partner |
-| `strand1` | char | Strand orientation of first fusion partner (+/-) |
-| `strand2` | char | Strand orientation of second fusion partner (+/-) |
-| `arriba.called` | boolean | Whether Arriba called the fusion (true/false) |
-| `starfus.called` | boolean | Whether STARFusion called the fusion (true/false) |
-| `overall_support` | num | Overall support for the fusion |
-| `arriba.confidence` | char | Confidence score from Arriba (high/medium/low) |
-| `arriba.site1` | char | Breakpoint site annotation for first fusion partner |
-| `arriba.site2` | char | Breakpoint site annotation for second fusion partner |
+| `sample` | string | Sample ID |
+| `feature_name` | string | Gene name |
+| `geneid` | string | Gene ID (Ensembl, RefSeq, or other) |
+| `all_kegg_gene_names` | string | KEGG gene names |
+| `log2FC` | numeric | Log2 fold change (tumour vs. reference) |
+| `p_value` | numeric | P-value |
+| `p_adj` | numeric | Adjusted p-value |
 
+**Optional columns:**
 
-- **Optional columns:**
+| Column | Description |
+|--------|-------------|
+| `pathway` | Pathway name (retrieved automatically from KEGG if absent) |
+| `refseq_id` | RefSeq gene ID |
+| `type` | Gene type |
+| `gene_definition` | Gene description |
+| `num_of_paths` | Number of pathways the gene participates in |
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `DB_count` | int | Number of databases where the fusion is found |
-| `DB_list` | char | List of databases containing the fusion |
-| `arriba.split_reads` | int | Number of split reads supporting the fusion (Arriba) |
-| `arriba.discordant_mates` | int | Number of discordant mate pairs supporting the fusion (Arriba) |
-| `arriba.break_coverage` | int | Coverage at first breakpoint (Arriba) |
-| `arriba.break2_coverage` | int | Coverage at second breakpoint (Arriba) |
-| `arriba.break_seq` | char | Sequence at breakpoint (Arriba) |
-| `starfus.split_reads` | int | Number of split reads supporting the fusion (STARFusion) |
-| `starfus.discordant_mates` | int | Number of discordant mate pairs supporting the fusion (STARFusion) |
-| `starfus.counter_fusion1` | int | Counter fusion reads for first gene (STARFusion) |
-| `starfus.counter_fusion2` | int | Counter fusion reads for second gene (STARFusion) |
-| `starfus.splice_type` | char | Type of splice junction (STARFusion) |
-| `starfus.break_seq` | char | Sequence at breakpoint (STARFusion) |
+### Genes of Interest (GOI) {-}
 
+SeqUIaSCOPE ships with a built-in genes of interest list used for expression highlighting and
+network visualisation. To use a custom list instead, provide a `.tsv` or `.xlsx` file and
+update the path in `reference_paths.json` (see [Configuration](#configuration)).
 
-### Expression Data {-}
+| Column | Required | Description |
+|--------|----------|-------------|
+| `gene` | ✅ | Gene name |
+| `pathway` | optional | Pathway name — retrieved from KEGG automatically if absent |
 
-- **Required columns:**
+If the `pathway` column is provided, your own pathway classifications are used instead of KEGG.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `sample` | char | Sample ID |
-| `feature_name` | char | Gene name |
-| `geneid` | char | Gene ID (Ensembl, RefSeq, or other) |
-| `all_kegg_gene_names` | char | KEGG gene names |
-| `log2FC` | num | Log2 fold change |
-| `p_value` | num | P-value |
-| `p_adj` | num | Adjusted p-value |
-
-- **Optional columns:**
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `pathway` | char | Pathway name (if available, otherwise automatically retrieved from KEGG) |
-| `refseq_id` | char | RefSeq gene ID |
-| `type` | char | Gene type |
-| `gene_definition` | char | Gene definition/description |
-| `num_of_paths` | int | Number of pathways |
-
-#### GOI {-}
-
-- **Required columns:**
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `gene` | char | Gene name |
-
-- **Optional columns:**
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `pathway` | char | Pathway name |
-
-::: {.alert .alert-info}
-**Note:** If column `pathway` is not available, app will automatically use pathways from KEGG DB
-:::
-
-Example of `genes_of_interest.tsv`
-
-::: {.example-table}
-| gene  | pathway            |
-|-------|--------------------|
-| BRCA1 | DNA damage/repair  |
-| TP53  | RTK Signaling      |
-:::
+| gene  | pathway           |
+|-------|-------------------|
+| BRCA1 | DNA damage/repair |
+| TP53  | RTK Signalling    |
 

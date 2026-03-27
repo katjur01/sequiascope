@@ -5,119 +5,210 @@ output:
     css: "custom-styles.css"
 ---
 
-# Upload data {-}
+# Upload Data {-}
 
-This module serves as the starting point for the SequiaViz application. Before uploading data, ensure that your input files and directories are properly formatted according to the specifications outlined in chapter [Data Requirements](#data-requirements) and section below.
+The Upload Data module is the starting point of every analysis session. It guides you through
+selecting your data directory, specifying patients and datasets, and validating that all required
+files have been found before the analysis begins.
 
-## Step 1: Directory, patient and dataset selection {-}
-1. **Select main directory** containing data for all patients. 
+If you have previously saved a session, you can skip this process entirely by loading it directly
+— see [Session Management](#session-management) below.
 
-   In example bellow, the **main directory** is `project_root`, which contains subdirectories for each patient (`patient_001`, ..., `patient_N`) and general files like `genes_of_interest.tsv` and `mutation_loads.tsv`.
+---
 
-   If you select a broader directory, such as `user`, it may contain unnecessary files that could interfere with the tool’s ability to select correct files. To avoid this, it is recommended to select the most specific directory possible, such as `project_root`.
+## Step 1: Directory, Patients, and Datasets {-}
 
+```{r, echo=FALSE, out.width="100%"}
+knitr::include_graphics("./screenshots/upload_data_step1.png")
 ```
-home/
-└── user/
-    └── project_root/
-        ├── genes_of_interest.tsv                     # table of genes of interest
-        ├── mutation_loads.tsv                        # tumor mutational burden table
-        ├── patient_001/
-        │   ├── somatic_variants.tsv                  # somatic variants table
-        │   ├── germline_variants.tsv                 # germline variants table
-        │   ├── fusions.tsv                           # detected gene fusions table
-        │   ├── tumor.bam                             # tumor DNA BAM
-        │   ├── tumor.bam.bai                         # index for tumor DNA BAM
-        │   ├── normal.bam                            # normal DNA BAM
-        │   ├── normal.bam.bai                        # index for normal DNA BAM
-        │   ├── fusion.bam                            # tumor RNA BAM
-        │   ├── fusion.bam.bai                        # index for tumor RNA BAM
-        │   ├── chimeric.bam                          # chimeric BAM
-        │   ├── chimeric.bam.bai                      # index for chimeric BAM
-        │   ├── arriba_report.pdf                     # arriba report
-        │   ├── arriba_results.tsv                    # arriba result table
-        │   └── expression.tsv                        # gene expression table
-        └── patient_N/
-            └── ... 
-```    
-2. **Add patient IDs** 
 
-   Enter one or more patient IDs. If you have multiple IDs, you can input them all at once, separated by commas or new lines.
+### Select directory {-}
 
-3. **Select dataset types** you want to visualize. 
+Click **Browse** to select the root directory containing your patient data. The file browser
+opens at `/input_files` by default — this is the directory mounted into the application
+when running via Docker. If you are running the application locally without Docker, it opens
+at the working directory.
 
-   For each dataset, you can define specific patterns to identify relevant files:
-   - **Set patterns** for BAM files (e.g., "tumor", "FFPE", "normal", "ctrl", "chimeric"). If no pattern is set, BAM and BAI files will not be searched for.
-   - **Set reference tissues** for expression analysis (e.g., "blood", "blood_vessel", "liver"). If no tissue is specified, the tool will search for a file named `expression.tsv`.
+Choose the most specific directory that still contains all patient folders. Selecting a
+too-broad directory (e.g. your home folder) may cause the file scanner to pick up unrelated
+files. See [Data Requirements — Directory Layouts](#directory-layouts) for guidance.
 
-   If a dataset is not selected, its files will be ignored.
-   
+### Add patients {-}
+
+Enter one or more patient IDs using the **+** button next to the Patients panel. You can type
+multiple IDs at once, separated by commas or new lines. Patient IDs must match the identifiers
+used in your file paths — the scanner uses them to match files to the correct patient.
+
+### Select datasets {-}
+
+Toggle on the datasets you want to analyse. For each selected dataset, additional options appear:
+
+**Somatic variant calling**
+
+- *Pattern for variant file* — an optional string that appears in the variant filename, used to
+  distinguish the annotated variant file from other `.tsv` files in the same directory
+  (e.g. if your pipeline produces both `DZ1601.variants.tsv` and `DZ1601.final.variants.tsv`,
+  you can use a pattern to select only the correct one). Leave empty if there is no ambiguity.
+- *Pattern for tumor BAM files* — a string that appears in the tumor BAM filename (e.g. `tumor`, `FFPE`).
+  Leave empty if you do not want to use BAM files for this dataset.
+  Enter `none` if BAM files are available but have no prefix beyond the patient ID
+  (e.g. `DZ1601.bam` instead of `DZ1601_tumor.bam`).
+- *Pattern for normal BAM files* — same logic as above for normal DNA BAM files.
+
+**Germline variant calling**
+
+- *Pattern for variant file* — same as for somatic variants.
+- *Pattern for normal BAM files* — for normal DNA BAM files.
+
+**Fusion gene detection**
+
+- *Pattern for tumor BAM files* — for tumor RNA BAM files.
+- *Pattern for chimeric BAM files* — for chimeric BAM files (e.g. `chimeric`).
+- *Genome for IGV snapshot* — select the reference genome to use when generating IGV snapshots
+  of fusion breakpoints. Available options: `GRCh38/hg38`, `hg38 1kg/GATK`, `GRCh37/hg19`,
+  `T2T CHM13-v2.0/hs1`, `Custom` (configured via `reference_paths.json`), or
+  **Don't create IGV snapshots** if you want to skip IGV snapshot generation.
+
+**Expression profile**
+
+- *Reference tissues* — enter tissue names matching the tissue identifiers in your expression
+  filenames (e.g. `blood`, `liver`, `blood_vessel`). If your data contains a single expression
+  file per patient with no tissue suffix, leave this field empty. Different patients can have
+  different tissue sets — tissues that cannot be matched to a file for a given patient are simply
+  treated as unavailable for that patient.
+
 ::: {.alert .alert-info}
-**Note:** In case of more words in tissue names (e.g., "blood vessel"), use underscores instead of spaces (e.g., "blood_vessel"). Also, in Validation step, make extra sure, that correct file was paired to correct tissue.
+**BAM pattern matching:** Patterns are matched against the filename. A pattern of `tumor` will
+match `patient_001_tumor.bam` but not `patient_001_normal.bam`. Multiple patterns can be
+entered separated by commas (e.g. `tumor, FFPE`). Leave the field empty to skip BAM files
+entirely. Enter `none` if your BAM files have no pattern beyond the patient ID.
 :::
-
-## Step 2: Validation and confirmation {-}
-1. The application **searches** the selected directory and identifies all relevant files.
-2. It **displays an overview** of the files found for each patient and selected dataset.
-3. It **marks problems** using colored icons:
-   - 🟢 **Green**: All required files are found (e.g., variant file, fusion file, expression file).
-   - 🟠 **Orange**: Optional files are missing (e.g., BAM files for IGV visualization). You can continue without these files, but some features will be unavailable.
-   - 🔴 **Red**: Required files are missing or there are too many files. You must resolve these issues before proceeding. See the Common Errors and Solutions section below for help.
-4. **Confirm configuration** to continue
 
 ::: {.alert .alert-info}
-**Note:** If you realize in Step 2 that you made a mistake in Step 1, you can go back to Step 1 using the **Back** to Selection button and adjust your configuration. If you didn’t make a mistake but notice that some files are missing, you can add them to the directory or rename them as needed. Then, use the **Refresh** button to search for files again.
+**Tissue names:** Spaces are not supported — use underscores, dots, or hyphens as separators
+(e.g. `blood_vessel`, `blood.vessel`, or `blood-vessel`). The tissue name must appear somewhere
+in the expression filename — see
+[Data Requirements — Expression Files with Multiple Tissues](#expression-files-with-multiple-tissues).
 :::
 
-::: {.alert .alert-success}
-**Tip:** If you have previously worked on a configuration and saved the session, you can upload it directly using the **Load Session** button. This will allow the application to skip the Selection and Validation steps and load the configuration from the saved file.
+Click **Next** to proceed to validation.
+
+---
+
+## Step 2: Validation {-}
+
+After clicking Next, the application scans your selected directory and attempts to match files
+to each patient and dataset. The results are displayed in a validation table.
+
+Each file type is shown with a status icon:
+
+- 🟢 **Green** — required file found, everything is in order
+- 🟠 **Orange** — optional files are missing (e.g. BAM files for IGV). The analysis can proceed,
+  but some features will be unavailable
+- 🔴 **Red** — a required file is missing or multiple conflicting files were found. This must be
+  resolved before you can continue
+
+Review the table carefully, especially the tissue-to-file pairing for expression data if you
+specified multiple tissues. Once you are satisfied, click **Confirm** to load the data and
+proceed to the analysis modules.
+
+::: {.alert .alert-info}
+**Made a mistake in Step 1?** Use the **Back to Selection** button to return and adjust your
+configuration without losing your patient list or dataset selections.
 :::
+
+::: {.alert .alert-info}
+**Files added or renamed after scanning?** Use the **Refresh** button to re-scan the directory
+without going back to Step 1. This is useful if you noticed a missing file and added it to
+the directory while the validation table was open.
+:::
+
+### Common errors and solutions {-}
+
+**Required file missing**
+
+The expected variant, fusion, or expression file was not found for a patient. Check that:
+
+- The file exists in the patient directory
+- The patient ID appears somewhere in the file path
+- The dataset type keyword appears somewhere in the file path (see [Data Requirements — Dataset Type Keywords](#dataset-type-keywords))
+- The file has the correct extension (`.tsv`, `.vcf`, `.xlsx`)
+
+**Multiple files found**
+
+More than one file of the same type was found for a patient. Check that:
+
+- There are no duplicate files in the directory
+- BAM file patterns are specific enough to select only one file per type
+
+**Missing BAM or BAI**
+
+A BAM file was found but its index file is missing. Generate the index with:
+
+```bash
+samtools index file.bam
+```
+
+The index must be named `file.bam.bai` or `file.bai` and placed in the same directory as the BAM.
+
+**Missing Arriba PDF or TSV**
+
+Only one of the two Arriba output files was found. Both the `.pdf` and the `.tsv` must be present
+with matching base names and both must contain `arriba` in their path.
+
+**Tissue matching error**
+
+The number of expression files found does not match the number of tissues specified, or the tissue
+names cannot be matched to file names. Check that:
+
+- Each tissue has exactly one corresponding expression file
+- Tissue names in the form match the tissue identifiers in the filenames
+- Underscores are used instead of spaces in multi-word tissue names
+
+---
+
+## Fusion Pre-processing {-}
+
+When fusion gene data is confirmed and BAM files are available, the application automatically
+starts a background pre-processing step before the Fusion Genes module becomes available.
+This step generates IGV snapshots of each fusion breakpoint and extracts Arriba report images —
+tasks that can take several minutes depending on the number of fusions and the size of BAM files.
+
+Crucially, this runs **in the background** — you do not need to wait for it to finish. You can
+immediately start exploring somatic variants, germline variants, and expression data in the other
+modules while snapshot generation is in progress. The Fusion Genes module will progressively
+update as snapshots become available.
+
+If the application detects that snapshots from a previous session already exist for the same
+dataset, a dialog will ask whether you want to **Resume** (reuse existing snapshots and only
+generate the missing ones) or **Clean Start** (delete existing outputs and start fresh). This
+is useful if a previous session was interrupted partway through.
+
+::: {.alert .alert-warning} If you selected *Don't create IGV snapshots* in Step 1, the IGV
+snapshot generation is skipped but Arriba report images are still extracted if Arriba files
+are available. The expanded row preview in the Fusion Genes module will contain Arriba
+visualisations but no IGV images.
+:::
+
+---
+
+## Session Management {-}
+
+SeqUIaSCOPE supports saving and loading analysis sessions so that diagnostic work can be
+interrupted and resumed at any point without repeating the upload and validation steps.
+
+**Saving a session** — click the 💾 icon in the top navigation bar at any point during your
+analysis. The session file captures your current configuration, selected patients and datasets,
+all flagged variants, fusions, and genes, and any notes you have added. The file is saved to
+the `output_files/` directory.
+
+**Loading a session** — click the **Load session** button in the top right corner of Step 1.
+Select the previously saved session file. The application will restore your configuration and
+all selections, skipping the directory selection and validation steps.
 
 ::: {.alert .alert-warning}
-**Caution:** If present, the `genes_of_interest.tsv` and `mutation_loads.tsv` files will appear as detected files for each patient, even though only one file is shared among all patients.
+**Accidental navigation:** If you try to close or refresh the browser tab after data has been
+loaded, the application will show a warning asking you to confirm. This is to prevent accidental
+loss of unsaved work.
 :::
-
-## Common Errors and Solutions {-}
-
-#### **"Required file missing"** {-}
-**Cause**: A required file for the selected dataset type is missing.  
-**Solution**:
-
-- Verify that the file exists in the patient directory.
-- Check the file name to ensure it includes the patient ID (pay special attention to case sensitivity).
-- Confirm that the file has the correct extension (e.g., `.tsv`, `.xlsx`).
-
-#### **"Multiple files found"** {-}
-**Cause**: Multiple files of the same type were found for a single patient.  
-**Solution**:
-
-- Remove or rename duplicate files.
-- Ensure that each patient has only one file of each type.
-- Review BAM file patterns to ensure they are not too general.
-
-#### **"Missing BAM or BAI"** {-}
-**Cause**: A BAM file is missing its corresponding index file (.bai).  
-**Solution**:
-
-- Generate the missing `.bai` file using the command `samtools index`.
-- Ensure that the `.bai` file is named correctly.
-- For example, if the BAM file is `file.bam`, the index file must be `file.bam.bai` or `file.bai`.
-
-#### **"Missing PDF or TSV"** {-}
-**Cause**: The output from the Arriba analysis is incomplete.  
-**Solution**:
-
-- Ensure that both the `.pdf` and `.tsv` files from the Arriba analysis are present.
-- Verify that both files include the string "arriba" in their names and have the correct extensions (`.tsv`, `.pdf`).
-
-
-**FILL ALSO USE CASE FOR EXPRESSION FILES - MORE TISSUES THAN FILES OR MORE FILES THEN TISSUES --> TROUBLES WITH MATCHING TISSUE NAMES** {-}
-
-#### **"        "** {-}
-**Cause**: The number of tissues does not match the number of expression files found, or the tissue names cannot be matched to the files.  
-**Solution**:
-
-- Verify that each tissue has a corresponding expression file.
-- Ensure that tissue names in the configuration match the file names (use underscores instead of spaces, e.g., `blood_vessel` instead of `blood vessel`).
-- Double-check the pairing of tissues and files during the validation step.
 

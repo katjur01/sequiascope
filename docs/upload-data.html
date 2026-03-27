@@ -1,61 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <title>Upload data | SequiaViz Documentation</title>
-
-    <meta name="author" content="Kateřina Jurásková" />
-  
-   
-   <meta name="generator" content="placeholder" />
-  <meta property="og:title" content="Upload data | SequiaViz Documentation" />
-  <meta property="og:type" content="book" />
-  
-  
-  
-
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Upload data | SequiaViz Documentation" />
-  
-  
-  
-  <!-- JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script>
-  <script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script>
-    <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet" />
-    <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script>
-    <script src="libs/bs3compat-0.9.0/transition.js"></script>
-    <script src="libs/bs3compat-0.9.0/tabs.js"></script>
-    <script src="libs/bs3compat-0.9.0/bs3compat.js"></script>
-    <link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet" />
-    <script src="libs/bs4_book-1.0.0/bs4_book.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script>
-
-  <!-- CSS -->
-  <style type="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Upload Data | SeqUIaSCOPE Documentation</title>
+<meta name="author" content="Kateřina Jurásková">
+<meta name="generator" content="bookdown 0.46 with bs4_book()">
+<meta property="og:title" content="Upload Data | SeqUIaSCOPE Documentation">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Upload Data | SeqUIaSCOPE Documentation">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
-      <link rel="stylesheet" href="custom-styles.css" />
-  
+<link rel="stylesheet" href="custom-styles.css">
+<meta name="description" content="The Upload Data module is the starting point of every analysis session. It guides you through selecting your data directory, specifying patients and datasets, and validating that all required...">
+<meta property="og:description" content="The Upload Data module is the starting point of every analysis session. It guides you through selecting your data directory, specifying patients and datasets, and validating that all required...">
+<meta name="twitter:description" content="The Upload Data module is the starting point of every analysis session. It guides you through selecting your data directory, specifying patients and datasets, and validating that all required...">
 </head>
-
 <body data-spy="scroll" data-target="#toc">
 
 <div class="container-fluid">
 <div class="row">
-  <header class="col-sm-12 col-lg-3 sidebar sidebar-book">
-    <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
 
     <div class="d-flex align-items-start justify-content-between">
       <h1>
-        <a href="index.html" title="">SequiaViz Documentation</a>
+        <a href="index.html" title="">SeqUIaSCOPE Documentation</a>
       </h1>
       <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
@@ -63,169 +39,261 @@
     <div id="main-nav" class="collapse-lg">
       <form role="search">
         <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
-      </form>
+</form>
 
-      <nav aria-label="Table of contents">
-        <h2>Table of contents</h2>
-        <div id="book-toc"></div>
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
+<li><a class="" href="data-requirements.html">Data Requirements</a></li>
+<li><a class="active" href="upload-data.html">Upload Data</a></li>
+<li><a class="" href="working-with-tables.html">Working with Tables</a></li>
+<li><a class="" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile.html">Expression Profile</a></li>
+<li><a class="" href="igv.html">IGV</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="configuration-1.html">Configuration</a></li>
+</ul>
 
         <div class="book-extra">
-          <p><a id="book-repo" href="#">View book source <i class="fab fa-github"></i></a></li></p>
+          
         </div>
       </nav>
-    </div>
-  </header>
-
-  <main class="col-sm-12 col-md-9 col-lg-7" id="content">
-<div id="upload-data" class="section level1 unnumbered">
-<h1>Upload data</h1>
-<p>This module serves as the starting point for the SequiaViz application. Before uploading data, ensure that your input files and directories are properly formatted according to the specifications outlined in chapter <a href="data-requirements.html#data-requirements">Data Requirements</a> and section below.</p>
-<div id="step-1-directory-patient-and-dataset-selection" class="section level2 unnumbered">
-<h2>Step 1: Directory, patient and dataset selection</h2>
-<ol style="list-style-type: decimal">
-<li><p><strong>Select main directory</strong> containing data for all patients.</p>
-<p>In example bellow, the <strong>main directory</strong> is <code>project_root</code>, which contains subdirectories for each patient (<code>patient_001</code>, …, <code>patient_N</code>) and general files like <code>genes_of_interest.tsv</code> and <code>mutation_loads.tsv</code>.</p>
-<p>If you select a broader directory, such as <code>user</code>, it may contain unnecessary files that could interfere with the tool’s ability to select correct files. To avoid this, it is recommended to select the most specific directory possible, such as <code>project_root</code>.</p></li>
-</ol>
-<pre><code>home/
-└── user/
-    └── project_root/
-        ├── genes_of_interest.tsv                     # table of genes of interest
-        ├── mutation_loads.tsv                        # tumor mutational burden table
-        ├── patient_001/
-        │   ├── somatic_variants.tsv                  # somatic variants table
-        │   ├── germline_variants.tsv                 # germline variants table
-        │   ├── fusions.tsv                           # detected gene fusions table
-        │   ├── tumor.bam                             # tumor DNA BAM
-        │   ├── tumor.bam.bai                         # index for tumor DNA BAM
-        │   ├── normal.bam                            # normal DNA BAM
-        │   ├── normal.bam.bai                        # index for normal DNA BAM
-        │   ├── fusion.bam                            # tumor RNA BAM
-        │   ├── fusion.bam.bai                        # index for tumor RNA BAM
-        │   ├── chimeric.bam                          # chimeric BAM
-        │   ├── chimeric.bam.bai                      # index for chimeric BAM
-        │   ├── arriba_report.pdf                     # arriba report
-        │   ├── arriba_results.tsv                    # arriba result table
-        │   └── expression.tsv                        # gene expression table
-        └── patient_N/
-            └── ... </code></pre>
-<ol start="2" style="list-style-type: decimal">
-<li><p><strong>Add patient IDs</strong></p>
-<p>Enter one or more patient IDs. If you have multiple IDs, you can input them all at once, separated by commas or new lines.</p></li>
-<li><p><strong>Select dataset types</strong> you want to visualize.</p>
-<p>For each dataset, you can define specific patterns to identify relevant files:</p>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="upload-data" class="section level1 unnumbered">
+<h1>Upload Data<a class="anchor" aria-label="anchor" href="#upload-data"><i class="fas fa-link"></i></a>
+</h1>
+<p>The Upload Data module is the starting point of every analysis session. It guides you through
+selecting your data directory, specifying patients and datasets, and validating that all required
+files have been found before the analysis begins.</p>
+<p>If you have previously saved a session, you can skip this process entirely by loading it directly
+— see <a href="upload-data.html#session-management">Session Management</a> below.</p>
+<hr>
+<div id="step-1-directory-patients-and-datasets" class="section level2 unnumbered">
+<h2>Step 1: Directory, Patients, and Datasets<a class="anchor" aria-label="anchor" href="#step-1-directory-patients-and-datasets"><i class="fas fa-link"></i></a>
+</h2>
+<div class="inline-figure"><img src="screenshots/upload_data_step1.png" width="100%"></div>
+<div id="select-directory" class="section level3 unnumbered">
+<h3>Select directory<a class="anchor" aria-label="anchor" href="#select-directory"><i class="fas fa-link"></i></a>
+</h3>
+<p>Click <strong>Browse</strong> to select the root directory containing your patient data. The file browser
+opens at <code>/input_files</code> by default — this is the directory mounted into the application
+when running via Docker. If you are running the application locally without Docker, it opens
+at the working directory.</p>
+<p>Choose the most specific directory that still contains all patient folders. Selecting a
+too-broad directory (e.g. your home folder) may cause the file scanner to pick up unrelated
+files. See <a href="data-requirements.html#directory-layouts">Data Requirements — Directory Layouts</a> for guidance.</p>
+</div>
+<div id="add-patients" class="section level3 unnumbered">
+<h3>Add patients<a class="anchor" aria-label="anchor" href="#add-patients"><i class="fas fa-link"></i></a>
+</h3>
+<p>Enter one or more patient IDs using the <strong>+</strong> button next to the Patients panel. You can type
+multiple IDs at once, separated by commas or new lines. Patient IDs must match the identifiers
+used in your file paths — the scanner uses them to match files to the correct patient.</p>
+</div>
+<div id="select-datasets" class="section level3 unnumbered">
+<h3>Select datasets<a class="anchor" aria-label="anchor" href="#select-datasets"><i class="fas fa-link"></i></a>
+</h3>
+<p>Toggle on the datasets you want to analyse. For each selected dataset, additional options appear:</p>
+<p><strong>Somatic variant calling</strong></p>
 <ul>
-<li><strong>Set patterns</strong> for BAM files (e.g., “tumor”, “FFPE”, “normal”, “ctrl”, “chimeric”). If no pattern is set, BAM and BAI files will not be searched for.</li>
-<li><strong>Set reference tissues</strong> for expression analysis (e.g., “blood”, “blood_vessel”, “liver”). If no tissue is specified, the tool will search for a file named <code>expression.tsv</code>.</li>
+<li>
+<em>Pattern for variant file</em> — an optional string that appears in the variant filename, used to
+distinguish the annotated variant file from other <code>.tsv</code> files in the same directory
+(e.g. if your pipeline produces both <code>DZ1601.variants.tsv</code> and <code>DZ1601.final.variants.tsv</code>,
+you can use a pattern to select only the correct one). Leave empty if there is no ambiguity.</li>
+<li>
+<em>Pattern for tumor BAM files</em> — a string that appears in the tumor BAM filename (e.g. <code>tumor</code>, <code>FFPE</code>).
+Leave empty if you do not want to use BAM files for this dataset.
+Enter <code>none</code> if BAM files are available but have no prefix beyond the patient ID
+(e.g. <code>DZ1601.bam</code> instead of <code>DZ1601_tumor.bam</code>).</li>
+<li>
+<em>Pattern for normal BAM files</em> — same logic as above for normal DNA BAM files.</li>
 </ul>
-<p>If a dataset is not selected, its files will be ignored.</p></li>
-</ol>
-<div class="alert alert-info">
-<p><strong>Note:</strong> In case of more words in tissue names (e.g., “blood vessel”), use underscores instead of spaces (e.g., “blood_vessel”). Also, in Validation step, make extra sure, that correct file was paired to correct tissue.</p>
-</div>
-</div>
-<div id="step-2-validation-and-confirmation" class="section level2 unnumbered">
-<h2>Step 2: Validation and confirmation</h2>
-<ol style="list-style-type: decimal">
-<li>The application <strong>searches</strong> the selected directory and identifies all relevant files.</li>
-<li>It <strong>displays an overview</strong> of the files found for each patient and selected dataset.</li>
-<li>It <strong>marks problems</strong> using colored icons:
+<p><strong>Germline variant calling</strong></p>
 <ul>
-<li>🟢 <strong>Green</strong>: All required files are found (e.g., variant file, fusion file, expression file).</li>
-<li>🟠 <strong>Orange</strong>: Optional files are missing (e.g., BAM files for IGV visualization). You can continue without these files, but some features will be unavailable.</li>
-<li>🔴 <strong>Red</strong>: Required files are missing or there are too many files. You must resolve these issues before proceeding. See the Common Errors and Solutions section below for help.</li>
-</ul></li>
-<li><strong>Confirm configuration</strong> to continue</li>
-</ol>
+<li>
+<em>Pattern for variant file</em> — same as for somatic variants.</li>
+<li>
+<em>Pattern for normal BAM files</em> — for normal DNA BAM files.</li>
+</ul>
+<p><strong>Fusion gene detection</strong></p>
+<ul>
+<li>
+<em>Pattern for tumor BAM files</em> — for tumor RNA BAM files.</li>
+<li>
+<em>Pattern for chimeric BAM files</em> — for chimeric BAM files (e.g. <code>chimeric</code>).</li>
+<li>
+<em>Genome for IGV snapshot</em> — select the reference genome to use when generating IGV snapshots
+of fusion breakpoints. Available options: <code>GRCh38/hg38</code>, <code>hg38 1kg/GATK</code>, <code>GRCh37/hg19</code>,
+<code>T2T CHM13-v2.0/hs1</code>, <code>Custom</code> (configured via <code>reference_paths.json</code>), or
+<strong>Don’t create IGV snapshots</strong> if you want to skip IGV snapshot generation.</li>
+</ul>
+<p><strong>Expression profile</strong></p>
+<ul>
+<li>
+<em>Reference tissues</em> — enter tissue names matching the tissue identifiers in your expression
+filenames (e.g. <code>blood</code>, <code>liver</code>, <code>blood_vessel</code>). If your data contains a single expression
+file per patient with no tissue suffix, leave this field empty. Different patients can have
+different tissue sets — tissues that cannot be matched to a file for a given patient are simply
+treated as unavailable for that patient.</li>
+</ul>
 <div class="alert alert-info">
-<p><strong>Note:</strong> If you realize in Step 2 that you made a mistake in Step 1, you can go back to Step 1 using the <strong>Back</strong> to Selection button and adjust your configuration. If you didn’t make a mistake but notice that some files are missing, you can add them to the directory or rename them as needed. Then, use the <strong>Refresh</strong> button to search for files again.</p>
+<p><strong>BAM pattern matching:</strong> Patterns are matched against the filename. A pattern of <code>tumor</code> will
+match <code>patient_001_tumor.bam</code> but not <code>patient_001_normal.bam</code>. Multiple patterns can be
+entered separated by commas (e.g. <code>tumor, FFPE</code>). Leave the field empty to skip BAM files
+entirely. Enter <code>none</code> if your BAM files have no pattern beyond the patient ID.</p>
 </div>
-<div class="alert alert-success">
-<p><strong>Tip:</strong> If you have previously worked on a configuration and saved the session, you can upload it directly using the <strong>Load Session</strong> button. This will allow the application to skip the Selection and Validation steps and load the configuration from the saved file.</p>
+<div class="alert alert-info">
+<p><strong>Tissue names:</strong> Spaces are not supported — use underscores, dots, or hyphens as separators
+(e.g. <code>blood_vessel</code>, <code>blood.vessel</code>, or <code>blood-vessel</code>). The tissue name must appear somewhere
+in the expression filename — see
+<a href="data-requirements.html#expression-files-with-multiple-tissues">Data Requirements — Expression Files with Multiple Tissues</a>.</p>
 </div>
+<p>Click <strong>Next</strong> to proceed to validation.</p>
+<hr>
+</div>
+</div>
+<div id="step-2-validation" class="section level2 unnumbered">
+<h2>Step 2: Validation<a class="anchor" aria-label="anchor" href="#step-2-validation"><i class="fas fa-link"></i></a>
+</h2>
+<p>After clicking Next, the application scans your selected directory and attempts to match files
+to each patient and dataset. The results are displayed in a validation table.</p>
+<p>Each file type is shown with a status icon:</p>
+<ul>
+<li>🟢 <strong>Green</strong> — required file found, everything is in order</li>
+<li>🟠 <strong>Orange</strong> — optional files are missing (e.g. BAM files for IGV). The analysis can proceed,
+but some features will be unavailable</li>
+<li>🔴 <strong>Red</strong> — a required file is missing or multiple conflicting files were found. This must be
+resolved before you can continue</li>
+</ul>
+<p>Review the table carefully, especially the tissue-to-file pairing for expression data if you
+specified multiple tissues. Once you are satisfied, click <strong>Confirm</strong> to load the data and
+proceed to the analysis modules.</p>
+<div class="alert alert-info">
+<p><strong>Made a mistake in Step 1?</strong> Use the <strong>Back to Selection</strong> button to return and adjust your
+configuration without losing your patient list or dataset selections.</p>
+</div>
+<div class="alert alert-info">
+<p><strong>Files added or renamed after scanning?</strong> Use the <strong>Refresh</strong> button to re-scan the directory
+without going back to Step 1. This is useful if you noticed a missing file and added it to
+the directory while the validation table was open.</p>
+</div>
+<div id="common-errors-and-solutions" class="section level3 unnumbered">
+<h3>Common errors and solutions<a class="anchor" aria-label="anchor" href="#common-errors-and-solutions"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Required file missing</strong></p>
+<p>The expected variant, fusion, or expression file was not found for a patient. Check that:</p>
+<ul>
+<li>The file exists in the patient directory</li>
+<li>The patient ID appears somewhere in the file path</li>
+<li>The dataset type keyword appears somewhere in the file path (see <a href="#dataset-type-keywords">Data Requirements — Dataset Type Keywords</a>)</li>
+<li>The file has the correct extension (<code>.tsv</code>, <code>.vcf</code>, <code>.xlsx</code>)</li>
+</ul>
+<p><strong>Multiple files found</strong></p>
+<p>More than one file of the same type was found for a patient. Check that:</p>
+<ul>
+<li>There are no duplicate files in the directory</li>
+<li>BAM file patterns are specific enough to select only one file per type</li>
+</ul>
+<p><strong>Missing BAM or BAI</strong></p>
+<p>A BAM file was found but its index file is missing. Generate the index with:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="upload-data.html#cb14-1" tabindex="-1"></a><span class="ex">samtools</span> index file.bam</span></code></pre></div>
+<p>The index must be named <code>file.bam.bai</code> or <code>file.bai</code> and placed in the same directory as the BAM.</p>
+<p><strong>Missing Arriba PDF or TSV</strong></p>
+<p>Only one of the two Arriba output files was found. Both the <code>.pdf</code> and the <code>.tsv</code> must be present
+with matching base names and both must contain <code>arriba</code> in their path.</p>
+<p><strong>Tissue matching error</strong></p>
+<p>The number of expression files found does not match the number of tissues specified, or the tissue
+names cannot be matched to file names. Check that:</p>
+<ul>
+<li>Each tissue has exactly one corresponding expression file</li>
+<li>Tissue names in the form match the tissue identifiers in the filenames</li>
+<li>Underscores are used instead of spaces in multi-word tissue names</li>
+</ul>
+<hr>
+</div>
+</div>
+<div id="fusion-pre-processing" class="section level2 unnumbered">
+<h2>Fusion Pre-processing<a class="anchor" aria-label="anchor" href="#fusion-pre-processing"><i class="fas fa-link"></i></a>
+</h2>
+<p>When fusion gene data is confirmed and BAM files are available, the application automatically
+starts a background pre-processing step before the Fusion Genes module becomes available.
+This step generates IGV snapshots of each fusion breakpoint and extracts Arriba report images —
+tasks that can take several minutes depending on the number of fusions and the size of BAM files.</p>
+<p>Crucially, this runs <strong>in the background</strong> — you do not need to wait for it to finish. You can
+immediately start exploring somatic variants, germline variants, and expression data in the other
+modules while snapshot generation is in progress. The Fusion Genes module will progressively
+update as snapshots become available.</p>
+<p>If the application detects that snapshots from a previous session already exist for the same
+dataset, a dialog will ask whether you want to <strong>Resume</strong> (reuse existing snapshots and only
+generate the missing ones) or <strong>Clean Start</strong> (delete existing outputs and start fresh). This
+is useful if a previous session was interrupted partway through.</p>
+<p>::: {.alert .alert-warning} If you selected <em>Don’t create IGV snapshots</em> in Step 1, the IGV
+snapshot generation is skipped but Arriba report images are still extracted if Arriba files
+are available. The expanded row preview in the Fusion Genes module will contain Arriba
+visualisations but no IGV images.
+:::</p>
+<hr>
+</div>
+<div id="session-management" class="section level2 unnumbered">
+<h2>Session Management<a class="anchor" aria-label="anchor" href="#session-management"><i class="fas fa-link"></i></a>
+</h2>
+<p>SeqUIaSCOPE supports saving and loading analysis sessions so that diagnostic work can be
+interrupted and resumed at any point without repeating the upload and validation steps.</p>
+<p><strong>Saving a session</strong> — click the 💾 icon in the top navigation bar at any point during your
+analysis. The session file captures your current configuration, selected patients and datasets,
+all flagged variants, fusions, and genes, and any notes you have added. The file is saved to
+the <code>output_files/</code> directory.</p>
+<p><strong>Loading a session</strong> — click the <strong>Load session</strong> button in the top right corner of Step 1.
+Select the previously saved session file. The application will restore your configuration and
+all selections, skipping the directory selection and validation steps.</p>
 <div class="alert alert-warning">
-<p><strong>Caution:</strong> If present, the <code>genes_of_interest.tsv</code> and <code>mutation_loads.tsv</code> files will appear as detected files for each patient, even though only one file is shared among all patients.</p>
+<p><strong>Accidental navigation:</strong> If you try to close or refresh the browser tab after data has been
+loaded, the application will show a warning asking you to confirm. This is to prevent accidental
+loss of unsaved work.</p>
 </div>
-</div>
-<div id="common-errors-and-solutions" class="section level2 unnumbered">
-<h2>Common Errors and Solutions</h2>
-<div id="required-file-missing" class="section level4 unnumbered">
-<h4><strong>“Required file missing”</strong></h4>
-<p><strong>Cause</strong>: A required file for the selected dataset type is missing.<br />
-<strong>Solution</strong>:</p>
-<ul>
-<li>Verify that the file exists in the patient directory.</li>
-<li>Check the file name to ensure it includes the patient ID (pay special attention to case sensitivity).</li>
-<li>Confirm that the file has the correct extension (e.g., <code>.tsv</code>, <code>.xlsx</code>).</li>
-</ul>
-</div>
-<div id="multiple-files-found" class="section level4 unnumbered">
-<h4><strong>“Multiple files found”</strong></h4>
-<p><strong>Cause</strong>: Multiple files of the same type were found for a single patient.<br />
-<strong>Solution</strong>:</p>
-<ul>
-<li>Remove or rename duplicate files.</li>
-<li>Ensure that each patient has only one file of each type.</li>
-<li>Review BAM file patterns to ensure they are not too general.</li>
-</ul>
-</div>
-<div id="missing-bam-or-bai" class="section level4 unnumbered">
-<h4><strong>“Missing BAM or BAI”</strong></h4>
-<p><strong>Cause</strong>: A BAM file is missing its corresponding index file (.bai).<br />
-<strong>Solution</strong>:</p>
-<ul>
-<li>Generate the missing <code>.bai</code> file using the command <code>samtools index</code>.</li>
-<li>Ensure that the <code>.bai</code> file is named correctly.</li>
-<li>For example, if the BAM file is <code>file.bam</code>, the index file must be <code>file.bam.bai</code> or <code>file.bai</code>.</li>
-</ul>
-</div>
-<div id="missing-pdf-or-tsv" class="section level4 unnumbered">
-<h4><strong>“Missing PDF or TSV”</strong></h4>
-<p><strong>Cause</strong>: The output from the Arriba analysis is incomplete.<br />
-<strong>Solution</strong>:</p>
-<ul>
-<li>Ensure that both the <code>.pdf</code> and <code>.tsv</code> files from the Arriba analysis are present.</li>
-<li>Verify that both files include the string “arriba” in their names and have the correct extensions (<code>.tsv</code>, <code>.pdf</code>).</li>
-</ul>
-<p><strong>FILL ALSO USE CASE FOR EXPRESSION FILES - MORE TISSUES THAN FILES OR MORE FILES THEN TISSUES –&gt; TROUBLES WITH MATCHING TISSUE NAMES</strong> {-}</p>
-</div>
-<div id="section" class="section level4 unnumbered">
-<h4><strong>” “</strong></h4>
-<p><strong>Cause</strong>: The number of tissues does not match the number of expression files found, or the tissue names cannot be matched to the files.<br />
-<strong>Solution</strong>:</p>
-<ul>
-<li>Verify that each tissue has a corresponding expression file.</li>
-<li>Ensure that tissue names in the configuration match the file names (use underscores instead of spaces, e.g., <code>blood_vessel</code> instead of <code>blood vessel</code>).</li>
-<li>Double-check the pairing of tissues and files during the validation step.</li>
-</ul>
 
 </div>
 </div>
-</div>
-  </main>
-
-  <div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
-    <nav id="toc" data-toggle="toc" aria-label="On this page">
-      <h2>On this page</h2>
-      <div id="book-on-this-page"></div>
+  <div class="chapter-nav">
+<div class="prev"><a href="data-requirements.html">Data Requirements</a></div>
+<div class="next"><a href="working-with-tables.html">Working with Tables</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#upload-data">Upload Data</a></li>
+<li>
+<a class="nav-link" href="#step-1-directory-patients-and-datasets">Step 1: Directory, Patients, and Datasets</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#select-directory">Select directory</a></li>
+<li><a class="nav-link" href="#add-patients">Add patients</a></li>
+<li><a class="nav-link" href="#select-datasets">Select datasets</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#step-2-validation">Step 2: Validation</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#common-errors-and-solutions">Common errors and solutions</a></li></ul>
+</li>
+<li><a class="nav-link" href="#fusion-pre-processing">Fusion Pre-processing</a></li>
+<li><a class="nav-link" href="#session-management">Session Management</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-          <li><a id="book-source" href="#">View source <i class="fab fa-github"></i></a></li>
-          <li><a id="book-edit" href="#">Edit this page <i class="fab fa-github"></i></a></li>
+          
         </ul>
-      </div>
+</div>
     </nav>
-  </div>
+</div>
 
 </div>
 </div> <!-- .container -->
 
-<footer class="bg-primary text-light mt-5">
-  <div class="container"><div class="row">
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-11-28.</p>
+    <p>"<strong>SeqUIaSCOPE Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2026-03-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
@@ -234,8 +302,5 @@
 
 </div></div>
 </footer>
-
-
 </body>
-
 </html>

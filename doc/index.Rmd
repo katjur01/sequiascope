@@ -13,21 +13,7 @@ output:
 
 # Introduction {-}
 
-SeqUIaSCOPE is a web application designed for routine clinical oncology diagnostics through patient-centric integration and visualization of genomic variants, fusion events, and expression profiles. 
-It includes embedded genome browsing, pathway-level interpretation, and customizable reporting.
-
-## Key features {-}
-
-- **Multi-Omics Integration**: Unified interface for variants, fusions, and expression data with multi-site comparisons
-- **Interactive Variant Analysis**: Filterable tables, Variant Allele Frequency (VAF) and Sankey visualization
-- **Fusion Gene Validation**: IGV snapshots with supporting evidence and confidence metrics
-- **Embedded Genome Browsing**: Integrated IGV viewer for read-level validation without leaving the application
-- **Dynamic Pathway Visualization**: Interactive networks using Cytoscape with STRING DB and KEGG pathway integration
-- **Expression Analysis**: Tissue-matched reference data and volcano plots for deregulated genes
-- **Clinical Reporting**: Automated draft generation from predefined or custom templates
-- **Session Management**: Save and load analysis sessions for reproducible workflows
-- **Secure Deployment**: Docker containerization for local, data-secure infrastructure
-- **User-Friendly Interface**: Guided workflow, real-time tables, and downloadable results
+SeqUIaSCOPE is an open-source web application designed for routine clinical oncology diagnostics through patient-centric integration and visualization of annotated genomic variants, fusion events, and expression profiles. It includes embedded genome browsing, pathway-level interpretation, and customizable reporting. The patient-centric design supports single-patient diagnosis while allowing multi-patient data management. SeqUIaSCOPE is designed for secure local or cluster-based deployment using Docker or Kubernetes, ensuring that all patient data remains within institutional infrastructure.
 
 ## Live demo  {-}
 We are hosting a live demo of SeqUIaSCOPE to showcase its capabilities and allow users to explore the platform in action.

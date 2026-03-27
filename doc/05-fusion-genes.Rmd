@@ -1,0 +1,82 @@
+---
+output:
+  bookdown::bs4_book:
+    bootswatch: dark
+    css: "custom-styles.css"
+---
+
+# Fusion Genes {-}
+
+The Fusion Genes module enables users to review, validate, and flag causal gene fusions for
+inclusion in the clinical report. It integrates supporting evidence from Arriba and STARFusion,
+IGV snapshots of fusion breakpoints, and Arriba visualisation reports directly within the table.
+
+For general information about working with tables (sorting, filtering, column visibility,
+export, and flagging), see [Working with Tables](#working-with-tables).
+
+---
+
+## Background Pre-processing {-}
+
+Before the fusion table becomes available, the application runs a background pre-processing
+step that generates IGV snapshots of each fusion breakpoint and extracts images from Arriba
+reports. This runs in the background — you can explore other modules while it is in progress.
+The fusion table loads immediately and updates progressively as snapshots become available.
+
+For more details on this step, see [Upload Data — Fusion Pre-processing](#fusion-pre-processing).
+
+---
+
+## The Fusion Table {-}
+
+The table displays all detected fusions with columns from both Arriba and STARFusion callers.
+By default, the table is sorted by Arriba confidence (high first), then by whether Arriba
+and STARFusion both called the fusion.
+
+Two additional columns are specific to the fusion table and are not part of the input file:
+
+- **Visual check** — use the ✔ and ✖ buttons to mark a fusion as true positive or false
+  positive after reviewing the evidence. This helps track which fusions have been manually
+  reviewed without committing to flagging them for the report.
+- **Notes** — a free-text field for adding case-specific observations, such as reasons for
+  marking a fusion as false positive or notes about low coverage.
+
+The filter menu provides column visibility control. There are no additional pre-set filters
+for fusion data — all fusions are shown on load.
+
+---
+
+## Expanded Row Preview {-}
+
+Each row can be expanded to reveal a side-by-side view of the Arriba visualisation report
+and the IGV snapshot for that fusion. This allows quick assessment of whether a fusion is
+supported by sequencing evidence at both breakpoints.
+
+::: {.alert .alert-info}
+The expanded row preview requires Arriba output files (`.pdf` + `.tsv`) for the Arriba
+report images, and BAM files for IGV snapshots. If these were not provided during upload,
+the expanded row will be empty or partially available.
+:::
+
+::: {.alert .alert-success}
+**Tip:** Use the expanded row preview to quickly identify obvious false positives — for
+example, fusions where no signal is visible at one of the breakpoint positions in the IGV
+snapshot.
+:::
+
+---
+
+## Flagging Fusions {-}
+
+Select fusions from the table and click **Select fusion as causal** to flag them for the
+report. Flagged fusions appear in the review panel below the table where you can also remove
+items from the selection.
+
+Flagged fusions can be opened in the IGV viewer for detailed read-level inspection. Use the
+**IGV** dropdown to select one or more patients (up to 4) and click **Go to IGV**.
+
+::: {.alert .alert-danger}
+**IGV requires BAM files.** If no BAM files were provided during upload,
+the IGV dropdown will not be available.
+:::
+

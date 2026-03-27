@@ -1,0 +1,87 @@
+---
+output:
+  bookdown::bs4_book:
+    bootswatch: dark
+    css: "custom-styles.css"
+---
+
+# Configuration {-}
+
+SeqUIaSCOPE reads a `reference_paths.json` file at startup to locate reference files and
+configure optional features. A default version of this file is embedded in the Docker image.
+If you need to override any of the defaults — for example to use a custom report template
+or a custom reference genome — mount your own `reference_paths.json` into the container.
+
+---
+
+## Mounting a Custom Config {-}
+
+Add the following volume mount to your `docker-compose.hub.yml`:
+
+```yaml
+volumes:
+  - ./input_files:/input_files:ro
+  - ./output_files:/output_files
+  - ./reference_paths.json:/srv/shiny-server/sequiaScope/app/reference_paths.json:ro
+```
+
+Place your `reference_paths.json` in the same directory as the compose file.
+
+---
+
+## Config File Structure {-}
+
+```json
+{
+  "output_dir": "output_files",
+  "reference_files": {
+    "kegg_tab": "app/references/kegg_tab.tsv",
+    "report_template": "app/references/report_template.docx",
+    "genes_of_interest": "app/references/genes_of_interest.tsv"
+  },
+  "custom_genome": {
+    "display_name": "Custom genome",
+    "igv_id": "custom",
+    "genome": "custom_genome/GRCh38.fa",
+    "index": "custom_genome/GRCh38.fa.fai"
+  }
+}
+```
+
+---
+
+## Configuration Options {-}
+
+### `output_dir` {-}
+
+Directory where session data, IGV snapshots, and Arriba reports are stored. Defaults to
+`output_files`. In Docker deployments this should match the writable volume mount.
+
+### `reference_files` {-}
+
+Paths to the three built-in reference files. All paths are relative to the application
+root inside the container.
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `kegg_tab` | `app/references/kegg_tab.tsv` | KEGG pathway annotation table used by the Network Graph module and expression pathway assignment. Required when using expression or network graph features. |
+| `report_template` | `app/references/report_template.docx` | Default `.docx` template used for report generation in the Summary module. Can be replaced with an institutional template. |
+| `genes_of_interest` | `app/references/genes_of_interest.tsv` | Default genes of interest list used for expression highlighting. See [Data Requirements — Genes of Interest](#genes-of-interest) for the required file format. |
+
+### `custom_genome` {-}
+
+Optional section for configuring a custom reference genome for IGV. Remove this section
+entirely if you are using one of the built-in genomes (`GRCh38/hg38`, `GRCh37/hg19`, etc.).
+
+| Key | Description |
+|-----|-------------|
+| `display_name` | Name shown in the genome picker in the upload form |
+| `igv_id` | Internal identifier — must be set to `"custom"` |
+| `genome` | Path to the FASTA file, relative to the `/input_files` mount |
+| `index` | Path to the FASTA index (`.fai`), relative to the `/input_files` mount |
+
+::: {.alert .alert-info}
+Custom genome files must be placed inside your `input_files` directory so they are
+accessible via the `/input_files` mount. Paths in the config are relative to that mount point.
+:::
+

@@ -1,61 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <title>Variant Calling | SequiaViz Documentation</title>
-
-    <meta name="author" content="Kateřina Jurásková" />
-  
-   
-   <meta name="generator" content="placeholder" />
-  <meta property="og:title" content="Variant Calling | SequiaViz Documentation" />
-  <meta property="og:type" content="book" />
-  
-  
-  
-
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Variant Calling | SequiaViz Documentation" />
-  
-  
-  
-  <!-- JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script>
-  <script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script>
-    <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet" />
-    <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script>
-    <script src="libs/bs3compat-0.9.0/transition.js"></script>
-    <script src="libs/bs3compat-0.9.0/tabs.js"></script>
-    <script src="libs/bs3compat-0.9.0/bs3compat.js"></script>
-    <link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet" />
-    <script src="libs/bs4_book-1.0.0/bs4_book.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script>
-
-  <!-- CSS -->
-  <style type="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Variant Calling | SeqUIaSCOPE Documentation</title>
+<meta name="author" content="Kateřina Jurásková">
+<meta name="generator" content="bookdown 0.46 with bs4_book()">
+<meta property="og:title" content="Variant Calling | SeqUIaSCOPE Documentation">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Variant Calling | SeqUIaSCOPE Documentation">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
-      <link rel="stylesheet" href="custom-styles.css" />
-  
+<link rel="stylesheet" href="custom-styles.css">
+<meta name="description" content="The Variant Calling module is divided into two submodules: Somatic and Germline variant calling. Both provide interactive tables for reviewing, filtering, and flagging variants for the final...">
+<meta property="og:description" content="The Variant Calling module is divided into two submodules: Somatic and Germline variant calling. Both provide interactive tables for reviewing, filtering, and flagging variants for the final...">
+<meta name="twitter:description" content="The Variant Calling module is divided into two submodules: Somatic and Germline variant calling. Both provide interactive tables for reviewing, filtering, and flagging variants for the final...">
 </head>
-
 <body data-spy="scroll" data-target="#toc">
 
 <div class="container-fluid">
 <div class="row">
-  <header class="col-sm-12 col-lg-3 sidebar sidebar-book">
-    <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
 
     <div class="d-flex align-items-start justify-content-between">
       <h1>
-        <a href="index.html" title="">SequiaViz Documentation</a>
+        <a href="index.html" title="">SeqUIaSCOPE Documentation</a>
       </h1>
       <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
@@ -63,232 +39,201 @@
     <div id="main-nav" class="collapse-lg">
       <form role="search">
         <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
-      </form>
+</form>
 
-      <nav aria-label="Table of contents">
-        <h2>Table of contents</h2>
-        <div id="book-toc"></div>
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
+<li><a class="" href="data-requirements.html">Data Requirements</a></li>
+<li><a class="" href="upload-data.html">Upload Data</a></li>
+<li><a class="" href="working-with-tables.html">Working with Tables</a></li>
+<li><a class="active" href="variant-calling.html">Variant Calling</a></li>
+<li><a class="" href="fusion-genes.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile.html">Expression Profile</a></li>
+<li><a class="" href="igv.html">IGV</a></li>
+<li><a class="" href="network-graph.html">Network Graph</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="configuration-1.html">Configuration</a></li>
+</ul>
 
         <div class="book-extra">
-          <p><a id="book-repo" href="#">View book source <i class="fab fa-github"></i></a></li></p>
+          
         </div>
       </nav>
-    </div>
-  </header>
-
-  <main class="col-sm-12 col-md-9 col-lg-7" id="content">
-<div id="variant-calling" class="section level1 unnumbered">
-<h1>Variant Calling</h1>
-<p>The <strong>Variant Calling</strong> module is divided into two submodules - <strong>Somatic</strong> Variant Calling and <strong>Germline</strong> Variant Calling. Both submodules provide tools for reviewing, filtering, and selecting variants for further exploring and reporting through interactive tables, advanced filtering options, and integrated visualizations to streamline the review process.</p>
-<p>For information about core features shared across analysis modules (interactive tables, filtering, data selection, IGV integration, and data export), please refer to the <strong>Core Module Features</strong> chapter.</p>
-<div id="overview-of-features-1" class="section level2 unnumbered">
-<h2>Overview of Features</h2>
-<div id="variant-specific-filtering" class="section level3 unnumbered">
-<h3>Variant-Specific Filtering</h3>
-<p>In addition to the core filtering capabilities, the Variant Calling module provides specialized filtering options:</p>
-<ul>
-<li><strong>Gene Region:</strong> Filter specifically for exon and splice regions</li>
-<li><strong>Consequence:</strong> Select from multiple consequence types</li>
-<li><strong>Coverage Depth:</strong> Set minimum coverage thresholds</li>
-<li><strong>Population Frequency:</strong> Filter by gnomAD allele frequencies</li>
-<li><strong>ClinVar Significance:</strong> (Germline only) Filter variants by clinical significance</li>
-</ul>
-<p><img src="screenshots/variant-calling-filter.png" width="100%" /></p>
-<div class="alert alert-warning">
-<p><strong>Default Filters Applied:</strong> When you first view the data, the following filters are automatically applied to ensure optimal performance and focus on relevant variants.</p>
-<p>• <code>gnomAD_NFE ≤ 0.01</code> (rare variants only)</p>
-<p>• <code>coverage_depth &gt; 10</code> (sufficient read support)</p>
-<p>• <code>Consequence ≠ "synonymous_variant"</code> (exclude silent mutations)</p>
-<p>• <code>gene_region == "exon" OR "splice"</code> (coding regions only)</p>
 </div>
-</div>
-</div>
-<div id="submodule-specific-features" class="section level2 unnumbered">
-<h2>Submodule-Specific Features</h2>
-<div id="somatic-variant-calling-1" class="section level3 unnumbered">
-<h3>Somatic Variant Calling</h3>
-<p>The somatic submodule is designed for analyzing tumor-specific variants with specialized metrics and visualizations:</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-<li><strong>Cancer Databases:</strong> Filter by <code>COSMIC</code> and <code>CGC_Somatic</code> annotations</li>
-</ul>
-<div id="tumor-variant-frequency-histogram" class="section level4 unnumbered">
-<h4>Tumor Variant Frequency Histogram</h4>
-<p>This histogram displays the distribution of tumor variant allele frequencies (VAF) across all somatic variants. Selected variants are marked as blue lines.</p>
-</div>
-<div id="sankey-diagram" class="section level4 unnumbered">
-<h4>Sankey Diagram</h4>
-<p>The Sankey diagram visualizes the relationships between somatic variants, their associated
-genes, and the biological pathways in which these genes participate. This integrative
-view highlights how molecular alterations connect to functional contexts, offering insights
-into pathway-level disruptions.</p>
-</div>
-</div>
-<div id="germline-variant-calling-1" class="section level3 unnumbered">
-<h3>Germline Variant Calling</h3>
-<p>The germline submodule focuses on hereditary variants with clinical interpretation tools:</p>
-<p><strong>Key Features:</strong></p>
-<ul>
-<li><strong>Clinical Annotations:</strong> <code>ClinVar significance</code></li>
-<li><strong>Hereditary Cancer Database</strong> Filter by <code>CGC_Germline</code> and <code>TruSight</code> Genes panels</li>
-</ul>
-</div>
-</div>
-<div id="table-columns" class="section level2 unnumbered">
-<h2>Table Columns</h2>
-<p>The following table describes the columns available in the interactive tables for both submodules:</p>
-<table>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="variant-calling" class="section level1 unnumbered">
+<h1>Variant Calling<a class="anchor" aria-label="anchor" href="#variant-calling"><i class="fas fa-link"></i></a>
+</h1>
+<p>The Variant Calling module is divided into two submodules: <strong>Somatic</strong> and <strong>Germline</strong> variant
+calling. Both provide interactive tables for reviewing, filtering, and flagging variants for
+the final clinical report, along with integrated IGV visualisation for read-level validation.</p>
+<p>For general information about working with tables (sorting, filtering, column visibility,
+export, and flagging), see <a href="working-with-tables.html#working-with-tables">Working with Tables</a>.</p>
+<hr>
+<div id="filtering-variants" class="section level2 unnumbered">
+<h2>Filtering Variants<a class="anchor" aria-label="anchor" href="#filtering-variants"><i class="fas fa-link"></i></a>
+</h2>
+<p>When you first open either submodule, a set of filters is applied automatically to focus the
+view on the most clinically relevant variants. These are not permanent — you can adjust or
+remove them at any time using the filter menu.</p>
+<p><strong>Somatic variant calling:</strong></p>
+<div class="inline-table"><table class="table table-sm">
 <colgroup>
-<col width="16%" />
-<col width="65%" />
-<col width="8%" />
-<col width="9%" />
+<col width="22%">
+<col width="40%">
+<col width="37%">
 </colgroup>
-<thead>
-<tr class="header">
-<th><strong>Column</strong></th>
-<th><strong>Description</strong></th>
-<th><strong>Somatic</strong></th>
-<th><strong>Germline</strong></th>
-</tr>
-</thead>
+<thead><tr class="header">
+<th>Filter</th>
+<th>Default value</th>
+<th>Description</th>
+</tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>Gene_symbol</code></td>
-<td>The gene associated with the variant.</td>
-<td>✓</td>
-<td>✓</td>
+<td>gnomAD NFE</td>
+<td>≤ 0.01</td>
+<td>Rare variants only</td>
 </tr>
 <tr class="even">
-<td><code>var_name</code></td>
-<td>The name of the variant.</td>
-<td>✓</td>
-<td>✓</td>
+<td>Tumor coverage depth</td>
+<td>&gt; 10</td>
+<td>Sufficient read support</td>
 </tr>
 <tr class="odd">
-<td><code>HGVSc</code></td>
-<td>HGVS coding sequence annotation.</td>
-<td>✓</td>
-<td>✓</td>
+<td>Consequence</td>
+<td>all except <code>synonymous variant</code>
+</td>
+<td>Exclude silent mutations</td>
 </tr>
 <tr class="even">
-<td><code>HGVSp</code></td>
-<td>HGVS protein sequence annotation.</td>
-<td>✓</td>
-<td>✓</td>
-</tr>
-<tr class="odd">
-<td><code>variant_type</code></td>
-<td>The type of variant (e.g., SNP, insertion, deletion).</td>
-<td>✓</td>
-<td>✓</td>
-</tr>
-<tr class="even">
-<td><code>tumor_variant_freq</code></td>
-<td>The variant allele frequency in the tumor sample.</td>
-<td>✓</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><code>tumor_depth</code></td>
-<td>The sequencing depth at the variant position in the tumor sample.</td>
-<td>✓</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><code>variant_freq</code></td>
-<td>The variant allele frequency in the germline sample.</td>
-<td></td>
-<td>✓</td>
-</tr>
-<tr class="odd">
-<td><code>coverage_depth</code></td>
-<td>The sequencing depth at the variant position in the germline sample.</td>
-<td></td>
-<td>✓</td>
-</tr>
-<tr class="even">
-<td><code>gnomAD_NFE</code></td>
-<td>The population frequency of the variant in the gnomAD Non-Finnish European population.</td>
-<td>✓</td>
-<td>✓</td>
-</tr>
-<tr class="odd">
-<td><code>Consequence</code></td>
-<td>The predicted functional consequence of the variant (e.g., missense, synonymous).</td>
-<td>✓</td>
-<td>✓</td>
-</tr>
-<tr class="even">
-<td><code>clinvar_sig</code></td>
-<td>The clinical significance of the variant according to ClinVar (e.g., pathogenic, likely pathogenic).</td>
-<td></td>
-<td>✓</td>
-</tr>
-<tr class="odd">
-<td><code>COSMIC</code></td>
-<td>Indicates whether the variant is listed in the COSMIC database.</td>
-<td>✓</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><code>CGC_Somatic</code></td>
-<td>Indicates whether the variant is associated with cancer in the CGC database.</td>
-<td>✓</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><code>CGC_Germline</code></td>
-<td>Indicates whether the variant is associated with hereditary cancer in the CGC database.</td>
-<td></td>
-<td>✓</td>
-</tr>
-<tr class="even">
-<td><code>TruSight Genes</code></td>
-<td>Indicates whether the variant is included in the TruSight Cancer Panel.</td>
-<td></td>
-<td>✓</td>
+<td>Gene region</td>
+<td>
+<code>exon</code> and <code>splice</code> only</td>
+<td>Coding regions only</td>
 </tr>
 </tbody>
-</table>
+</table></div>
+<p><strong>Germline variant calling:</strong></p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="22%">
+<col width="40%">
+<col width="37%">
+</colgroup>
+<thead><tr class="header">
+<th>Filter</th>
+<th>Default value</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>gnomAD NFE</td>
+<td>≤ 0.01</td>
+<td>Rare variants only</td>
+</tr>
+<tr class="even">
+<td>Coverage depth</td>
+<td>&gt; 10</td>
+<td>Sufficient read support</td>
+</tr>
+<tr class="odd">
+<td>Consequence</td>
+<td>all except <code>synonymous variant</code>
+</td>
+<td>Exclude silent mutations</td>
+</tr>
+<tr class="even">
+<td>Gene region</td>
+<td>
+<code>exon</code> and <code>splice</code> only</td>
+<td>Coding regions only</td>
+</tr>
+<tr class="odd">
+<td>ClinVar significance</td>
+<td>all</td>
+<td>Filter by clinical significance classification</td>
+</tr>
+</tbody>
+</table></div>
 <div class="alert alert-warning">
-<p><strong>Note:</strong> The application recognizes additional columns beyond the required ones.
-If your dataset includes extra columns, they will still appear in the table and can be used for filtering or display.
-However, these columns will not have customized labels — only minor formatting is applied (dots and underscores are replaced with spaces).</p>
+<p><strong>If the table appears empty</strong>, the most likely cause is that no variants pass the default
+filters for this patient. Open the filter menu and relax the gene region or gnomAD threshold
+to verify.</p>
+</div>
+<hr>
+</div>
+<div id="flagging-variants" class="section level2 unnumbered">
+<h2>Flagging Variants<a class="anchor" aria-label="anchor" href="#flagging-variants"><i class="fas fa-link"></i></a>
+</h2>
+<p>Select variants from the table and click <strong>Select variants as possibly oncogenic</strong> (somatic)
+or the equivalent button in germline to flag them for the report. Flagged variants appear in
+the review panel below the table, where you can also remove items from the selection.</p>
+<div class="inline-figure"><img src="screenshots/variant-calling-pathogenic.png" width="100%"></div>
+<p>Flagged variants can be opened in the IGV viewer for read-level validation. Use the <strong>IGV</strong>
+dropdown on the right side of the module to select one or more patients (up to 4) and click
+<strong>Go to IGV</strong> to navigate to the IGV module with the selected variants pre-loaded.</p>
+<div class="alert alert-danger">
+<p><strong>IGV requires BAM files.</strong> If no BAM files were provided for this dataset during upload,
+the IGV dropdown will not be available.</p>
+</div>
+<hr>
+</div>
+<div id="somatic-specific-visualisations" class="section level2 unnumbered">
+<h2>Somatic-Specific Visualisations<a class="anchor" aria-label="anchor" href="#somatic-specific-visualisations"><i class="fas fa-link"></i></a>
+</h2>
+<p>The somatic submodule includes two additional visualisations, available as collapsible panels
+below the main table. Both can be downloaded using the export button in the top right corner
+of each panel.</p>
+<div id="tumor-variant-frequency-histogram" class="section level3 unnumbered">
+<h3>Tumor Variant Frequency Histogram<a class="anchor" aria-label="anchor" href="#tumor-variant-frequency-histogram"><i class="fas fa-link"></i></a>
+</h3>
+<p>Displays the distribution of variant allele frequencies (VAF) across all somatic variants.
+Flagged variants are marked as vertical lines, making it easy to see where your selected
+variants sit in the overall VAF distribution.</p>
+</div>
+<div id="sankey-diagram" class="section level3 unnumbered">
+<h3>Sankey Diagram<a class="anchor" aria-label="anchor" href="#sankey-diagram"><i class="fas fa-link"></i></a>
+</h3>
+<p>Visualises the relationships between somatic variants, their associated genes, and the
+biological pathways those genes participate in. This provides a pathway-level overview of
+how molecular alterations are distributed across functional contexts.</p>
+
 </div>
 </div>
-<div id="limitations-1" class="section level2 unnumbered alert alert-danger">
-<h2>Limitations</h2>
-<ul>
-<li>The IGV integration requires BAM/BAI files to be available for the selected patient.</li>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="working-with-tables.html">Working with Tables</a></div>
+<div class="next"><a href="fusion-genes.html">Fusion Genes</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#variant-calling">Variant Calling</a></li>
+<li><a class="nav-link" href="#filtering-variants">Filtering Variants</a></li>
+<li><a class="nav-link" href="#flagging-variants">Flagging Variants</a></li>
+<li>
+<a class="nav-link" href="#somatic-specific-visualisations">Somatic-Specific Visualisations</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#tumor-variant-frequency-histogram">Tumor Variant Frequency Histogram</a></li>
+<li><a class="nav-link" href="#sankey-diagram">Sankey Diagram</a></li>
 </ul>
-</div>
-
-</div>
-  </main>
-
-  <div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
-    <nav id="toc" data-toggle="toc" aria-label="On this page">
-      <h2>On this page</h2>
-      <div id="book-on-this-page"></div>
+</li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-          <li><a id="book-source" href="#">View source <i class="fab fa-github"></i></a></li>
-          <li><a id="book-edit" href="#">Edit this page <i class="fab fa-github"></i></a></li>
+          
         </ul>
-      </div>
+</div>
     </nav>
-  </div>
+</div>
 
 </div>
 </div> <!-- .container -->
 
-<footer class="bg-primary text-light mt-5">
-  <div class="container"><div class="row">
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-11-28.</p>
+    <p>"<strong>SeqUIaSCOPE Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2026-03-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
@@ -297,8 +242,5 @@ However, these columns will not have customized labels — only minor formatting
 
 </div></div>
 </footer>
-
-
 </body>
-
 </html>

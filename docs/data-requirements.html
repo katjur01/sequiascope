@@ -4,13 +4,13 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Data requirements | SequiaViz Documentation</title>
+<title>Data Requirements | SeqUIaSCOPE Documentation</title>
 <meta name="author" content="Kateřina Jurásková">
-<meta name="generator" content="bookdown 0.45 with bs4_book()">
-<meta property="og:title" content="Data requirements | SequiaViz Documentation">
+<meta name="generator" content="bookdown 0.46 with bs4_book()">
+<meta property="og:title" content="Data Requirements | SeqUIaSCOPE Documentation">
 <meta property="og:type" content="book">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Data requirements | SequiaViz Documentation">
+<meta name="twitter:title" content="Data Requirements | SeqUIaSCOPE Documentation">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -19,9 +19,9 @@
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
 <link rel="stylesheet" href="custom-styles.css">
-<meta name="description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor-normal paired...">
-<meta property="og:description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor-normal paired...">
-<meta name="twitter:description" content="Input file types and formats SequiaViz integrates results from four types of genomic datasets:  1. Somatic Variant Calling Exploration and visualization of somatic mutations in tumor-normal paired...">
+<meta name="description" content="SeqUIaSCOPE accepts four types of genomic data: somatic variant calling results, germline variant calling results, fusion gene detection results, and gene expression profiles. Not all four are...">
+<meta property="og:description" content="SeqUIaSCOPE accepts four types of genomic data: somatic variant calling results, germline variant calling results, fusion gene detection results, and gene expression profiles. Not all four are...">
+<meta name="twitter:description" content="SeqUIaSCOPE accepts four types of genomic data: somatic variant calling results, germline variant calling results, fusion gene detection results, and gene expression profiles. Not all four are...">
 </head>
 <body data-spy="scroll" data-target="#toc">
 
@@ -31,7 +31,7 @@
 
     <div class="d-flex align-items-start justify-content-between">
       <h1>
-        <a href="index.html" title="">SequiaViz Documentation</a>
+        <a href="index.html" title="">SeqUIaSCOPE Documentation</a>
       </h1>
       <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
@@ -45,14 +45,16 @@
         <ul class="book-toc list-unstyled">
 <li><a class="" href="index.html">Introduction</a></li>
 <li><a class="" href="how-to-install-and-run.html">How to install and run</a></li>
-<li><a class="active" href="data-requirements.html">Data requirements</a></li>
-<li><a class="" href="upload-data.html">Upload data</a></li>
-<li><a class="" href="core-module-features.html">Core Module Features</a></li>
-<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="active" href="data-requirements.html">Data Requirements</a></li>
+<li><a class="" href="upload-data.html">Upload Data</a></li>
+<li><a class="" href="working-with-tables.html">Working with Tables</a></li>
 <li><a class="" href="variant-calling.html">Variant Calling</a></li>
-<li><a class="" href="fusion-genes-1.html">Fusion Genes</a></li>
-<li><a class="" href="expression-profile-1.html">Expression Profile</a></li>
+<li><a class="" href="fusion-genes.html">Fusion Genes</a></li>
+<li><a class="" href="expression-profile.html">Expression Profile</a></li>
+<li><a class="" href="igv.html">IGV</a></li>
 <li><a class="" href="network-graph.html">Network Graph</a></li>
+<li><a class="" href="summary-and-report.html">Summary and Report</a></li>
+<li><a class="" href="configuration-1.html">Configuration</a></li>
 </ul>
 
         <div class="book-extra">
@@ -61,386 +63,323 @@
       </nav>
 </div>
   </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="data-requirements" class="section level1 unnumbered">
-<h1>
-<strong>Data requirements</strong><a class="anchor" aria-label="anchor" href="#data-requirements"><i class="fas fa-link"></i></a>
+<h1>Data Requirements<a class="anchor" aria-label="anchor" href="#data-requirements"><i class="fas fa-link"></i></a>
 </h1>
-<div id="input-file-types-and-formats" class="section level2 unnumbered">
-<h2>
-<strong>Input file types and formats</strong><a class="anchor" aria-label="anchor" href="#input-file-types-and-formats"><i class="fas fa-link"></i></a>
+<p>SeqUIaSCOPE accepts four types of genomic data: somatic variant calling results,
+germline variant calling results, fusion gene detection results, and gene expression profiles.
+Not all four are required — you can upload any combination depending on your analysis needs.</p>
+<p>Before uploading, make sure your files follow the naming and format rules described on this page.
+The application automatically scans your directory for files and uses these rules to identify
+which file belongs to which patient and dataset type. Errors at upload time are almost always
+caused by naming issues.</p>
+<hr>
+<div id="input-files-overview" class="section level2 unnumbered">
+<h2>Input Files Overview<a class="anchor" aria-label="anchor" href="#input-files-overview"><i class="fas fa-link"></i></a>
 </h2>
-<p>SequiaViz integrates results from four types of genomic datasets:</p>
-<div id="somatic-variant-calling" class="section level3 unnumbered">
-<h3>
-<strong>1. Somatic Variant Calling</strong><a class="anchor" aria-label="anchor" href="#somatic-variant-calling"><i class="fas fa-link"></i></a>
-</h3>
-<p>Exploration and visualization of somatic mutations in tumor-normal paired samples</p>
-<ul>
-<li>
-<strong>Required files</strong>:
-<ul>
-<li>
-<code>.tsv</code> | <code>.vcf</code> file with annotated variants</li>
-</ul>
-</li>
-<li>
-<strong>Optional files</strong> (needed for IGV visualization):
-<ul>
-<li>Tumor DNA <code>.bam</code> + <code>.bai</code> files</li>
-<li>Normal DNA <code>.bam</code> + <code>.bai</code> files</li>
-<li>Tumor mutational burden (TMB) <code>.tsv</code> | <code>.xlsx</code> | <code>.txt</code> file</li>
-</ul>
-</li>
-</ul>
+<div class="file-cards-grid">
+
+<!-- SOMATIC -->
+<div class="file-card">
+<div class="file-card-header somatic-header">
+<i class="fa-solid fa-dna"></i> Somatic Variant Calling</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required">
+<span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> — annotated somatic variants</span>
 </div>
-<div id="germline-variant-calling" class="section level3 unnumbered">
-<h3>
-<strong>2. Germline Variant Calling</strong><a class="anchor" aria-label="anchor" href="#germline-variant-calling"><i class="fas fa-link"></i></a>
-</h3>
-<p>Exploration and visualization of germline mutations in normal samples</p>
-<ul>
-<li>
-<strong>Required files</strong>:
-<ul>
-<li>
-<code>.tsv</code> | <code>.vcf</code> file with annotated variants</li>
-</ul>
-</li>
-<li>
-<strong>Optional files</strong> (needed for IGV visualization):
-<ul>
-<li>Normal <code>.bam</code> + <code>.bai</code> files</li>
-</ul>
-</li>
-</ul>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Tumor DNA <code>.bam</code> + <code>.bai</code> — for IGV</span>
 </div>
-<div id="fusion-genes-detection" class="section level3 unnumbered">
-<h3>
-<strong>3. Fusion Genes Detection</strong><a class="anchor" aria-label="anchor" href="#fusion-genes-detection"><i class="fas fa-link"></i></a>
-</h3>
-<p>Exploration and visualization of gene fusions from RNA-seq tumor samples</p>
-<ul>
-<li>
-<strong>Required files</strong>:
-<ul>
-<li>
-<code>.tsv</code> | <code>.xlsx</code> files with detected genes fusion (<code>.tsv</code> is not implemented yet)</li>
-</ul>
-</li>
-<li>
-<strong>Optional files</strong> (needed for IGV visualization and row expansion preview):
-<ul>
-<li>Tumor RNA <code>.bam</code> + <code>.bai</code> files</li>
-<li>Chimeric <code>.bam</code> + <code>.bai</code> files</li>
-<li>Arriba <code>.pdf</code> + <code>.tsv</code> files (for embedded report display and quality metrics)</li>
-</ul>
-</li>
-</ul>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Normal DNA <code>.bam</code> + <code>.bai</code> — for IGV</span>
 </div>
-<div id="expression-profile" class="section level3 unnumbered">
-<h3>
-<strong>4. Expression Profile</strong><a class="anchor" aria-label="anchor" href="#expression-profile"><i class="fas fa-link"></i></a>
-</h3>
-<p>Exploration and visualization of gene expression in different tissues</p>
-<ul>
-<li>
-<strong>Required files</strong>:
-<ul>
-<li>
-<code>.tsv</code> | <code>.xlsx</code> | <code>.txt</code> file with expression data of sample OR files with tissue-matched reference expression data</li>
-</ul>
-</li>
-<li>
-<strong>Optional files</strong>:
-<ul>
-<li>Genes of interest (GOI) <code>.tsv</code> | <code>.xlsx</code> | <code>.txt</code> file</li>
-</ul>
-</li>
-</ul>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-file-csv"></i></span><span><code>mutation_loads.tsv</code> — tumour mutational burden</span>
+</div>
+</div>
+</div>
+
+<!-- GERMLINE -->
+<div class="file-card">
+<div class="file-card-header germline-header">
+<i class="fa-solid fa-microscope"></i> Germline Variant Calling</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required">
+<span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> — annotated germline variants</span>
+</div>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Normal DNA <code>.bam</code> + <code>.bai</code> — for IGV</span>
+</div>
+</div>
+</div>
+
+<!-- FUSION -->
+<div class="file-card">
+<div class="file-card-header fusion-header">
+<i class="fa-solid fa-code-merge"></i> Fusion Gene Detection</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required">
+<span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> or <code>.xlsx</code> — combined Arriba + STARFusion results</span>
+</div>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Tumor RNA <code>.bam</code> + <code>.bai</code> — for IGV snapshots</span>
+</div>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-folder-open"></i></span><span>Chimeric <code>.bam</code> + <code>.bai</code> — for IGV snapshots</span>
+</div>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-file-pdf"></i></span><span>Arriba <code>.pdf</code> + <code>.tsv</code> — for expanded row preview</span>
+</div>
+</div>
+</div>
+
+<!-- EXPRESSION -->
+<div class="file-card">
+<div class="file-card-header expression-header">
+<i class="fa-solid fa-chart-area"></i> Expression Profile</div>
+<div class="file-card-body">
+<div class="file-section-label">Required</div>
+<div class="file-item required">
+<span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span><code>.tsv</code> or <code>.xlsx</code> — gene expression data</span>
+</div>
+<hr class="file-card-divider">
+<div class="file-section-label">Optional</div>
+<div class="file-item optional">
+<span class="fi-icon"><i class="fa-solid fa-file-lines"></i></span><span>One file per tissue if comparing multiple reference tissues</span>
+</div>
+</div>
+</div>
+
+</div>
 <div class="alert alert-success">
-<p><strong>Tip:</strong> If you can choose, <strong>always</strong> prioritize <strong><code>.tsv</code></strong> files over <code>.xlsx</code> or <code>vcf</code> files because they are faster to load and process.</p>
+<p><strong>Tip:</strong> When you have a choice, always prefer <code>.tsv</code> over <code>.xlsx</code>. TSV files load faster and are less likely to cause formatting issues.</p>
+</div>
+<div class="alert alert-info">
+<p><strong>Fusion gene detection</strong> requires results from both <strong>Arriba</strong> and <strong>STARFusion</strong> as upstream tools.
+The required input file is a pre-processed table combining the output of both callers.
+The Arriba <code>.pdf</code> and <code>.tsv</code> output files are separate and optional — they unlock the expanded row preview in the Fusion Genes module.</p>
 </div>
 <hr>
 </div>
-</div>
-<div id="data-organization-and-directory-structure" class="section level2 unnumbered">
-<h2>Data organization and directory structure<a class="anchor" aria-label="anchor" href="#data-organization-and-directory-structure"><i class="fas fa-link"></i></a>
+<div id="file-naming-rules" class="section level2 unnumbered">
+<h2>File Naming Rules<a class="anchor" aria-label="anchor" href="#file-naming-rules"><i class="fas fa-link"></i></a>
 </h2>
-<div id="recommended-directory-structure" class="section level3 unnumbered">
-<h3>Recommended Directory Structure<a class="anchor" aria-label="anchor" href="#recommended-directory-structure"><i class="fas fa-link"></i></a>
+<p>SeqUIaSCOPE identifies files by scanning the full file path (folder names + file name together).
+It looks for specific <strong>keywords</strong> anywhere in the path to decide what type each file is.
+This means a keyword can appear in the filename itself <strong>or</strong> in a parent folder name — both work.</p>
+<div id="keyword-reference" class="section level3 unnumbered">
+<h3>Keyword Reference<a class="anchor" aria-label="anchor" href="#keyword-reference"><i class="fas fa-link"></i></a>
 </h3>
-<pre><code>project_root/
-├── somatic_data/
-│   ├── mutation_loads.tsv                    # tumor mutational burden table
-│   ├── patient_001/
-│   │   ├── variants.tsv                      # somatic variants table
-│   │   ├── tumor.bam                         # tumor DNA BAM
-│   │   ├── tumor.bam.bai                     # index for tumor DNA BAM
-│   │   ├── normal.bam                        # normal DNA BAM
-│   │   └── normal.bam.bai                    # index for normal DNA BAM
-│   ├── patient_002/
-│   │   └── ... (same structure)
-│   └── patient_N/
-│       └── ... (same structure)
-├── germline_data/
-│   ├── patient_001/
-│   │   ├── variants.tsv                      # germline variants table
-│   │   ├── normal.bam                        # normal DNA BAM
-│   │   └── normal.bam.bai                    # index for normal DNA BAM
-│   ├── patient_002/
-│   │   └── ... (same structure)
-│   └── patient_N/
-│       └── ... (same structure)
-├── fusion_data/
-│   ├── patient_001/
-│   │   ├── fusions.tsv                       # detected gene fusions table
-│   │   ├── fusion.bam                        # tumor RNA BAM
-│   │   ├── fusion.bam.bai                    # index for tumor RNA BAM
-│   │   ├── chimeric.bam                      # chimeric BAM
-│   │   ├── chimeric.bam.bai                  # index for chimeric BAM
-│   │   ├── arriba_report.pdf                 # arriba report
-│   │   └── arriba_results.tsv                # arriba result table
-│   ├── patient_002/
-│   │   └── ... (same structure)
-│   └── patient_N/
-│       └── ... (same structure)                  
-└── expression_data/
-    ├── genes_of_interest.tsv                 # table of genes of interest
-    ├── patient_001/
-    │   └── expression.tsv                    # gene expression table
-    ├── patient_002/
-    │   └── ... (same structure)
-    └── patient_N/
-        └── ... (same structure)   </code></pre>
-<p>… or in case of multiple tissue-matched reference expression data:</p>
-<pre><code>└── expression_data/
-    ├── genes_of_interest.tsv                 # list of genes of interest
-    ├── patient_001/
-    │   ├── blood_expression.tsv              # expression in blood
-    │   └── liver_expression.tsv              # expression in liver
-    ├── patient_002/
-    │   └── ... (same structure)
-    └── patient_N/
-        └── ... (same structure)   
-
-</code></pre>
-</div>
-<div id="alternative-directory-structures" class="section level3 unnumbered">
-<h3>Alternative Directory Structures<a class="anchor" aria-label="anchor" href="#alternative-directory-structures"><i class="fas fa-link"></i></a>
-</h3>
-<div id="option-1-bam-bai-files-in-separate-folders" class="section level4 unnumbered">
-<h4>Option 1: BAM + BAI files in separate folders<a class="anchor" aria-label="anchor" href="#option-1-bam-bai-files-in-separate-folders"><i class="fas fa-link"></i></a>
-</h4>
-<pre><code>project_root/
-├── primary_analysis/
-│   ├── DNA_alignment/
-│   │   ├── patient_001/       
-│   │   │   └── mapped/
-│   │   │       ├── tumor.bam                 # tumor DNA BAM
-│   │   │       ├── tumor.bam.bai             # index for tumor DNA BAM
-│   │   │       ├── normal.bam                # normal DNA BAM
-│   │   │       └── normal.bam.bai            # index for normal DNA BAM
-│   │   └── patient_N/
-│   │       └── ... 
-│   └── RNA_alignment/
-│       ├── patient_001/       
-│       │   └── mapped/
-│       │       ├── fusion.bam                # tumor RNA BAM
-│       │       ├── fusion.bam.bai            # index for tumor RNA BAM
-│       │       ├── chimeric.bam              # chimeric BAM
-│       │       └── chimeric.bam.bai          # index for chimeric BAM
-│       └── patient_N/
-│           └── ... 
-└── secondary_analysis/
-    ├── somatic_data/
-    │   ├── mutation_loads.tsv                    # tumor mutational burden table
-    │   ├── patient_001/
-    │   │   └── variants.tsv                      # somatic variants table
-    │   └── patient_N/
-    │       └── ... 
-    ├── germline_data/
-    │   ├── patient_001/
-    │   │   └── variants.tsv                      # germline variants table
-    │   └── patient_N/
-    │       └── ...
-    ├── fusion_data/
-    │   ├── patient_001/
-    │   │   ├── fusions.tsv                       # detected gene fusions table
-    │   │   ├── arriba_report.pdf                 # arriba report
-    │   │   └── arriba_results.tsv                # arriba result table
-    │   └── patient_N/
-    │       └── ... 
-    └── expression_data/
-        ├── genes_of_interest.tsv                 # table of genes of interest
-        ├── patient_001/
-        │   └── expression.tsv                    # gene expression table
-        └── patient_N/
-           └── ...</code></pre>
-</div>
-<div id="option-2-all-files-in-patient-directories" class="section level4 unnumbered">
-<h4>Option 2: All files in patient directories<a class="anchor" aria-label="anchor" href="#option-2-all-files-in-patient-directories"><i class="fas fa-link"></i></a>
-</h4>
-<pre><code>project_root/
-├── genes_of_interest.tsv                     # table of genes of interest
-├── mutation_loads.tsv                        # tumor mutational burden table
-├── patient_001/
-│   ├── somatic_variants.tsv                  # somatic variants table
-│   ├── germline_variants.tsv                 # germline variants table
-│   ├── fusions.tsv                           # detected gene fusions table
-│   ├── tumor.bam                             # tumor DNA BAM
-│   ├── tumor.bam.bai                         # index for tumor DNA BAM
-│   ├── normal.bam                            # normal DNA BAM
-│   ├── normal.bam.bai                        # index for normal DNA BAM
-│   ├── fusion.bam                            # tumor RNA BAM
-│   ├── fusion.bam.bai                        # index for tumor RNA BAM
-│   ├── chimeric.bam                          # chimeric BAM
-│   ├── chimeric.bam.bai                      # index for chimeric BAM
-│   ├── arriba_report.pdf                     # arriba report
-│   ├── arriba_results.tsv                    # arriba result table
-│   └── expression.tsv                        # gene expression table
-├── patient_002/
-│   └── ... 
-└── patient_N/
-    └── ... </code></pre>
-</div>
-</div>
-<div id="file-naming" class="section level3 unnumbered">
-<h3>File Naming<a class="anchor" aria-label="anchor" href="#file-naming"><i class="fas fa-link"></i></a>
-</h3>
-<div id="general-rules" class="section level4 unnumbered">
-<h4>General Rules<a class="anchor" aria-label="anchor" href="#general-rules"><i class="fas fa-link"></i></a>
-</h4>
-<ul>
-<li>Use consistent naming across all patients</li>
-<li>Avoid special characters and spaces</li>
-<li>Use underscores or dots as separators</li>
-<li>All file names must be unique within their directory</li>
-<li>All per-patient files must have <strong>patient ID</strong> and <strong>dataset type</strong> (somatic, germline, fusion, expression|RNAseq) somewhere <strong>in their path name</strong>
-</li>
-</ul>
-<p><strong>Examples:</strong></p>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
-<col width="49%">
-<col width="50%">
+<col width="21%">
+<col width="34%">
+<col width="44%">
 </colgroup>
 <thead><tr class="header">
-<th>Variant A</th>
-<th>Variant B</th>
+<th>File type</th>
+<th>Path must contain</th>
+<th>Path must NOT contain</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code style="color: #000000;">project_root/patient_001/<span style="font-weight:bold; color: #D63384;">somatic</span>_variants.tsv</code></td>
-<td><code style="color: #000000;">project_root/<span style="font-weight:bold; color: #D63384;">somatic</span>_data/patient_001_variants.tsv</code></td>
+<td>Somatic variant file</td>
+<td><code>somatic</code></td>
+<td>—</td>
 </tr>
 <tr class="even">
-<td><code style="color: #000000;">project_root/patient_001/<span style="font-weight:bold; color: #D63384;">expression</span>.tsv</code></td>
-<td><code style="color: #000000;">project_root/<span style="font-weight:bold; color: #D63384;">RNAseq</span>/patient_001.tsv</code></td>
+<td>Germline variant file</td>
+<td><code>germline</code></td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Fusion gene file</td>
+<td>
+<code>fusion</code> or <code>fuze</code>
+</td>
+<td>
+<code>arriba</code>, <code>STAR</code>
+</td>
+</tr>
+<tr class="even">
+<td>Tumor RNA BAM</td>
+<td>user-defined pattern (set during upload)</td>
+<td>
+<code>Chimeric</code>, <code>transcriptome</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Chimeric BAM</td>
+<td>user-defined pattern (set during upload)</td>
+<td><code>transcriptome</code></td>
+</tr>
+<tr class="even">
+<td>Arriba output files</td>
+<td><code>arriba</code></td>
+<td>
+<code>discarded</code>, <code>STAR</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Expression file</td>
+<td>
+<code>expression</code> or <code>RNAseq</code>
+</td>
+<td>
+<code>report</code>, <code>genes_of_interest</code>
+</td>
+</tr>
+<tr class="even">
+<td>TMB file</td>
+<td>filename must be exactly <code>mutation_loads</code>
+</td>
+<td>—</td>
 </tr>
 </tbody>
 </table></div>
-<p><br></p>
-<div class="alert alert-info">
-<p><strong>Note:</strong> GOI and TMB files are not considered per-patient files because they contain information about all samples</p>
+<p>The keyword can live anywhere in the path — these two examples both work:</p>
+<pre><code>project_root/patient_001/somatic_variants.tsv    # keyword in filename
+project_root/somatic_data/patient_001/variants.tsv  # keyword in folder name</code></pre>
+<div class="alert alert-warning">
+<p><strong>Patient ID in path:</strong> Every per-patient file must have the patient ID somewhere in its full path
+(either in the filename or a parent folder). Files without the patient ID will not be matched.
+The TMB file (<code>mutation_loads</code>) and the Genes of Interest file are the only exceptions —
+they are shared across all patients and do not need a patient ID in the path.</p>
 </div>
 </div>
-<div id="specific-patterns" class="section level4 unnumbered">
-<h4>Specific Patterns<a class="anchor" aria-label="anchor" href="#specific-patterns"><i class="fas fa-link"></i></a>
-</h4>
-<ul>
-<li>
-<strong>Variants</strong>:
-<ul>
-<li>No specific patterns for this file</li>
-</ul>
-</li>
-<li>
-<strong>Fusions</strong>:
-<ul>
-<li>File cannot contain the strings <strong>arriba</strong> or <strong>STAR</strong> in their filename. These strings are exclusively reserved for Arriba and STARFusion files</li>
-</ul>
-</li>
-<li>
-<strong>Arriba files</strong>:
-<ul>
-<li>For each <code>.pdf</code> arriba report there must be a corresponding <code>.tsv</code> arriba results table</li>
-<li>File name must contain string <strong>arriba</strong>
-</li>
-<li>Files cannot contain the strings <strong>discarded</strong> or <strong>STAR</strong> in their filename. These strings are exclusively reserved for arriba_discarded.tsv and STARfusion files</li>
-</ul>
-</li>
-<li>
-<strong>Expression</strong>:
-<ul>
-<li>In case of multiple tissue-matched reference expression data, files must contain <code>{tissue_name}</code> otherwise the name must contain <code>{patient_id}</code>
-</li>
-<li>Files cannot contain the strings <strong>report</strong> or <strong>genes_of_interest</strong> in their filename. These strings are exclusively reserved for Arriba and GOI files</li>
-</ul>
-</li>
-<li>
-<strong>BAM + BAI</strong>:
-<ul>
-<li>For each <code>file.bam</code> there must be corresponding <code>file.bam.bai</code> or <code>file.bai</code>
-</li>
-<li>BAM and BAI files must be named the same pattern in the same directory</li>
-<li>Tumor RNA BAM files cannot contain the strings <strong>chimeric</strong> or <strong>transcriptome</strong> in their filename. These strings are exclusively reserved for chimeric BAM files</li>
-</ul>
-</li>
-<li>
-<strong>GOI</strong>:
-<ul>
-<li>File must be named as <code>genes_of_interest</code>
-</li>
-<li>File must be placed in the <strong>root directory</strong> of expression data</li>
-<li>File is common to all samples</li>
-</ul>
-</li>
-<li>
-<strong>TMB</strong>:
-<ul>
-<li>File must be named as <code>TMB</code> or <code>mutation_loads</code>
-</li>
-<li>File must be placed in the <strong>root directory</strong> of somatic data</li>
-<li>File is common to all samples</li>
-</ul>
-</li>
-</ul>
-<p>Examples of placement <code>genes_of_interest</code> and <code>TMB</code> files in different directory structures:</p>
-<pre><code>project_root/                                 # root directory for both somatic and expression data
-├── genes_of_interest.tsv                     # table of genes of interest
-├── mutation_loads.tsv                        # tumor mutational burden table
-├── patient_001/
-│   ├── somatic_variants.tsv 
-│   └── expression.tsv 
-└── patient_N/
-        └── ...</code></pre>
-<p><br>
-or</p>
-<pre><code>project_root/                       
-├── somatic_data/                             # root directory for somatic data
-│   ├── mutation_loads.tsv                    # tumor mutational burden table
-│   ├── patient_001/
-│   │   └── variants.tsv                      
-│   └── patient_N/
-│       └── ...            
-└── expression_data/                          # root directory for expression data
-    ├── genes_of_interest.tsv                 # table of genes of interest
-    ├── patient_001/
-    │   └── expression.tsv
-    └── patient_N/
-        └── ... </code></pre>
+<div id="bam-files" class="section level3 unnumbered">
+<h3>BAM Files<a class="anchor" aria-label="anchor" href="#bam-files"><i class="fas fa-link"></i></a>
+</h3>
+<p>BAM files don’t use the keyword system. Instead, you define <strong>patterns</strong> during upload
+(e.g. <code>tumor</code>, <code>FFPE</code>, <code>chimeric</code>) and the application finds BAM files whose names match those patterns.
+See <a href="#step-1-directory-patient-and-dataset-selection">Upload Data — Step 1</a> for details.</p>
+<p>For every <code>.bam</code> file, a corresponding index file must exist in the same directory,
+named either <code>file.bam.bai</code> or <code>file.bai</code>.</p>
+</div>
+<div id="arriba-output-files" class="section level3 unnumbered">
+<h3>Arriba Output Files<a class="anchor" aria-label="anchor" href="#arriba-output-files"><i class="fas fa-link"></i></a>
+</h3>
+<p>If you provide Arriba output files, both the <code>.pdf</code> and <code>.tsv</code> must be present as a matched pair
+(same base name, different extension). A <code>.pdf</code> without a matching <code>.tsv</code> will be ignored, and vice versa.</p>
+</div>
+<div id="expression-files-with-multiple-tissues" class="section level3 unnumbered">
+<h3>Expression Files with Multiple Tissues<a class="anchor" aria-label="anchor" href="#expression-files-with-multiple-tissues"><i class="fas fa-link"></i></a>
+</h3>
+<p>When comparing against multiple reference tissues, provide one file per tissue.
+The tissue name must appear in the filename (e.g. <code>blood_expression.tsv</code>, <code>liver.tsv</code>).
+Use underscores instead of spaces — <code>blood_vessel.tsv</code>, not <code>blood vessel.tsv</code>.</p>
+<p>Tissue names you enter in the upload form must match the names in the filenames.
+If no tissue names are provided, the application looks for a single expression file per patient
+containing <code>expression</code> or <code>RNAseq</code> in its path.</p>
 <hr>
 </div>
 </div>
-</div>
-<div id="required-and-optional-columns" class="section level2 unnumbered">
-<h2>Required and Optional Columns<a class="anchor" aria-label="anchor" href="#required-and-optional-columns"><i class="fas fa-link"></i></a>
+<div id="directory-layouts" class="section level2 unnumbered">
+<h2>Directory Layouts<a class="anchor" aria-label="anchor" href="#directory-layouts"><i class="fas fa-link"></i></a>
 </h2>
-<div id="somatic-variants" class="section level3 unnumbered">
-<h3>Somatic variants<a class="anchor" aria-label="anchor" href="#somatic-variants"><i class="fas fa-link"></i></a>
+<p>SeqUIaSCOPE is flexible — your data can be organised in many different ways as long as the naming
+rules above are respected. Below are three common layouts that all work correctly.
+The key principle is that the <strong>patient ID</strong> and <strong>dataset keyword</strong> must both appear
+somewhere in each file’s path.</p>
+<div class="alert alert-warning">
+<p><strong>Choose your root directory carefully.</strong> In the upload form you select a single root directory
+that contains all your patient data. Pick the most specific folder that still contains everything —
+selecting a very broad directory (e.g. your home folder) may cause the scanner to pick up
+unrelated files and confuse file matching.</p>
+</div>
+<p><strong>Option A — one folder per data type</strong></p>
+<p>Best when your pipeline already separates outputs by analysis type.</p>
+<pre><code>project_root/                           ← select this as root
+├── somatic_data/
+│   ├── mutation_loads.tsv
+│   ├── patient_001/
+│   │   ├── somatic_variants.tsv
+│   │   ├── tumor.bam  +  tumor.bam.bai
+│   │   └── normal.bam  +  normal.bam.bai
+│   └── patient_002/ ...
+├── germline_data/
+│   ├── patient_001/
+│   │   ├── germline_variants.tsv
+│   │   └── normal.bam  +  normal.bam.bai
+│   └── patient_002/ ...
+├── fusion_data/
+│   ├── patient_001/
+│   │   ├── fusions.tsv
+│   │   ├── fusion.bam  +  fusion.bam.bai
+│   │   ├── chimeric.bam  +  chimeric.bam.bai
+│   │   ├── arriba_report.pdf
+│   │   └── arriba_results.tsv
+│   └── patient_002/ ...
+└── expression_data/
+    ├── patient_001/
+    │   └── expression.tsv
+    └── patient_002/ ...</code></pre>
+<p><strong>Option B — BAM files stored separately from analysis results</strong></p>
+<p>Common when primary (alignment) and secondary (variant/fusion calling) outputs live in separate trees.</p>
+<pre><code>project_root/                           ← select this as root
+├── alignments/
+│   ├── DNA/
+│   │   ├── patient_001/
+│   │   │   ├── tumor.bam  +  tumor.bam.bai
+│   │   │   └── normal.bam  +  normal.bam.bai
+│   │   └── patient_002/ ...
+│   └── RNA/
+│       ├── patient_001/
+│       │   ├── fusion.bam  +  fusion.bam.bai
+│       │   └── chimeric.bam  +  chimeric.bam.bai
+│       └── patient_002/ ...
+└── results/
+    ├── somatic_data/
+    │   ├── mutation_loads.tsv
+    │   ├── patient_001/ somatic_variants.tsv
+    │   └── patient_002/ ...
+    ├── germline_data/
+    │   ├── patient_001/ germline_variants.tsv
+    │   └── patient_002/ ...
+    ├── fusion_data/
+    │   ├── patient_001/
+    │   │   ├── fusions.tsv
+    │   │   ├── arriba_report.pdf
+    │   │   └── arriba_results.tsv
+    │   └── patient_002/ ...
+    └── expression_data/
+        ├── patient_001/ expression.tsv
+        └── patient_002/ ...</code></pre>
+<p><strong>Option C — all files flat per patient</strong></p>
+<p>Works for smaller projects or when a single pipeline writes everything into one folder per patient.</p>
+<pre><code>project_root/                           ← select this as root
+├── mutation_loads.tsv                  ← in root (shared across patients)
+├── patient_001/
+│   ├── somatic_variants.tsv
+│   ├── germline_variants.tsv
+│   ├── fusions.tsv
+│   ├── tumor.bam  +  tumor.bam.bai
+│   ├── normal.bam  +  normal.bam.bai
+│   ├── fusion.bam  +  fusion.bam.bai
+│   ├── chimeric.bam  +  chimeric.bam.bai
+│   ├── arriba_report.pdf
+│   ├── arriba_results.tsv
+│   └── expression.tsv
+└── patient_002/ ...</code></pre>
+<hr>
+</div>
+<div id="required-columns" class="section level2 unnumbered">
+<h2>Required Columns<a class="anchor" aria-label="anchor" href="#required-columns"><i class="fas fa-link"></i></a>
+</h2>
+<p>Each data file must contain a set of required columns. Column names are case-sensitive.
+Any additional columns in your file are allowed — they will appear in the table but without
+custom formatting or labels.</p>
+<div id="somatic-variant-file" class="section level3 unnumbered">
+<h3>Somatic Variant File<a class="anchor" aria-label="anchor" href="#somatic-variant-file"><i class="fas fa-link"></i></a>
 </h3>
-<ul>
-<li><strong>Required columns:</strong></li>
-</ul>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
 <col width="29%">
@@ -455,64 +394,110 @@ or</p>
 <tbody>
 <tr class="odd">
 <td><code>var_name</code></td>
-<td>char</td>
+<td>string</td>
 <td>Variant identifier</td>
 </tr>
 <tr class="even">
 <td><code>gene_symbol</code></td>
-<td>char</td>
+<td>string</td>
 <td>Gene symbol</td>
 </tr>
 <tr class="odd">
 <td><code>tumor_variant_freq</code></td>
-<td>num</td>
-<td>Tumor variant frequency</td>
+<td>numeric</td>
+<td>Variant allele frequency in tumour</td>
 </tr>
 <tr class="even">
 <td><code>tumor_depth</code></td>
-<td>int</td>
-<td>Tumor sequencing depth</td>
+<td>integer</td>
+<td>Sequencing depth at variant position in tumour</td>
 </tr>
 <tr class="odd">
 <td><code>gene_region</code></td>
-<td>char</td>
-<td>Gene region (exon, intron, etc.)</td>
+<td>string</td>
+<td>Genomic region (e.g. <code>exon</code>, <code>intron</code>, <code>splice</code>)</td>
 </tr>
 <tr class="even">
 <td><code>gnomAD_NFE</code></td>
-<td>num</td>
+<td>numeric</td>
 <td>gnomAD Non-Finnish European allele frequency</td>
 </tr>
 <tr class="odd">
 <td><code>consequence</code></td>
-<td>char</td>
-<td>Variant consequence (missense, nonsense, etc.)</td>
+<td>string</td>
+<td>Variant consequence (e.g. <code>missense_variant</code>, <code>stop_gained</code>)</td>
 </tr>
 <tr class="even">
 <td><code>HGVSc</code></td>
-<td>char</td>
+<td>string</td>
 <td>HGVS coding sequence notation</td>
 </tr>
 <tr class="odd">
 <td><code>HGVSp</code></td>
-<td>char</td>
+<td>string</td>
 <td>HGVS protein sequence notation</td>
 </tr>
 <tr class="even">
 <td><code>variant_type</code></td>
-<td>char</td>
-<td>Type of variant (SNV, insertion, deletion, etc.)</td>
+<td>string</td>
+<td>Variant type (e.g. <code>SNV</code>, <code>insertion</code>, <code>deletion</code>)</td>
 </tr>
 <tr class="odd">
 <td><code>all_full_annot_name</code></td>
-<td>char</td>
+<td>string</td>
 <td>Full annotation name</td>
 </tr>
 </tbody>
 </table></div>
-<ul>
-<li><strong>Optional columns:</strong></li>
-</ul>
+<p><strong>Optional columns</strong> recognised with custom labels:</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="38%">
+<col width="61%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>in_library</code></td>
+<td>Number of times <code>var_name</code> was observed in the project cohort (added automatically if absent)</td>
+</tr>
+<tr class="even">
+<td><code>clinvar_sig</code></td>
+<td>ClinVar clinical significance</td>
+</tr>
+<tr class="odd">
+<td><code>clinvar_DBN</code></td>
+<td>ClinVar disease name</td>
+</tr>
+<tr class="even">
+<td><code>CGC_Somatic</code></td>
+<td>Cancer Gene Census somatic annotation</td>
+</tr>
+<tr class="odd">
+<td><code>fOne</code></td>
+<td>fOne database annotation</td>
+</tr>
+<tr class="even">
+<td><code>COSMIC</code></td>
+<td>COSMIC database annotation</td>
+</tr>
+<tr class="odd">
+<td><code>HGMD</code></td>
+<td>HGMD database annotation</td>
+</tr>
+<tr class="even">
+<td><code>snpDB</code></td>
+<td>dbSNP annotation</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div id="tmb-file-mutation_loads" class="section level3 unnumbered">
+<h3>TMB File (<code>mutation_loads</code>)<a class="anchor" aria-label="anchor" href="#tmb-file-mutation_loads"><i class="fas fa-link"></i></a>
+</h3>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
 <col width="29%">
@@ -526,75 +511,17 @@ or</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>in_library</code></td>
-<td>num</td>
-<td>Number of times the <code>var_name</code> is observed in the sample cohort (added automatically)</td>
-</tr>
-<tr class="even">
-<td><code>clinvar_sig</code></td>
-<td>char</td>
-<td>ClinVar clinical significance</td>
-</tr>
-<tr class="odd">
-<td><code>clinvar_DBN</code></td>
-<td>char</td>
-<td>ClinVar disease name</td>
-</tr>
-<tr class="even">
-<td><code>CGC_Somatic</code></td>
-<td>char</td>
-<td>Cancer Gene Census somatic annotation</td>
-</tr>
-<tr class="odd">
-<td><code>fOne</code></td>
-<td>char</td>
-<td>fOne database annotation</td>
-</tr>
-<tr class="even">
-<td><code>COSMIC</code></td>
-<td>char</td>
-<td>COSMIC database annotation</td>
-</tr>
-<tr class="odd">
-<td><code>HGMD</code></td>
-<td>char</td>
-<td>HGMD database annotation</td>
-</tr>
-<tr class="even">
-<td><code>snpDB</code></td>
-<td>char</td>
-<td>dbSNP annotation</td>
-</tr>
-</tbody>
-</table></div>
-<div id="tmb" class="section level4 unnumbered">
-<h4>TMB<a class="anchor" aria-label="anchor" href="#tmb"><i class="fas fa-link"></i></a>
-</h4>
-<ul>
-<li><strong>Required columns:</strong></li>
-</ul>
-<div class="inline-table"><table class="table table-sm">
-<thead><tr class="header">
-<th>Column</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
 <td><code>patient</code></td>
-<td>char</td>
-<td>Patient ID</td>
+<td>string</td>
+<td>Patient ID — must match the IDs entered in the upload form</td>
 </tr>
 <tr class="even">
 <td><code>TMB</code></td>
-<td>num</td>
-<td>Tumor mutational burden value</td>
+<td>numeric</td>
+<td>Tumour mutational burden value</td>
 </tr>
 </tbody>
 </table></div>
-<p><br></p>
-<p>Example of <code>mutation_loads.tsv</code></p>
-<div class="example-table">
 <div class="inline-table"><table class="table table-sm">
 <thead><tr class="header">
 <th>patient</th>
@@ -612,14 +539,9 @@ or</p>
 </tbody>
 </table></div>
 </div>
-</div>
-</div>
-<div id="germline-variants" class="section level3 unnumbered">
-<h3>Germline variants<a class="anchor" aria-label="anchor" href="#germline-variants"><i class="fas fa-link"></i></a>
+<div id="germline-variant-file" class="section level3 unnumbered">
+<h3>Germline Variant File<a class="anchor" aria-label="anchor" href="#germline-variant-file"><i class="fas fa-link"></i></a>
 </h3>
-<ul>
-<li><strong>Required columns:* {-}</strong></li>
-</ul>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
 <col width="29%">
@@ -634,126 +556,111 @@ or</p>
 <tbody>
 <tr class="odd">
 <td><code>var_name</code></td>
-<td>char</td>
+<td>string</td>
 <td>Variant identifier</td>
 </tr>
 <tr class="even">
 <td><code>gene_symbol</code></td>
-<td>char</td>
+<td>string</td>
 <td>Gene symbol</td>
 </tr>
 <tr class="odd">
 <td><code>variant_freq</code></td>
-<td>num</td>
-<td>Variant frequency</td>
+<td>numeric</td>
+<td>Variant allele frequency</td>
 </tr>
 <tr class="even">
 <td><code>coverage_depth</code></td>
-<td>int</td>
-<td>Sequencing coverage depth</td>
+<td>integer</td>
+<td>Sequencing depth at variant position</td>
 </tr>
 <tr class="odd">
 <td><code>gene_region</code></td>
-<td>char</td>
-<td>Gene region (exon, intron, etc.)</td>
+<td>string</td>
+<td>Genomic region (e.g. <code>exon</code>, <code>intron</code>, <code>splice</code>)</td>
 </tr>
 <tr class="even">
 <td><code>gnomAD_NFE</code></td>
-<td>num</td>
+<td>numeric</td>
 <td>gnomAD Non-Finnish European allele frequency</td>
 </tr>
 <tr class="odd">
 <td><code>clinvar_sig</code></td>
-<td>char</td>
+<td>string</td>
 <td>ClinVar clinical significance</td>
 </tr>
 <tr class="even">
 <td><code>consequence</code></td>
-<td>char</td>
-<td>Variant consequence (missense, nonsense, etc.)</td>
+<td>string</td>
+<td>Variant consequence</td>
 </tr>
 <tr class="odd">
 <td><code>HGVSc</code></td>
-<td>char</td>
+<td>string</td>
 <td>HGVS coding sequence notation</td>
 </tr>
 <tr class="even">
 <td><code>HGVSp</code></td>
-<td>char</td>
+<td>string</td>
 <td>HGVS protein sequence notation</td>
 </tr>
 <tr class="odd">
 <td><code>variant_type</code></td>
-<td>char</td>
-<td>Type of variant (SNV, insertion, deletion, etc.)</td>
+<td>string</td>
+<td>Variant type (e.g. <code>SNV</code>, <code>insertion</code>, <code>deletion</code>)</td>
 </tr>
 <tr class="even">
 <td><code>all_full_annot_name</code></td>
-<td>char</td>
+<td>string</td>
 <td>Full annotation name</td>
 </tr>
 </tbody>
 </table></div>
-<ul>
-<li><strong>Optional columns:</strong></li>
-</ul>
+<p><strong>Optional columns:</strong></p>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
-<col width="29%">
-<col width="22%">
-<col width="48%">
+<col width="38%">
+<col width="61%">
 </colgroup>
 <thead><tr class="header">
 <th>Column</th>
-<th>Type</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>in_library</code></td>
-<td>num</td>
-<td>Number of times the <code>var_name</code> is observed in the sample cohort (added automatically if not present)</td>
+<td>Number of times <code>var_name</code> was observed in the project cohort (added automatically if absent)</td>
 </tr>
 <tr class="even">
 <td><code>clinvar_DBN</code></td>
-<td>char</td>
 <td>ClinVar disease name</td>
 </tr>
 <tr class="odd">
 <td><code>CGC_Germline</code></td>
-<td>char</td>
 <td>Cancer Gene Census germline annotation</td>
 </tr>
 <tr class="even">
 <td><code>trusight_genes</code></td>
-<td>char</td>
 <td>TruSight gene panel annotation</td>
 </tr>
 <tr class="odd">
 <td><code>fOne</code></td>
-<td>char</td>
 <td>fOne database annotation</td>
 </tr>
 <tr class="even">
 <td><code>snpDB</code></td>
-<td>char</td>
 <td>dbSNP annotation</td>
 </tr>
 </tbody>
 </table></div>
 </div>
-<div id="fusion-genes" class="section level3 unnumbered">
-<h3>Fusion Genes<a class="anchor" aria-label="anchor" href="#fusion-genes"><i class="fas fa-link"></i></a>
+<div id="fusion-gene-file" class="section level3 unnumbered">
+<h3>Fusion Gene File<a class="anchor" aria-label="anchor" href="#fusion-gene-file"><i class="fas fa-link"></i></a>
 </h3>
 <div class="alert alert-info">
-<p><strong>Note:</strong>
-- Data must contain results from <strong>Arriba</strong> and <strong>StarFusion</strong> callers
-- Both <code>chr1</code>/<code>chr2</code> and <code>chrom1</code>/<code>chrom2</code> column names are accepted
-- If <code>chrom1</code>/<code>chrom2</code> are present, they will be automatically renamed to <code>chr1</code>/<code>chr2</code> during data loading</p>
+<p>This is a pre-processed file combining results from both <strong>Arriba</strong> and <strong>STARFusion</strong>.
+Column names <code>chrom1</code>/<code>chrom2</code> are accepted as alternatives to <code>chr1</code>/<code>chr2</code> and will be renamed automatically.</p>
 </div>
-<ul>
-<li><strong>Required columns:</strong></li>
-</ul>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
 <col width="29%">
@@ -768,169 +675,147 @@ or</p>
 <tbody>
 <tr class="odd">
 <td><code>gene1</code></td>
-<td>char</td>
-<td>Gene name of first fusion partner</td>
+<td>string</td>
+<td>First fusion partner gene name</td>
 </tr>
 <tr class="even">
 <td><code>gene2</code></td>
-<td>char</td>
-<td>Gene name of second fusion partner</td>
+<td>string</td>
+<td>Second fusion partner gene name</td>
 </tr>
 <tr class="odd">
 <td>
-<code>chr1</code> or <code>chrom1</code>
-</td>
-<td>char</td>
-<td>Chromosome of first fusion partner (with “chr” prefix)</td>
+<code>chr1</code> (or <code>chrom1</code>)</td>
+<td>string</td>
+<td>Chromosome of first partner (with <code>chr</code> prefix, e.g. <code>chr2</code>)</td>
 </tr>
 <tr class="even">
 <td>
-<code>chr2</code> or <code>chrom2</code>
-</td>
-<td>char</td>
-<td>Chromosome of second fusion partner (with “chr” prefix)</td>
+<code>chr2</code> (or <code>chrom2</code>)</td>
+<td>string</td>
+<td>Chromosome of second partner</td>
 </tr>
 <tr class="odd">
 <td><code>pos1</code></td>
-<td>num</td>
-<td>Genomic position of first fusion partner</td>
+<td>numeric</td>
+<td>Genomic position of first partner breakpoint</td>
 </tr>
 <tr class="even">
 <td><code>pos2</code></td>
-<td>num</td>
-<td>Genomic position of second fusion partner</td>
+<td>numeric</td>
+<td>Genomic position of second partner breakpoint</td>
 </tr>
 <tr class="odd">
 <td><code>strand1</code></td>
-<td>char</td>
-<td>Strand orientation of first fusion partner (+/-)</td>
+<td>string</td>
+<td>Strand orientation of first partner (<code>+</code> or <code>-</code>)</td>
 </tr>
 <tr class="even">
 <td><code>strand2</code></td>
-<td>char</td>
-<td>Strand orientation of second fusion partner (+/-)</td>
+<td>string</td>
+<td>Strand orientation of second partner (<code>+</code> or <code>-</code>)</td>
 </tr>
 <tr class="odd">
 <td><code>arriba.called</code></td>
 <td>boolean</td>
-<td>Whether Arriba called the fusion (true/false)</td>
+<td>Whether Arriba called this fusion</td>
 </tr>
 <tr class="even">
 <td><code>starfus.called</code></td>
 <td>boolean</td>
-<td>Whether STARFusion called the fusion (true/false)</td>
+<td>Whether STARFusion called this fusion</td>
 </tr>
 <tr class="odd">
 <td><code>overall_support</code></td>
-<td>num</td>
-<td>Overall support for the fusion</td>
+<td>numeric</td>
+<td>Overall read support for the fusion</td>
 </tr>
 <tr class="even">
 <td><code>arriba.confidence</code></td>
-<td>char</td>
-<td>Confidence score from Arriba (high/medium/low)</td>
+<td>string</td>
+<td>Arriba confidence level (<code>high</code>, <code>medium</code>, or <code>low</code>)</td>
 </tr>
 <tr class="odd">
 <td><code>arriba.site1</code></td>
-<td>char</td>
-<td>Breakpoint site annotation for first fusion partner</td>
+<td>string</td>
+<td>Breakpoint site annotation for first partner</td>
 </tr>
 <tr class="even">
 <td><code>arriba.site2</code></td>
-<td>char</td>
-<td>Breakpoint site annotation for second fusion partner</td>
+<td>string</td>
+<td>Breakpoint site annotation for second partner</td>
 </tr>
 </tbody>
 </table></div>
-<ul>
-<li><strong>Optional columns:</strong></li>
-</ul>
+<p><strong>Optional columns:</strong></p>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
-<col width="29%">
-<col width="22%">
-<col width="48%">
+<col width="38%">
+<col width="61%">
 </colgroup>
 <thead><tr class="header">
 <th>Column</th>
-<th>Type</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>DB_count</code></td>
-<td>int</td>
-<td>Number of databases where the fusion is found</td>
+<td>Number of databases listing this fusion</td>
 </tr>
 <tr class="even">
 <td><code>DB_list</code></td>
-<td>char</td>
-<td>List of databases containing the fusion</td>
+<td>Database names</td>
 </tr>
 <tr class="odd">
 <td><code>arriba.split_reads</code></td>
-<td>int</td>
-<td>Number of split reads supporting the fusion (Arriba)</td>
+<td>Split reads supporting the fusion (Arriba)</td>
 </tr>
 <tr class="even">
 <td><code>arriba.discordant_mates</code></td>
-<td>int</td>
-<td>Number of discordant mate pairs supporting the fusion (Arriba)</td>
+<td>Discordant mate pairs (Arriba)</td>
 </tr>
 <tr class="odd">
 <td><code>arriba.break_coverage</code></td>
-<td>int</td>
 <td>Coverage at first breakpoint (Arriba)</td>
 </tr>
 <tr class="even">
 <td><code>arriba.break2_coverage</code></td>
-<td>int</td>
 <td>Coverage at second breakpoint (Arriba)</td>
 </tr>
 <tr class="odd">
 <td><code>arriba.break_seq</code></td>
-<td>char</td>
 <td>Sequence at breakpoint (Arriba)</td>
 </tr>
 <tr class="even">
 <td><code>starfus.split_reads</code></td>
-<td>int</td>
-<td>Number of split reads supporting the fusion (STARFusion)</td>
+<td>Split reads supporting the fusion (STARFusion)</td>
 </tr>
 <tr class="odd">
 <td><code>starfus.discordant_mates</code></td>
-<td>int</td>
-<td>Number of discordant mate pairs supporting the fusion (STARFusion)</td>
+<td>Discordant mate pairs (STARFusion)</td>
 </tr>
 <tr class="even">
 <td><code>starfus.counter_fusion1</code></td>
-<td>int</td>
 <td>Counter fusion reads for first gene (STARFusion)</td>
 </tr>
 <tr class="odd">
 <td><code>starfus.counter_fusion2</code></td>
-<td>int</td>
 <td>Counter fusion reads for second gene (STARFusion)</td>
 </tr>
 <tr class="even">
 <td><code>starfus.splice_type</code></td>
-<td>char</td>
-<td>Type of splice junction (STARFusion)</td>
+<td>Splice junction type (STARFusion)</td>
 </tr>
 <tr class="odd">
 <td><code>starfus.break_seq</code></td>
-<td>char</td>
-<td>Sequence at breakpoint (STARFusion)</td>
+<td>Breakpoint sequence (STARFusion)</td>
 </tr>
 </tbody>
 </table></div>
 </div>
-<div id="expression-data" class="section level3 unnumbered">
-<h3>Expression Data<a class="anchor" aria-label="anchor" href="#expression-data"><i class="fas fa-link"></i></a>
+<div id="expression-profile-file" class="section level3 unnumbered">
+<h3>Expression Profile File<a class="anchor" aria-label="anchor" href="#expression-profile-file"><i class="fas fa-link"></i></a>
 </h3>
-<ul>
-<li><strong>Required columns:</strong></li>
-</ul>
 <div class="inline-table"><table class="table table-sm">
 <thead><tr class="header">
 <th>Column</th>
@@ -940,121 +825,106 @@ or</p>
 <tbody>
 <tr class="odd">
 <td><code>sample</code></td>
-<td>char</td>
+<td>string</td>
 <td>Sample ID</td>
 </tr>
 <tr class="even">
 <td><code>feature_name</code></td>
-<td>char</td>
+<td>string</td>
 <td>Gene name</td>
 </tr>
 <tr class="odd">
 <td><code>geneid</code></td>
-<td>char</td>
+<td>string</td>
 <td>Gene ID (Ensembl, RefSeq, or other)</td>
 </tr>
 <tr class="even">
 <td><code>all_kegg_gene_names</code></td>
-<td>char</td>
+<td>string</td>
 <td>KEGG gene names</td>
 </tr>
 <tr class="odd">
 <td><code>log2FC</code></td>
-<td>num</td>
-<td>Log2 fold change</td>
+<td>numeric</td>
+<td>Log2 fold change (tumour vs. reference)</td>
 </tr>
 <tr class="even">
 <td><code>p_value</code></td>
-<td>num</td>
+<td>numeric</td>
 <td>P-value</td>
 </tr>
 <tr class="odd">
 <td><code>p_adj</code></td>
-<td>num</td>
+<td>numeric</td>
 <td>Adjusted p-value</td>
 </tr>
 </tbody>
 </table></div>
-<ul>
-<li><strong>Optional columns:</strong></li>
-</ul>
+<p><strong>Optional columns:</strong></p>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
-<col width="29%">
-<col width="22%">
-<col width="48%">
+<col width="38%">
+<col width="61%">
 </colgroup>
 <thead><tr class="header">
 <th>Column</th>
-<th>Type</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>pathway</code></td>
-<td>char</td>
-<td>Pathway name (if available, otherwise automatically retrieved from KEGG)</td>
+<td>Pathway name (retrieved automatically from KEGG if absent)</td>
 </tr>
 <tr class="even">
 <td><code>refseq_id</code></td>
-<td>char</td>
 <td>RefSeq gene ID</td>
 </tr>
 <tr class="odd">
 <td><code>type</code></td>
-<td>char</td>
 <td>Gene type</td>
 </tr>
 <tr class="even">
 <td><code>gene_definition</code></td>
-<td>char</td>
-<td>Gene definition/description</td>
+<td>Gene description</td>
 </tr>
 <tr class="odd">
 <td><code>num_of_paths</code></td>
-<td>int</td>
-<td>Number of pathways</td>
+<td>Number of pathways the gene participates in</td>
 </tr>
 </tbody>
 </table></div>
-<div id="goi" class="section level4 unnumbered">
-<h4>GOI<a class="anchor" aria-label="anchor" href="#goi"><i class="fas fa-link"></i></a>
-</h4>
-<ul>
-<li><strong>Required columns:</strong></li>
-</ul>
-<div class="inline-table"><table class="table table-sm">
-<thead><tr class="header">
-<th>Column</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody><tr class="odd">
-<td><code>gene</code></td>
-<td>char</td>
-<td>Gene name</td>
-</tr></tbody>
-</table></div>
-<ul>
-<li><strong>Optional columns:</strong></li>
-</ul>
-<div class="inline-table"><table class="table table-sm">
-<thead><tr class="header">
-<th>Column</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody><tr class="odd">
-<td><code>pathway</code></td>
-<td>char</td>
-<td>Pathway name</td>
-</tr></tbody>
-</table></div>
-<div class="alert alert-info">
-<p><strong>Note:</strong> If column <code>pathway</code> is not available, app will automatically use pathways from KEGG DB</p>
 </div>
-<p>Example of <code>genes_of_interest.tsv</code></p>
-<div class="example-table">
+<div id="genes-of-interest-goi" class="section level3 unnumbered">
+<h3>Genes of Interest (GOI)<a class="anchor" aria-label="anchor" href="#genes-of-interest-goi"><i class="fas fa-link"></i></a>
+</h3>
+<p>SeqUIaSCOPE ships with a built-in genes of interest list used for expression highlighting and
+network visualisation. To use a custom list instead, provide a <code>.tsv</code> or <code>.xlsx</code> file and
+update the path in <code>reference_paths.json</code> (see <a href="how-to-install-and-run.html#configuration">Configuration</a>).</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="25%">
+<col width="32%">
+<col width="41%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Required</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>gene</code></td>
+<td>✅</td>
+<td>Gene name</td>
+</tr>
+<tr class="even">
+<td><code>pathway</code></td>
+<td>optional</td>
+<td>Pathway name — retrieved from KEGG automatically if absent</td>
+</tr>
+</tbody>
+</table></div>
+<p>If the <code>pathway</code> column is provided, your own pathway classifications are used instead of KEGG.</p>
 <div class="inline-table"><table class="table table-sm">
 <thead><tr class="header">
 <th>gene</th>
@@ -1067,44 +937,38 @@ or</p>
 </tr>
 <tr class="even">
 <td>TP53</td>
-<td>RTK Signaling</td>
+<td>RTK Signalling</td>
 </tr>
 </tbody>
 </table></div>
-</div>
-
-</div>
 </div>
 </div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="how-to-install-and-run.html">How to install and run</a></div>
-<div class="next"><a href="upload-data.html">Upload data</a></div>
+<div class="next"><a href="upload-data.html">Upload Data</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#data-requirements">Data requirements</a></li>
+<li><a class="nav-link" href="#data-requirements">Data Requirements</a></li>
+<li><a class="nav-link" href="#input-files-overview">Input Files Overview</a></li>
 <li>
-<a class="nav-link" href="#input-file-types-and-formats">Input file types and formats</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#somatic-variant-calling">1. Somatic Variant Calling</a></li>
-<li><a class="nav-link" href="#germline-variant-calling">2. Germline Variant Calling</a></li>
-<li><a class="nav-link" href="#fusion-genes-detection">3. Fusion Genes Detection</a></li>
-<li><a class="nav-link" href="#expression-profile">4. Expression Profile</a></li>
+<a class="nav-link" href="#file-naming-rules">File Naming Rules</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#keyword-reference">Keyword Reference</a></li>
+<li><a class="nav-link" href="#bam-files">BAM Files</a></li>
+<li><a class="nav-link" href="#arriba-output-files">Arriba Output Files</a></li>
+<li><a class="nav-link" href="#expression-files-with-multiple-tissues">Expression Files with Multiple Tissues</a></li>
 </ul>
 </li>
+<li><a class="nav-link" href="#directory-layouts">Directory Layouts</a></li>
 <li>
-<a class="nav-link" href="#data-organization-and-directory-structure">Data organization and directory structure</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#recommended-directory-structure">Recommended Directory Structure</a></li>
-<li><a class="nav-link" href="#alternative-directory-structures">Alternative Directory Structures</a></li>
-<li><a class="nav-link" href="#file-naming">File Naming</a></li>
-</ul>
-</li>
-<li>
-<a class="nav-link" href="#required-and-optional-columns">Required and Optional Columns</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#somatic-variants">Somatic variants</a></li>
-<li><a class="nav-link" href="#germline-variants">Germline variants</a></li>
-<li><a class="nav-link" href="#fusion-genes">Fusion Genes</a></li>
-<li><a class="nav-link" href="#expression-data">Expression Data</a></li>
+<a class="nav-link" href="#required-columns">Required Columns</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#somatic-variant-file">Somatic Variant File</a></li>
+<li><a class="nav-link" href="#tmb-file-mutation_loads">TMB File (mutation_loads)</a></li>
+<li><a class="nav-link" href="#germline-variant-file">Germline Variant File</a></li>
+<li><a class="nav-link" href="#fusion-gene-file">Fusion Gene File</a></li>
+<li><a class="nav-link" href="#expression-profile-file">Expression Profile File</a></li>
+<li><a class="nav-link" href="#genes-of-interest-goi">Genes of Interest (GOI)</a></li>
 </ul>
 </li>
 </ul>
@@ -1123,7 +987,7 @@ or</p>
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>SequiaViz Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2025-11-28.</p>
+    <p>"<strong>SeqUIaSCOPE Documentation</strong>" was written by Kateřina Jurásková. It was last built on 2026-03-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
