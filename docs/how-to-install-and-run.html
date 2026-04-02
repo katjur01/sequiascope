@@ -19,9 +19,9 @@
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
 <link rel="stylesheet" href="custom-styles.css">
-<meta name="description" content="SeqUIaSCOPE can be deployed in two ways: On a cluster using Kubernetes + Helm — suitable for shared or production environments Locally using Docker Compose — suitable for single-machine use...">
-<meta property="og:description" content="SeqUIaSCOPE can be deployed in two ways: On a cluster using Kubernetes + Helm — suitable for shared or production environments Locally using Docker Compose — suitable for single-machine use...">
-<meta name="twitter:description" content="SeqUIaSCOPE can be deployed in two ways: On a cluster using Kubernetes + Helm — suitable for shared or production environments Locally using Docker Compose — suitable for single-machine use...">
+<meta name="description" content="SeqUIaSCOPE can be deployed in two ways: On a cluster using Kubernetes + Helm — suitable for shared or production environments Locally using Docker Compose — suitable for single-machine use Full...">
+<meta property="og:description" content="SeqUIaSCOPE can be deployed in two ways: On a cluster using Kubernetes + Helm — suitable for shared or production environments Locally using Docker Compose — suitable for single-machine use Full...">
+<meta name="twitter:description" content="SeqUIaSCOPE can be deployed in two ways: On a cluster using Kubernetes + Helm — suitable for shared or production environments Locally using Docker Compose — suitable for single-machine use Full...">
 </head>
 <body data-spy="scroll" data-target="#toc">
 
@@ -54,7 +54,7 @@
 <li><a class="" href="igv.html">IGV</a></li>
 <li><a class="" href="network-graph.html">Network Graph</a></li>
 <li><a class="" href="summary-and-report.html">Summary and Report</a></li>
-<li><a class="" href="configuration-1.html">Configuration</a></li>
+<li><a class="" href="configuration.html">Configuration</a></li>
 </ul>
 
         <div class="book-extra">
@@ -72,151 +72,8 @@
 <li>
 <strong>Locally</strong> using Docker Compose — suitable for single-machine use</li>
 </ul>
-<p>Pre-built images for both scenarios are available on Docker Hub — no need to build anything yourself:</p>
-<div class="inline-table"><table class="table table-sm">
-<colgroup>
-<col width="11%">
-<col width="44%">
-<col width="44%">
-</colgroup>
-<thead><tr class="header">
-<th>Image</th>
-<th>Docker Hub</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>App</td>
-<td><a href="https://hub.docker.com/r/juraskovakaterina/sequiascope-app"><code>juraskovakaterina/sequiascope-app</code></a></td>
-<td>The main Shiny application (port 8080)</td>
-</tr>
-<tr class="even">
-<td>IGV</td>
-<td><a href="https://hub.docker.com/r/juraskovakaterina/sequiascope-igv"><code>juraskovakaterina/sequiascope-igv</code></a></td>
-<td>IGV static server (port 8081)</td>
-</tr>
-</tbody>
-</table></div>
-<hr>
-<div id="option-a-cluster-deployment-kubernetes-helm" class="section level2 unnumbered">
-<h2>Option A — Cluster deployment (Kubernetes + Helm)<a class="anchor" aria-label="anchor" href="#option-a-cluster-deployment-kubernetes-helm"><i class="fas fa-link"></i></a>
-</h2>
-<p>For cluster environments, SeqUIaSCOPE can be deployed using the provided Helm chart. Full instructions and configuration options are maintained in a separate repository:</p>
-<p>👉 <strong><a href="https://github.com/BioIT-CEITEC/sequiascope-helm">sequiascope-helm</a></strong></p>
-<p>The Helm chart uses the same pre-built Docker Hub images listed above.</p>
-<hr>
-</div>
-<div id="option-b-local-deployment-docker-compose" class="section level2 unnumbered">
-<h2>Option B — Local deployment (Docker Compose)<a class="anchor" aria-label="anchor" href="#option-b-local-deployment-docker-compose"><i class="fas fa-link"></i></a>
-</h2>
-<div id="prerequisites" class="section level3 unnumbered">
-<h3>Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"><i class="fas fa-link"></i></a>
-</h3>
-<ul>
-<li>
-<a href="https://docs.docker.com/engine/install/">Docker</a> ≥ 24</li>
-<li>
-<a href="https://docs.docker.com/compose/install/">Docker Compose</a> (if not already installed)</li>
-</ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="how-to-install-and-run.html#cb1-1" tabindex="-1"></a><span class="ex">docker</span> <span class="at">--version</span></span>
-<span id="cb1-2"><a href="how-to-install-and-run.html#cb1-2" tabindex="-1"></a><span class="ex">docker</span> compose version</span></code></pre></div>
-</div>
-<div id="installation" class="section level3 unnumbered">
-<h3>Installation<a class="anchor" aria-label="anchor" href="#installation"><i class="fas fa-link"></i></a>
-</h3>
-<div id="prepare-your-working-directory" class="section level4 unnumbered">
-<h4>1. Prepare your working directory:<a class="anchor" aria-label="anchor" href="#prepare-your-working-directory"><i class="fas fa-link"></i></a>
-</h4>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="how-to-install-and-run.html#cb2-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> sequiascope/input_files sequiascope/output_files</span>
-<span id="cb2-2"><a href="how-to-install-and-run.html#cb2-2" tabindex="-1"></a><span class="bu">cd</span> sequiascope</span></code></pre></div>
-</div>
-<div id="download-the-compose-file" class="section level4 unnumbered">
-<h4>2. Download the compose file:<a class="anchor" aria-label="anchor" href="#download-the-compose-file"><i class="fas fa-link"></i></a>
-</h4>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="how-to-install-and-run.html#cb3-1" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-O</span> https://raw.githubusercontent.com/BioIT-CEITEC/sequiascope/master/docker-compose.yaml</span></code></pre></div>
-<p>The application uses two separate volumes:</p>
-<ul>
-<li>input_files: Read-only bind mount for input data</li>
-<li>output_files: Writable bind mount for session and output data</li>
-</ul>
-</div>
-<div id="pull-and-start" class="section level4 unnumbered">
-<h4>3. Pull and start<a class="anchor" aria-label="anchor" href="#pull-and-start"><i class="fas fa-link"></i></a>
-</h4>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="how-to-install-and-run.html#cb4-1" tabindex="-1"></a><span class="ex">docker</span> compose pull</span>
-<span id="cb4-2"><a href="how-to-install-and-run.html#cb4-2" tabindex="-1"></a><span class="ex">docker</span> compose up <span class="at">-d</span></span></code></pre></div>
-</div>
-<div id="open-in-browser" class="section level4 unnumbered">
-<h4>4. Open in browser<a class="anchor" aria-label="anchor" href="#open-in-browser"><i class="fas fa-link"></i></a>
-</h4>
-<pre><code>http://localhost:8080</code></pre>
-<p>The app may take 10–20 seconds to initialize on first launch.</p>
-</div>
-<div id="stop" class="section level4 unnumbered">
-<h4>5. Stop<a class="anchor" aria-label="anchor" href="#stop"><i class="fas fa-link"></i></a>
-</h4>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="how-to-install-and-run.html#cb6-1" tabindex="-1"></a><span class="ex">docker</span> compose down</span></code></pre></div>
-<hr>
-</div>
-</div>
-</div>
-<div id="igv-snapshots" class="section level2 unnumbered">
-<h2>IGV snapshots<a class="anchor" aria-label="anchor" href="#igv-snapshots"><i class="fas fa-link"></i></a>
-</h2>
-<p>The <code>sequiascope-igv</code> container generates IGV screenshots for fusion gene visualizations when BAM files are provided. It watches <code>output_files/sessions/</code> and processes batch files written by the app.</p>
-<hr>
-</div>
-<div id="configuration" class="section level2 unnumbered">
-<h2>Configuration<a class="anchor" aria-label="anchor" href="#configuration"><i class="fas fa-link"></i></a>
-</h2>
-<p>The app reads a <code>reference_paths.json</code> from the working directory. The default config is embedded in the image. To override it, mount your own:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="how-to-install-and-run.html#cb7-1" tabindex="-1"></a><span class="fu">volumes</span><span class="kw">:</span></span>
-<span id="cb7-2"><a href="how-to-install-and-run.html#cb7-2" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> ./input_files:/input_files:ro</span></span>
-<span id="cb7-3"><a href="how-to-install-and-run.html#cb7-3" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> ./output_files:/output_files</span></span>
-<span id="cb7-4"><a href="how-to-install-and-run.html#cb7-4" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> ./reference_paths.json:/srv/shiny-server/sequiaScope/app/reference_paths.json:ro</span></span></code></pre></div>
-<hr>
-</div>
-<div id="build-from-source" class="section level2 unnumbered">
-<h2>Build from source<a class="anchor" aria-label="anchor" href="#build-from-source"><i class="fas fa-link"></i></a>
-</h2>
-<p>Building from source is not required for standard use. If you need to modify the application itself:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="how-to-install-and-run.html#cb8-1" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/BioIT-CEITEC/sequiascope.git</span>
-<span id="cb8-2"><a href="how-to-install-and-run.html#cb8-2" tabindex="-1"></a><span class="bu">cd</span> sequiascope</span>
-<span id="cb8-3"><a href="how-to-install-and-run.html#cb8-3" tabindex="-1"></a><span class="ex">docker</span> compose build</span>
-<span id="cb8-4"><a href="how-to-install-and-run.html#cb8-4" tabindex="-1"></a><span class="ex">docker</span> compose up <span class="at">-d</span></span></code></pre></div>
-<hr>
-</div>
-<div id="troubleshooting" class="section level2 unnumbered">
-<h2>Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"><i class="fas fa-link"></i></a>
-</h2>
-<p><strong>App doesn’t start</strong></p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="how-to-install-and-run.html#cb9-1" tabindex="-1"></a><span class="ex">docker</span> compose logs app</span></code></pre></div>
-<p><strong>No data visible after upload</strong></p>
-<ul>
-<li>Check that file names match expected patterns (see Data requirements)</li>
-<li>Verify the mount: <code>docker exec sequiascope-app ls /input_files</code>
-</li>
-</ul>
-<p><strong>IGV snapshots not generated</strong></p>
-<ul>
-<li>Check the IGV container is running: <code>docker ps | grep igv</code>
-</li>
-<li>Check IGV logs: <code>docker compose logs igv</code>
-</li>
-</ul>
-</div>
-<div id="notes" class="section level2 unnumbered alert alert-info" style="margin-top: 0.5rem;">
-<h2>Notes<a class="anchor" aria-label="anchor" href="#notes"><i class="fas fa-link"></i></a>
-</h2>
-<ul>
-<li>The <code>input_files</code> directory is mounted as read-only for the IGV server and read-write for SeqUIaSCOPE</li>
-<li>Both services communicate via the internal Docker network — no manual network configuration needed</li>
-<li>Session data is stored within the containers; use Docker volumes for persistence if needed</li>
-<li>All data remains on your local machine; nothing is sent to external servers</li>
-<li>
-<strong>For organizational deployment</strong>: If you’re interested in using SeqUIaSCOPE but don’t have Docker expertise, contact your bioinformatics team or IT department. They can help set up and maintain SeqUIaSCOPE in your organization’s infrastructure.</li>
-</ul>
-</div>
+<p>Full installation and setup instructions are available in the
+<a href="https://github.com/BioIT-CEITEC/sequiascope">README on GitHub</a>.</p>
 
 </div>
   <div class="chapter-nav">
@@ -224,21 +81,7 @@
 <div class="next"><a href="data-requirements.html">Data Requirements</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#how-to-install-and-run">How to install and run</a></li>
-<li><a class="nav-link" href="#option-a-cluster-deployment-kubernetes-helm">Option A — Cluster deployment (Kubernetes + Helm)</a></li>
-<li>
-<a class="nav-link" href="#option-b-local-deployment-docker-compose">Option B — Local deployment (Docker Compose)</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#prerequisites">Prerequisites</a></li>
-<li><a class="nav-link" href="#installation">Installation</a></li>
-</ul>
-</li>
-<li><a class="nav-link" href="#igv-snapshots">IGV snapshots</a></li>
-<li><a class="nav-link" href="#configuration">Configuration</a></li>
-<li><a class="nav-link" href="#build-from-source">Build from source</a></li>
-<li><a class="nav-link" href="#troubleshooting">Troubleshooting</a></li>
-<li><a class="nav-link" href="#notes">Notes</a></li>
-</ul>
+      <ul class="nav navbar-nav"><li><a class="nav-link" href="#how-to-install-and-run">How to install and run</a></li></ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
