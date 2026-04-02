@@ -40,12 +40,12 @@ create_module_registry <- function(shared_data, module_type) {
       registry_key <- paste0(module_type, "_modules")
       pending_key <- paste0(module_type, "_pending")
       
-      # Přidej do registry
+      # Add to registry
       reg <- isolate(shared_data[[registry_key]]()); if (is.null(reg)) reg <- list()
       reg[[module_id]] <- methods
       shared_data[[registry_key]](reg)
       
-      # Zkontroluj pending restore
+      # Check pending restore
       pend <- isolate(shared_data[[pending_key]]())
       if (!is.null(pend) && !is.null(pend[[module_id]])) {
         state <- pend[[module_id]]
@@ -300,7 +300,7 @@ get_default_module_configs <- function() {
             sv <- st$selected_vars
             if (is.null(sv)) return(NULL)
             dt <- as.data.table(sv)
-            if (nrow(dt) == 0) return(NULL)    # <--- PŘIDAT TENTO ŘÁDEK
+            if (nrow(dt) == 0) return(NULL)    # <--- ADD THIS LINE
             if (!"sample" %in% names(dt)) dt[, sample := pat]
             dt
           }),
@@ -312,7 +312,7 @@ get_default_module_configs <- function() {
     ),
     
     upload = list(
-      post_restore = NULL  # Upload nepotřebuje speciální handling
+      post_restore = NULL  # Upload does not need special handling
     ),
     
     germline = list(
@@ -323,7 +323,7 @@ get_default_module_configs <- function() {
             sv <- st$selected_vars
             if (is.null(sv)) return(NULL)
             dt <- as.data.table(sv)
-            if (nrow(dt) == 0) return(NULL)    # <--- PŘIDAT TENTO ŘÁDEK
+            if (nrow(dt) == 0) return(NULL)    # <--- ADD THIS LINE
             if (!"sample" %in% names(dt)) dt[, sample := pat]
             dt
           }),
@@ -342,7 +342,7 @@ get_default_module_configs <- function() {
             sv <- st$selected_vars
             if (is.null(sv)) return(NULL)
             dt <- as.data.table(sv)
-            if (nrow(dt) == 0) return(NULL)    # <--- PŘIDAT TENTO ŘÁDEK
+            if (nrow(dt) == 0) return(NULL)    # <--- ADD THIS LINE
             if (!"sample" %in% names(dt)) dt[, sample := pat]
             dt
           }),
@@ -453,7 +453,7 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
     
       var_file <- all_files[[patient]]$variant
       
-      # Načti POUZE tyto 2 sloupce
+      # Load ONLY these 2 columns
       dt <- read_by_extension(var_file, select = c("var_name", "all_full_annot_name"))
       sample_name <- patient
       dt[, sample := sample_name]
@@ -463,7 +463,7 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
       return(dt)
 
     }, error = function(e) {
-      warning("Chyba při načítání: ", basename(var_file), " - ", e$message)
+      warning("Error loading: ", basename(var_file), " - ", e$message)
       return(NULL)
     })
   })
@@ -471,22 +471,22 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
   dt_list <- dt_list[!sapply(dt_list, is.null)]
   
   if (length(dt_list) == 0) {
-    warning("Žádná data pro cache v ", variant_type, " - cache nebude vytvořen")
+    warning("No data for cache in ", variant_type, " - cache will not be created")
     return(invisible(NULL))
   }
   
-  # Sloučím všechny
+  # Merge all
   dt_all <- rbindlist(dt_list, use.names = TRUE, fill = TRUE)
   
-  # Počítej výskyty podle all_full_annot_name (UNIKÁTNÍ identifikátor)
+  # Count occurrences by all_full_annot_name (UNIQUE identifier)
   variant_counts <- dt_all[, .(
     in_library = paste0(.N, "/", length(all_patients)),
     sample_count = .N,
     samples = paste(unique(sample), collapse = ";"),
-    var_name = first(var_name)  # Zachovej var_name pro display
+    var_name = first(var_name)  # Keep var_name for display
   ), by = all_full_annot_name]
   
-  # Seřaď podle nejčastějších variant
+  # Sort by most frequent variants
   variant_counts <- variant_counts[order(-sample_count)]
   
   cache_metadata <- list(
@@ -502,10 +502,10 @@ create_session_cache <- function(all_files, all_patients, session_dir, variant_t
   saveRDS(cache_metadata, cache_file)
   
   elapsed <- round(difftime(Sys.time(), start_time, units = "secs"), 2)
-  message("✓ Cache vytvořen: ", 
+  message("✓ Cache created: ", 
           nrow(variant_counts), " unique variants (all_full_annot_name), ",
           cache_metadata$n_unique_var_names, " unique genes (var_name) ",
-          "z ", length(all_patients), " samples (", elapsed, "s)")
+          "from ", length(all_patients), " samples (", elapsed, "s)")
   
   return(invisible(cache_metadata))
 }
@@ -519,22 +519,22 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
   cache_file <- file.path(session_dir, paste0("in_library_", variant_type, ".rds"))
   
   if (!file.exists(cache_file)) {
-    message("ℹ️  Cache pro ", variant_type, " neexistuje - sloupec in_library nebude přidán")
+    message("ℹ️  Cache for ", variant_type, " does not exist - in_library column will not be added")
     if (!"in_library" %in% colnames(dt)) {
       dt[, `:=`(in_library = "1/1", sample_count = 1L)]
     }
     return(dt)
   }
   
-  # PŘIDAT: Try-catch pro bezpečné načtení cache
+  # Try-catch for safe cache loading
   cache_metadata <- tryCatch({
     readRDS(cache_file)
   }, error = function(e) {
-    warning("⚠️  Nelze načíst cache soubor: ", cache_file, " - ", e$message)
+    warning("⚠️  Cannot load cache file: ", cache_file, " - ", e$message)
     return(NULL)
   })
   
-  # Pokud se nepodařilo načíst cache, použij default hodnoty
+  # If cache could not be loaded, use default values
   if (is.null(cache_metadata)) {
     if (!"in_library" %in% colnames(dt)) {
       dt[, `:=`(in_library = "1/1", sample_count = 1L)]
@@ -543,19 +543,19 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
   }
   
   if (!"all_full_annot_name" %in% colnames(dt)) {
-    warning("Data nemají sloupec all_full_annot_name! Nelze přidat in_library.")
+    warning("Data missing all_full_annot_name column! Cannot add in_library.")
     dt[, `:=`(in_library = "1/1", sample_count = 1L)]
     return(dt)
   }
 
   cache_data <- cache_metadata$data
   
-  # Info pro uživatele
-  message("Používám cache: ", cache_metadata$n_samples, " samples, ", 
+  # Info for user
+  message("Using cache: ", cache_metadata$n_samples, " samples, ", 
           cache_metadata$n_variants, " unique variants, ",
           format(cache_metadata$created, "%Y-%m-%d %H:%M"))
   
-  # Merge podle all_full_annot_name
+  # Merge by all_full_annot_name
   dt <- merge(
     dt, 
     cache_data[, .(all_full_annot_name, in_library, sample_count)], 
@@ -563,7 +563,7 @@ add_in_library_from_session <- function(dt, session_dir, variant_type) {
     all.x = TRUE
   )
   
-  # Varianty které nejsou v cache
+  # Variants not in cache
   dt[is.na(in_library), `:=`(
     in_library = "1/1",
     sample_count = 1L
@@ -600,7 +600,7 @@ cleanup_old_sessions <- function(base_dir = "/output_files/sessions", days = 7) 
 read_by_extension <- function(file_path, select = NULL) {
   ext <- tolower(file_ext(file_path))
   if (ext == "tsv") {
-    # TSV - podporuje column selection
+    # TSV - supports column selection
     if (!is.null(select)) {
       return(fread(file_path, select = select))
     } else {
@@ -608,24 +608,24 @@ read_by_extension <- function(file_path, select = NULL) {
     }
     
   } else if (ext == "vcf") {
-    # VCF - musíme načíst celý a pak filtrovat
+    # VCF - must load entire file and then filter
     dt <- parse_vcf(file_path)
     
     if (!is.null(select)) {
-      # Filtruj sloupce po načtení
+      # Filter columns after loading
       return(dt[, ..select])
     }
     return(dt)
     
   } else {
-    stop("Nepodporovaný formát: ", file_path, ". Podporovány jsou pouze TSV a VCF.")
+    stop("Unsupported format: ", file_path, ". Only TSV and VCF are supported.")
   }
 }
 
 
-# Jednoduchý VCF parser
+# Simple VCF parser
 parse_vcf <- function(file_path) {
-  # Najdi kde začínají data (za headerem)
+  # Find where data starts (after header)
   con <- file(file_path, "r")
   skip_lines <- 0
   
@@ -640,10 +640,10 @@ parse_vcf <- function(file_path) {
   }
   close(con)
   
-  # Načti VCF jako tabulku
+  # Load VCF as table
   dt <- fread(file_path, skip = skip_lines)
   
-  # Přejmenuj první sloupec (odstraň #)
+  # Rename first column (remove #)
   if (names(dt)[1] == "#CHROM") {
     setnames(dt, "#CHROM", "CHROM")
   }

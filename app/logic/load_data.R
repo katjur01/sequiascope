@@ -80,7 +80,7 @@ read_file_header <- function(file_path) {
       }
       
       if (is.null(header)) {
-        warning("Soubor neobsahuje řádek s #CHROM – není to validní VCF: ", file_path)
+        warning("File does not contain #CHROM row – not a valid VCF: ", file_path)
         return(NULL)
       }
       return(header)
@@ -117,7 +117,7 @@ read_by_extension <- function(file_path) {
     # vcf <- readVcf(file_path)
     # return(as.data.table(rowRanges(vcf)))
   } else {
-    stop(paste("Nepodporovaný formát:", ext))
+    stop(paste("Unsupported format:", ext))
   }
 }
 
@@ -150,7 +150,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
   # ============ SOMATIC ============
   if (flag == "somatic") {
     input_var <- input_files[grepl(sample, input_files)]
-    if (length(input_var) == 0) stop("Soubor pro vzorek ", sample, " nenalezen")
+    if (length(input_var) == 0) stop("File not found for sample ", sample)
     
     dt <- read_by_extension(input_var)
     # Normalize column names to lowercase
@@ -174,7 +174,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     # ============ GERMLINE ============
   } else if (flag == "germline") {
     input_var <- input_files[grepl(sample, input_files)]
-    if (length(input_var) == 0) stop("Soubor pro vzorek ", sample, " nenalezen")
+    if (length(input_var) == 0) stop("File not found for sample ", sample)
     
     dt <- read_by_extension(input_var)
     # Normalize column names to lowercase
@@ -198,7 +198,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     # ============ FUSION ============
   } else if (flag == "fusion") {
     input_var <- input_files[grepl(sample, input_files)]
-    if (length(input_var) == 0) stop("Soubor pro vzorek ", sample, " nenalezen")
+    if (length(input_var) == 0) stop("File not found for sample ", sample)
     
     dt <- read_by_extension(input_var)
     # Normalize column names to lowercase
@@ -217,20 +217,20 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     
     # ============ EXPRESSION ============
   } else if (flag == "expression") {
-    # Předpokládám strukturu: input_files = list(files = list(expression = ...), tissues = ...)
+    # Assumes structure: input_files = list(files = list(expression = ...), tissues = ...)
     expr_files <- input_files$files$expression
     input_var <- expr_files[grepl(sample, expr_files)]
     
-    if (length(input_var) == 0) stop("Expression soubor pro vzorek ", sample, " nenalezen")
+    if (length(input_var) == 0) stop("Expression file not found for sample ", sample)
     
-    # Jeden soubor bez tkání
+    # Single file without tissues
     if (length(unique(input_files$tissues)) == 1 && unique(input_files$tissues) == "none") {
       combined_dt <- read_by_extension(input_var[[1]])
       # Normalize column names to lowercase
       setnames(combined_dt, tolower(names(combined_dt)))
       combined_dt[, c("tissue", "sample") := .("none", sample)]
       
-      # Více souborů s tkáněmi
+      # Multiple files with tissues
     } else {
       dt_list <- lapply(seq_along(input_var), function(i) {
         dt <- read_by_extension(input_var[[i]])
@@ -254,10 +254,10 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     # Normalize column names to lowercase
     setnames(dt, tolower(names(dt)))
     
-    if (ncol(dt) < 1L) stop("Soubor neobsahuje žádné sloupce.")
+    if (ncol(dt) < 1L) stop("File contains no columns.")
     
-    # Zde můžeš přidat specifickou logiku pro GOI
-    # např. filtrování podle sample pokud je potřeba
+    # Add specific GOI logic here if needed
+    # e.g. filter by sample if needed
     if (!is.null(sample)) {
       dt[, sample := sample]
     }
@@ -269,7 +269,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     # Normalize column names to lowercase
     setnames(dt, tolower(names(dt)))
     
-    if (ncol(dt) < 2L) stop("TMB soubor musí obsahovat alespoň 2 sloupce.")
+    if (ncol(dt) < 2L) stop("TMB file must contain at least 2 columns.")
     
     dt <- dt[, 1:2]
     setnames(dt, c("patient", "TMB"))
@@ -282,7 +282,7 @@ load_data <- function(input_files, flag, sample = NULL, session_dir = NULL) {
     
     # ============ UNKNOWN FLAG ============
   } else {
-    stop("Neznámý flag: ", flag, ". Podporované: varcall, germline, fusion, expression, GOI, TMB")
+    stop("Unknown flag: ", flag, ". Supported: varcall, germline, fusion, expression, GOI, TMB")
   }
 }
 

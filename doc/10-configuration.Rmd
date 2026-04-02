@@ -16,7 +16,7 @@ or a custom reference genome — mount your own `reference_paths.json` into the 
 
 ## Mounting a Custom Config {-}
 
-Add the following volume mount to your `docker-compose.hub.yml`:
+Add the following volume mount to your `docker-compose.yaml`:
 
 ```yaml
 volumes:

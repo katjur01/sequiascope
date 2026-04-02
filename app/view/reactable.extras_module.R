@@ -8,13 +8,13 @@ box::use(
   reactablefmtr[data_bars],
 )
 
-# UI část modulu
+# UI module part
 ui <- function(id) {
   ns <- NS(id)
   reactable_extras_ui(ns("reactable_table"))
 }
 
-# Server část modulu
+# Server module part
 server <- function(id, dt) {
   moduleServer(id, function(input, output, session) {
     reactable_extras_server("reactable_table", dt,

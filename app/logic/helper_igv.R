@@ -82,6 +82,53 @@ get_igv_genome_id <- function(display_name, custom_genome_config = NULL) {
 }
 
 # -----------------------------------------------------------------------------
+# IGV Desktop Genome Resolution
+# -----------------------------------------------------------------------------
+
+#' Resolve an IGV genome ID to a local FASTA path for IGV Desktop batch files
+#'
+#' In restricted/offline environments IGV Desktop must use a local FASTA file
+#' instead of downloading reference genomes from the internet.
+#' The \code{custom_genome} section of \code{reference_paths.json} can list which
+#' standard IGV genome IDs (e.g. "hg38") are covered by the local file via the
+#' optional \code{igv_desktop_ids} array.
+#'
+#' @param igv_id     Genome ID string, e.g. \code{"hg38"} or \code{"custom"}.
+#' @param custom_genome_config  Custom genome config list from reference_paths.json,
+#'   or \code{NULL} if not configured.
+#' @param igv_root   Absolute path to the input-files root directory
+#'   (e.g. \code{"/input_files"}).  Defaults to \code{"/input_files"} when
+#'   \code{NULL} or empty.
+#' @return Absolute path to the local FASTA if the ID matches and the file exists;
+#'   otherwise returns \code{igv_id} unchanged.
+#' @export
+resolve_igv_desktop_genome <- function(igv_id, custom_genome_config, igv_root = NULL) {
+  if (is.null(custom_genome_config) || is.null(custom_genome_config$genome)) {
+    return(igv_id)
+  }
+
+  input_root  <- if (!is.null(igv_root) && nzchar(igv_root)) igv_root else "/input_files"
+  genome_path <- file.path(input_root, custom_genome_config$genome)
+
+  # Match when: user selected the abstract "custom" igv_id, OR igv_id is listed
+  # in igv_desktop_ids (the standard genome IDs covered by this local FASTA).
+  is_custom_id     <- identical(igv_id, custom_genome_config$igv_id)
+  desktop_ids      <- if (!is.null(custom_genome_config$igv_desktop_ids)) {
+    as.character(custom_genome_config$igv_desktop_ids)
+  } else {
+    character(0)
+  }
+  is_desktop_match <- igv_id %in% desktop_ids
+
+  if ((is_custom_id || is_desktop_match) && file.exists(genome_path)) {
+    message("[IGV] Resolved genome for IGV Desktop: ", igv_id, " -> ", genome_path)
+    return(genome_path)
+  }
+
+  return(igv_id)
+}
+
+# -----------------------------------------------------------------------------
 # IGV URL Building
 # -----------------------------------------------------------------------------
 
@@ -154,7 +201,7 @@ build_custom_genome <- function(custom_genome_config) {
 #' @export
 build_igv_tracks <- function(samples, igv_root = NULL) {
   if (is.null(samples) || length(samples) == 0) {
-    warning("⚠️  build_igv_tracks: prázdný vstup samples.")
+    warning("⚠️  build_igv_tracks: empty samples input.")
     return("")
   }
   
@@ -170,7 +217,7 @@ build_igv_tracks <- function(samples, igv_root = NULL) {
   tracks <- lapply(samples, function(sample) {
     # Ošetření: každý sample musí mít položky name a file
     if (is.null(sample$name) || is.null(sample$file)) {
-      warning("⚠️  Sample chybí 'name' nebo 'file': ", paste(sample, collapse = ", "))
+      warning("⚠️  Sample missing 'name' or 'file': ", paste(sample, collapse = ", "))
       return(NULL)
     }
     
@@ -244,7 +291,7 @@ build_igv_tracks <- function(samples, igv_root = NULL) {
 #   port <- getOption("igv.port")
 # 
 #   if (!requireNamespace("processx", quietly = TRUE)) {
-#     stop("Balíček 'processx' není nainstalovaný. Nainstaluj ho přes install.packages('processx').")
+#     stop("Package 'processx' is not installed. Install it via install.packages('processx').")
 #   }
 # 
 #   # Zjisti, jestli port už něco používá
@@ -252,7 +299,7 @@ build_igv_tracks <- function(samples, igv_root = NULL) {
 # 
 #   # Pokud ano – zabij starý proces
 #   if (length(server_check) > 0) {
-#     message("⚠️ Port ", port, " je obsazený. Ukončuji předchozí proces...")
+#     message("⚠️ Port ", port, " is in use. Terminating previous process...")
 #     for (pid in server_check) {
 #       system(paste("kill -9", pid))
 #     }
@@ -268,7 +315,7 @@ build_igv_tracks <- function(samples, igv_root = NULL) {
 #   ), envir = .GlobalEnv)
 # 
 #   Sys.sleep(1)
-#   message("✅ IGV statický server běží na http://127.0.0.1:", port)
+#   message("✅ IGV static server running at http://127.0.0.1:", port)
 # }
 
 #' @export
@@ -278,12 +325,12 @@ build_igv_tracks <- function(samples, igv_root = NULL) {
 # 
 #     if (!is.null(proc) && inherits(proc, "process") && proc$is_alive()) {
 #       proc$kill()
-#       message("🛑 IGV statický server byl ukončen.")
+#       message("🛑 IGV static server stopped.")
 #     }
 # 
 #     rm("cors_server", envir = .GlobalEnv)
 #   } else {
-#     message("ℹ️ Žádný IGV statický server neběží (proměnná neexistuje).")
+#     message("ℹ️ No IGV static server is running (variable does not exist).")
 #   }
 # }
 

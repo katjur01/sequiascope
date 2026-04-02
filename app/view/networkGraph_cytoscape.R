@@ -44,7 +44,7 @@ ui <- function(id, tissue_list, patient) {
   tagList(
     tags$br(),
     fluidRow(
-      column(6,  # 🔑 Levá polovina - hlavní graf
+      column(6,  # 🔑 Left half - main graph
         fluidRow(
           column(4,
                  div(style = "width: 90%;",
@@ -68,7 +68,7 @@ ui <- function(id, tissue_list, patient) {
                                 tags$i(class = "fa fa-question fa-xs", style = "color: #2596be;"))),
                    radioGroupButtons(inputId=ns("edge_mode"), NULL,
                                         choices = c("Evidence" = "evidence", "Confidence" = "confidence"),
-                                        selected = "confidence",  # 🔑 Confidence jako výchozí
+                                        selected = "confidence",  # 🔑 Confidence as default
                                         justified = TRUE))),
           column(4,
                  div(style = "width: 90%;",
@@ -107,7 +107,7 @@ ui <- function(id, tissue_list, patient) {
         tags$br()
       ),
       column(1),
-      column(5,  # 🔑 Pravá polovina - podgraf + ovládací prvky
+      column(5,  # 🔑 Right half - subgraph + controls
              fluidRow(
                column(6,
                       div(style = "display: flex; flex-direction: column; align-items: flex-start; width: 90%;",
@@ -199,10 +199,10 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     new_genes_var <- reactiveVal(NULL)
     remove_genes_var <- reactiveVal(NULL)
     clear_all <- reactiveVal(FALSE)
-    last_button_action <- reactiveVal(0)  # 🔑 Timestamp poslední button akce
+    last_button_action <- reactiveVal(0)  # 🔑 Timestamp of last button action
     selected_dt <- reactiveVal(NULL)
     
-    # 🔑 DEBOUNCE pro interaction sources (1 sekunda prodleva)
+    # 🔑 DEBOUNCE for interaction sources (1 second delay)
     interaction_sources_debounced <- debounce(reactive(input$interaction_sources), 1000)
     
     # Load data
@@ -238,8 +238,8 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     
     interactions <- reactive({
       req(tissue_dt())
-      req(input$interaction_score)  # 🔑 Vyžadovat score
-      req(interaction_sources_debounced())  # 🔑 ZMĚNA: Použít debounced verzi
+      req(input$interaction_score)  # 🔑 Require score
+      req(interaction_sources_debounced())  # 🔑 CHANGE: Use debounced version
       
       genes <- tissue_dt()[, feature_name]
       
@@ -252,7 +252,7 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       result <- get_string_interactions(
         genes,
         required_score = as.numeric(input$interaction_score),
-        filter_sources = interaction_sources_debounced()  # 🔑 ZMĚNA: Použít debounced
+        filter_sources = interaction_sources_debounced()  # 🔑 CHANGE: Use debounced
       )
       
       end_time <- Sys.time()
@@ -264,8 +264,8 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     
     network_json <- reactive({
       req(tissue_dt())
-      req(interaction_sources_debounced())  # 🔑 ZMĚNA: debounced verze
-      req(input$edge_mode)  # 🔑 Vyžadovat edge_mode (triggers re-execution)
+      req(interaction_sources_debounced())  # 🔑 CHANGE: debounced version
+      req(input$edge_mode)  # 🔑 Require edge_mode (triggers re-execution)
       ints <- interactions()
       req(ints)
       
@@ -285,9 +285,9 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
       result <- prepare_cytoscape_network(
         ints, 
         unique(tissue_dt()[, .(feature_name, log2fc)]),
-        selected_sources = interaction_sources_debounced(),  # 🔑 ZMĚNA: debounced
-        required_score = as.numeric(input$interaction_score),  # 🔑 Předat score threshold
-        edge_mode = input$edge_mode  # 🔑 Předat edge mode
+        selected_sources = interaction_sources_debounced(),  # 🔑 CHANGE: debounced
+        required_score = as.numeric(input$interaction_score),  # 🔑 Pass score threshold
+        edge_mode = input$edge_mode  # 🔑 Pass edge mode
       )
       
       end_time <- Sys.time()
@@ -306,25 +306,25 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     ##################################
     
     sync_nodes <- function(nodes_from_graph, current_genes, add_genes = NULL, remove_genes = NULL, clear_all, graph_is_source = FALSE, nodes_outside_graph = character(0)) {
-      # 🔑 KLÍČOVÁ ZMĚNA: 
-      # - Když graph_is_source=TRUE: Použij POUZE nodes_from_graph (čistý user selection z grafu)
-      # - Když graph_is_source=FALSE a máme nodes_outside_graph:
-      #     Použij nodes_from_graph + zachovej nodes_outside_graph
-      # - Jinak: Kombinuj vše (button akce)
+      # 🔑 KEY CHANGE:
+      # - When graph_is_source=TRUE: Use ONLY nodes_from_graph (pure user selection from graph)
+      # - When graph_is_source=FALSE and we have nodes_outside_graph:
+      #     Use nodes_from_graph + keep nodes_outside_graph
+      # - Otherwise: Combine everything (button action)
       
       if (clear_all) {
         combined <- character(0)
       } else if (graph_is_source && is.null(add_genes) && is.null(remove_genes)) {
-        # User změnil selection v grafu a všechny synchronized uzly JSOU v grafu
-        # → použij POUZE co je vybráno v grafu (umožní odznačení)
+        # User changed selection in graph and all synchronized nodes ARE in graph
+        # → use ONLY what is selected in graph (allows deselection)
         combined <- nodes_from_graph
       } else if (!graph_is_source && length(nodes_outside_graph) > 0 && is.null(add_genes) && is.null(remove_genes)) {
-        # User změnil selection v grafu ale máme uzly MIMO graf (např. BRCA1)
-        # → použij nodes_from_graph + zachovej nodes_outside_graph
-        # DŮLEŽITÉ: Toto zachová nodes_outside_graph i když user odznačí uzly V grafu
+        # User changed selection in graph but we have nodes OUTSIDE graph (e.g. BRCA1)
+        # → use nodes_from_graph + keep nodes_outside_graph
+        # IMPORTANT: This preserves nodes_outside_graph even when user deselects nodes IN graph
         combined <- unique(c(nodes_from_graph, nodes_outside_graph))
       } else {
-        # Button akce (add/remove) → kombinuj vše a aplikuj změny
+        # Button action (add/remove) → combine everything and apply changes
         combined <- unique(c(nodes_from_graph, current_genes))
         
         if (!is.null(add_genes) && length(add_genes) > 0) combined <- unique(c(combined, add_genes))
@@ -367,8 +367,8 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
         message("⏱️ cy-init message sent to JS")
         message("   Time for cy-init send: ", round(difftime(Sys.time(), js_send_start, units = "secs"), 2), " seconds")
         
-        # 🔑 DŮLEŽITÉ: Po vytvoření grafu poslat aktuální selection
-        # (aby se uzly vybraly v novém grafu)
+        # 🔑 IMPORTANT: After graph creation, send current selection
+        # (so nodes get selected in the new graph)
         if (length(synchronized_nodes()) > 0) {
           message("   📤 Sending selection to new graph: ", paste(synchronized_nodes(), collapse = ", "))
           session$sendCustomMessage("update-selected-from-gene-list", list(
@@ -388,17 +388,17 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     })
     
     observe({
-      req(tissue_dt())  # 🔑 OPRAVA: Použít tissue_dt() místo subTissue_dt()
-      # tissue_dt() závisí na PATHWAY i TISSUE, takže se aktualizuje při změně pathway
+      req(tissue_dt())  # 🔑 FIX: Use tissue_dt() instead of subTissue_dt()
+      # tissue_dt() depends on PATHWAY and TISSUE, so it updates on pathway change
       req(length(synchronized_nodes()) > 0)
-      req(input$interaction_score)  # 🔑 Vyžadovat score
-      req(input$interaction_sources)  # 🔑 Vyžadovat sources
+      req(input$interaction_score)  # 🔑 Require score
+      req(input$interaction_sources)  # 🔑 Require sources
       
       start_time <- Sys.time()
       message("⏱️ [sub_interactions] START: Fetching sub-interactions for ", length(synchronized_nodes()), " nodes")
       message("   Pathway: ", input$selected_pathway, ", Tissue: ", input$selected_tissue)
       
-      # Použít tissue_dt() pro správnou pathway a stejné parametry jako hlavní graf
+      # Use tissue_dt() for correct pathway and same parameters as main graph
       result <- get_string_interactions(
         unique(tissue_dt()[feature_name %in% synchronized_nodes(), feature_name]),
         required_score = as.numeric(input$interaction_score),
@@ -414,46 +414,46 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
     observe({
       req(active())  # 🔑 CRITICAL: Only run when tab is active
       current_nodes <- synchronized_nodes()
-      req(input$interaction_sources)  # 🔑 Trigger při změně sources
+      req(input$interaction_sources)  # 🔑 Trigger on source change
       
       message("🔄 cy-subset observer triggered - current_nodes: ", paste(current_nodes, collapse = ", "))
       message("   Pathway: ", input$selected_pathway, ", Tissue: ", input$selected_tissue)
       message("   Selected sources: ", paste(interaction_sources_debounced(), collapse = ", "))
       
       if (length(current_nodes) == 0) {
-        message("Žádné uzly nejsou vybrány. Odesílám prázdný podgraf.")
+        message("No nodes selected. Sending empty subgraph.")
         
         session$sendCustomMessage("cy-subset", list(
           elements = list(nodes = list(), edges = list()),
           containerId = cy_subset_container_id,
           patientId = patient
         ))
-        # NOTE: update-selected-from-gene-list se posílá z sync observeEvent, ne zde
+        # NOTE: update-selected-from-gene-list is sent from sync observeEvent, not here
       } else {
         req(sub_interactions())
-        req(subTissue_dt())  # 🔑 Pro FC data použít subTissue_dt (všechny geny v tissue)
+        req(subTissue_dt())  # 🔑 Use subTissue_dt for FC data (all genes in tissue)
         
         message("Aktualizace podgrafu pro uzly: ", paste(current_nodes, collapse = ", "))
         subnetwork_data <- prepare_cytoscape_network(
           sub_interactions(), 
-          unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2fc)]),  # 🔑 subTissue_dt pro všechny geny
+          unique(subTissue_dt()[feature_name %in% current_nodes, .(feature_name, log2fc)]),  # 🔑 subTissue_dt for all genes
           current_nodes,
-          selected_sources = interaction_sources_debounced(),  # 🔑 ZMĚNA: debounced
-          required_score = as.numeric(input$interaction_score),  # 🔑 Předat score threshold
-          edge_mode = input$edge_mode  # 🔑 Předat edge mode
+          selected_sources = interaction_sources_debounced(),  # 🔑 CHANGE: debounced
+          required_score = as.numeric(input$interaction_score),  # 🔑 Pass score threshold
+          edge_mode = input$edge_mode  # 🔑 Pass edge mode
         )
-        message("#### Podgraf připraven - nodes: ", length(subnetwork_data$elements$nodes), ", edges: ", length(subnetwork_data$elements$edges))
+        message("#### Subgraph ready - nodes: ", length(subnetwork_data$elements$nodes), ", edges: ", length(subnetwork_data$elements$edges))
         
         subnetwork_data$containerId <- cy_subset_container_id
         subnetwork_data$patientId <- patient
         
         session$sendCustomMessage("cy-subset", subnetwork_data)
-        # NOTE: update-selected-from-gene-list se posílá z sync observeEvent, ne zde
+        # NOTE: update-selected-from-gene-list is sent from sync observeEvent, not here
       }
     })
     
 
-    # Debug: sledovat změny input$cySelectedNodes
+    # Debug: track changes to input$cySelectedNodes
     observe({
       req(active())  # 🔑 Only debug when tab is active
       message("👀 input$cySelectedNodes changed: ", paste(input$cySelectedNodes %||% "NULL", collapse = ", "))
@@ -474,61 +474,61 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
                         message("   new_genes_var: ", paste(new_genes_var() %||% "NULL", collapse = ", "))
                         message("   remove_genes_var: ", paste(remove_genes_var() %||% "NULL", collapse = ", "))
                         
-                        # 🔑 KLÍČOVÁ OPRAVA: Když trigger přichází z button akce (new_genes/remove_genes),
-                        # použij synchronized_nodes() místo input$cySelectedNodes, protože JS se ještě neaktualizoval
+                        # 🔑 KEY FIX: When trigger comes from button action (new_genes/remove_genes),
+                        # use synchronized_nodes() instead of input$cySelectedNodes, because JS has not yet updated
                         is_button_trigger <- !is.null(new_genes_var()) || !is.null(remove_genes_var()) || clear_all()
                         
-                        # 🔑 NOVÁ OCHRANA: Ignoruj input$cySelectedNodes pokud byl button stisknut v posledních 500ms
+                        # 🔑 NEW GUARD: Ignore input$cySelectedNodes if button was pressed within the last 500ms
                         time_since_button <- as.numeric(Sys.time()) - last_button_action()
                         recently_used_button <- time_since_button < 0.5
                         
-                        # 🔑 KRITICKÁ OCHRANA: Ignoruj input$cySelectedNodes když byl button použit nedávno
-                        # Časový timeout (500ms) je JEDINÝ spolehlivý způsob jak detekovat staré hodnoty
+                        # 🔑 CRITICAL GUARD: Ignore input$cySelectedNodes when button was used recently
+                        # Time-based timeout (500ms) is the ONLY reliable way to detect stale values
                         sync_nodes_count <- length(synchronized_nodes())
                         cysel_nodes_count <- length(input$cySelectedNodes %||% character(0))
                         cysel_nodes <- input$cySelectedNodes %||% character(0)
                         sync_nodes <- synchronized_nodes()
                         
-                        # has_extra_nodes check byl ODSTRANĚN - nedokázal spolehlivě rozlišit
-                        # staré hodnoty od legitimních nových výběrů z grafu
-                        # Spoléháme se POUZE na recently_used_button timeout (500ms)
+                        # has_extra_nodes check was REMOVED - could not reliably distinguish
+                        # stale values from legitimate new graph selections
+                        # We rely SOLELY on the recently_used_button timeout (500ms)
                         
                         if (is_button_trigger) {
-                          last_button_action(as.numeric(Sys.time()))  # Zaznamenej čas button akce
+                          last_button_action(as.numeric(Sys.time()))  # Record time of button action
                           message("🔘 Button trigger detected, using synchronized_nodes()")
                         } else if (recently_used_button) {
                           message("⏱️ Ignoring stale input$cySelectedNodes (button action within 500ms)")
                           return()  # Ignoruj tento trigger
                         }
-                        # has_extra_nodes a has_nodes_not_in_graph checks ODSTRANĚNY
-                        # Spoléháme se POUZE na 500ms timeout
+                        # has_extra_nodes and has_nodes_not_in_graph checks REMOVED
+                        # We rely SOLELY on the 500ms timeout
                         
-                        # 🔑 NOVÁ OCHRANA: Detekuj JS selhání (uzly nebyly nalezeny v grafu)
-                        # POUZE po button akcích kdy očekáváme že JS vybere všechny uzly
+                        # 🔑 NEW GUARD: Detect JS failure (nodes were not found in graph)
+                        # ONLY after button actions where we expect JS to select all nodes
                         # 
-                        # Pokud cysel má MÉNĚ uzlů než sync, může to být:
-                        # 1. User odznačil uzel (LEGITIMNÍ) - všechny cysel uzly jsou v sync
-                        # 2. JS selhal (např. BRCA1 není v grafu) - synchronized má uzly které nejsou v cysel
-                        #    ALE všechny synchronized uzly MĚLY být v cysel (protože button je přidal)
+                        # If cysel has FEWER nodes than sync, it could be:
+                        # 1. User deselected a node (LEGITIMATE) - all cysel nodes are in sync
+                        # 2. JS failed (e.g. BRCA1 not in graph) - synchronized has nodes not in cysel
+                        #    BUT all synchronized nodes SHOULD have been in cysel (button added them)
                         if (!is_button_trigger && sync_nodes_count > 0 && cysel_nodes_count < sync_nodes_count) {
-                          # Kontrola: Jsou všechny cysel uzly v synchronized?
+                          # Check: Are all cysel nodes in synchronized?
                           all_cysel_in_sync <- all(cysel_nodes %in% sync_nodes)
                           
                           if (all_cysel_in_sync) {
-                            # ✅ LEGITIMNÍ odznačení - všechny cysel uzly jsou v sync, jen jich je méně
+                            # ✅ LEGITIMATE deselection - all cysel nodes are in sync, just fewer of them
                             message("✓ User deselected nodes in graph")
                           } else {
-                            # ❌ PROBLÉM - cysel obsahuje uzly které NEJSOU v sync
-                            # To by nemělo nastat, ignoruj
+                            # ❌ PROBLEM - cysel contains nodes that are NOT in sync
+                            # This should not happen, ignore
                             message("⚠️ Ignoring input$cySelectedNodes - contains nodes not in synchronized")
                             return()
                           }
                         }
                         
                         nodes_from_graph <- if (is_button_trigger || recently_used_button) {
-                          synchronized_nodes()  # Použij aktuální synchronized hodnotu
+                          synchronized_nodes()  # Use current synchronized value
                         } else {
-                          input$cySelectedNodes %||% character(0)  # Použij hodnotu z grafu
+                          input$cySelectedNodes %||% character(0)  # Use value from graph
                         }
                         
                         message("nodes_from_graph: ", paste(nodes_from_graph, collapse = ", "))
@@ -537,16 +537,16 @@ server <- function(id, patient, shared_data, patient_files, file_list, tabset_in
                         message("remove_genes: ", paste(remove_genes_var() %||% character(0), collapse = ", "))
                         message("clear_all: ", clear_all())
                         
-                        # 🔑 KLÍČOVÁ LOGIKA pro graph_is_source:
-                        # Graf je source (použij JEN nodes_from_graph) POUZE když:
-                        # 1. NENÍ button trigger (uživatel kliká v grafu)
-                        # 2. A nodes_from_graph je NADMNOŽINA synchronized_nodes
-                        #    (všechny uzly ze synchronized jsou v nodes_from_graph, takže můžeme použít jen graf)
+                        # 🔑 KEY LOGIC for graph_is_source:
+                        # Graph is source (use ONLY nodes_from_graph) ONLY when:
+                        # 1. NOT a button trigger (user is clicking in graph)
+                        # 2. AND nodes_from_graph is a SUPERSET of synchronized_nodes
+                        #    (all nodes from synchronized are in nodes_from_graph, so we can use just the graph)
                         # 
-                        # Pokud synchronized obsahuje uzly které NEJSOU v nodes_from_graph,
-                        # rozlišíme dvě situace:
-                        # - Uzel NENÍ v hlavním grafu vůbec (např. BRCA1) → zachovat
-                        # - Uzel JE v hlavním grafu ale není vybraný → user ho odznačil → smazat
+                        # If synchronized contains nodes NOT in nodes_from_graph,
+                        # we distinguish two situations:
+                        # - Node is NOT in the main graph at all (e.g. BRCA1) → keep
+                        # - Node IS in the main graph but not selected → user deselected it → remove
                         
                         # Získej seznam VŠECH uzlů v hlavním grafu
                         all_graph_nodes <- tissue_dt()$feature_name

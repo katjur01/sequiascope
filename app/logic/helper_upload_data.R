@@ -15,9 +15,9 @@ box::use(
 
 get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
   
-  # Definice všech možných tooltip zpráv podle reason - ENGLISH
+  # Definition of all possible tooltip messages by reason
   tooltip_messages <- list(
-    # Červené stavy
+    # Red states
     "required_missing" = list(
       simple = "Required file missing",
       detailed = "Missing files"
@@ -31,7 +31,7 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
       detailed = "Multiple expression files found while no tissue was specified"
     ),
 
-    # Zelené stavy  
+    # Green states
     "complete_pair_bam_bai" = list(
       simple   = "Paired files OK",
       detailed = "BAM and BAI files are complete"
@@ -49,7 +49,7 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
       detailed = "Required files are available"
     ),
     
-    # Oranžové stavy
+    # Orange states
     "missing_pair_bam_bai" = list(
       simple   = "Missing BAM or BAI",
       detailed = "BAM/BAI pair is incomplete"
@@ -93,7 +93,7 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
       detailed = "Pattern matched no files"
     ),
     
-    # Šedé stavy
+    # Gray states
     "optional_missing" = list(
       simple = "Optional files not available",
       detailed = "Optional files not available"
@@ -112,7 +112,7 @@ get_status_icon <- function(color, simple = FALSE, reason = "unknown") {
   
   
   
-  # Získej zprávu podle reason
+  # Get message by reason
   message_type <- if (simple) "simple" else "detailed"
   tooltip_text <- if (!is.null(tooltip_messages[[reason]][[message_type]])) {
     tooltip_messages[[reason]][[message_type]]
@@ -418,7 +418,7 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
   } else {
     # --- Non-BAM files ---
     if (config_key == "expression_expression") {
-      # Pokud nejsou zadané tissues (pattern_list prázdné)
+      # If no tissues specified (pattern_list empty)
       if (length(pattern_list) == 0 || all(!nzchar(pattern_list))) {
         if (length(matched) == 0) {
           status <- if (config$required) "red" else "gray"
@@ -435,12 +435,12 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
           # No need to clear matched - red status blocks user from proceeding anyway
         }
       } else {
-        # Tissues jsou zadané -> vždy použij mapování
+        # Tissues specified -> always use mapping
         filtered <- create_tissue_file_mapping(
           expression_files = matched,
           tissues_str      = pattern_list
         )
-        matched <- as.character(filtered$mapping)  # jen detekované soubory (bez NA)
+        matched <- as.character(filtered$mapping)  # only detected files (without NA)
         status  <- switch(filtered$status,
           "green" = "green",
           "mixed" = "orange",
@@ -450,7 +450,7 @@ evaluate_file_status <- function(files, patient, file_type, dataset_type, patter
         tissues_matched <- names(filtered$mapping)
         # No need to clear matched when red - red status blocks user from proceeding anyway
         
-        # PŘIDEJME do výstupu i úplné mapování (vč. NA pro chybějící)
+        # Also add full mapping to output (incl. NA for missing)
         attr(matched, "all_mapping") <- filtered$all_mapping
         attr(matched, "missing_tissues") <- filtered$missing_tissues
       }
@@ -525,11 +525,11 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
       expression_result = evaluate_file_status(files, patient, "expression", "expression", patterns = tissues)
       goi_result = evaluate_file_status(goi_files, patient, "goi", "expression")
       
-      # full mapping (vč. NA pro chybějící)
+      # full mapping (incl. NA for missing)
       if (!is.null(expression_result$all_mapping) && length(expression_result$all_mapping) > 0) {
         tissue_mapping_full <- expression_result$all_mapping
       } else {
-        # žádné tissues zadané -> "none" nebo prázdno
+        # no tissues specified -> "none" or empty
         if (length(expression_result$files) > 0 && length(expression_result$tissues) > 0) {
           tissue_mapping_full <- setNames(expression_result$files, expression_result$tissues)
         } else if (length(expression_result$files) > 0) {
@@ -539,7 +539,7 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
         }
       }
       
-      # jen detekované (bez NA)
+      # only detected (without NA)
       if (length(tissue_mapping_full) > 0) {
         tissue_mapping_detected <- tissue_mapping_full[!is.na(tissue_mapping_full)]
       } else {
@@ -551,8 +551,8 @@ create_dataset_data <- function(dataset_type, files, goi_files, TMB_files, patie
           status = expression_result$status,
           files = expression_result$files,
           reason = expression_result$reason,
-          tissue_mapping = tissue_mapping_detected,  # zachováno pro stávající logiku
-          tissue_mapping_full = tissue_mapping_full  # nově: úplný seznam tkání
+          tissue_mapping = tissue_mapping_detected,  # kept for existing logic
+          tissue_mapping_full = tissue_mapping_full  # new: full list of tissues
         ),
         goi = goi_result
       )
@@ -842,7 +842,7 @@ validate_datasets_status <- function(datasets_data) {
 
 
 
-# Funkce pro kontrolu BAM/BAI mebo PDG/TSV párů
+# Function for checking BAM/BAI or PDF/TSV pairs
 check_pair <- function(files, patient, pair = c("bam_bai","pdf_tsv")) {
   pair <- match.arg(pair)
   
@@ -870,16 +870,16 @@ check_pair <- function(files, patient, pair = c("bam_bai","pdf_tsv")) {
       return("multiple") # too many BAM files
     }
     
-    # Kontrola, zda každý BAM má odpovídající BAI
+    # Check that each BAM has a matching BAI
     bam_bases <- str_remove(bam_files, "\\.bam$")
     bai_bases <- str_remove(bai_files, "\\.bam\\.bai$|\\.bai$")
     
     missing_bai <- setdiff(bam_bases, bai_bases)
     
     if (length(missing_bai) > 0) {
-      return("incomplete") # máme BAM ale chybí BAI
+      return("incomplete") # have BAM but BAI is missing
     } else if (length(bam_files) > 0) {
-      return("complete") # máme BAM i BAI
+      return("complete") # have both BAM and BAI
     } else {
       return("none")
     }
@@ -887,7 +887,7 @@ check_pair <- function(files, patient, pair = c("bam_bai","pdf_tsv")) {
 
 }
 
-# token-match na hranicích segmentů (/ . _ -), case-insensitive
+# token-match at segment boundaries (/ . _ -), case-insensitive
 .make_tissue_regex <- function(tissue_list) {
   if (!length(tissue_list)) return(NULL)
   esc <- function(x) gsub("([][(){}.+*?^$\\|\\\\])","\\\\\\1", x, perl = TRUE)
@@ -923,7 +923,7 @@ create_tissue_file_mapping <- function(expression_files, tissues_str) {
   tissues <- trimws(unlist(strsplit(tissues_clean, "[,\n]+")))
   tissues <- tissues[nzchar(tissues)]
   tissues <- unique(tissues)
-  original_tissues <- tissues  # Ulož původní pořadí
+  original_tissues <- tissues  # Store original order
   
   if (length(tissues) == 0) {
     return(list(
@@ -1338,7 +1338,7 @@ build_confirmed_paths <- function(dataset_objects, root_path) {
 
 
 # ============================================================================
-# VALIDACE POVINNÝCH SLOUPCŮ
+# REQUIRED COLUMN VALIDATION
 # ============================================================================
 
 validate_file_columns <- function(file_path, dataset_type, patient_id) {
@@ -1348,12 +1348,12 @@ validate_file_columns <- function(file_path, dataset_type, patient_id) {
     return(list(valid = TRUE, dataset = dataset_type, patient = patient_id))
   }
   
-  # Rozděl vícenásobné cesty
+  # Split multiple paths
   if (length(file_path) == 1 && grepl(",", file_path)) {
     file_path <- trimws(unlist(strsplit(file_path, ",")))
   }
   
-  # Ověř každý soubor
+  # Validate each file
   for (fp in file_path) {
     if (is.null(fp) || is.na(fp) || fp == "") next
     
@@ -1420,7 +1420,7 @@ validate_file_columns <- function(file_path, dataset_type, patient_id) {
 
 
 # ============================================================================
-# VALIDACE VŠECH DATASETŮ
+# ALL DATASET VALIDATION
 # ============================================================================
 
 #' Validate columns for all datasets and patients
@@ -1449,15 +1449,15 @@ validate_all_columns <- function(datasets_data) {
                           NULL
       )
 
-      # Rozděl vícenásobné cesty a ořež mezery
+      # Split multiple paths
       if (is.null(file_path) || all(is.na(file_path)) || all(file_path == "")) next
       
-      # Pokud je to jediný string s čárkami, rozděl ho
+      # If it's a single string with commas, split it
       if (length(file_path) == 1 && grepl(",", file_path)) {
         file_path <- trimws(unlist(strsplit(file_path, ",")))
       }
       
-      # Validuj sloupce
+      # Validate columns
       validation <- validate_file_columns(file_path, dataset, patient)
       message("validation: ", paste0(validation,collapse = ", "))
       if (!validation$valid) {
@@ -1474,7 +1474,7 @@ validate_all_columns <- function(datasets_data) {
 
 
 # ============================================================================
-# VYTVOŘENÍ HTML CHYBOVÉ ZPRÁVY
+# CREATE HTML ERROR MESSAGE
 # ============================================================================
 
 #' Create HTML error message for shinyalert
@@ -1495,7 +1495,7 @@ create_column_error_message <- function(validation_result) {
         err$patient, err$dataset
       )
     } else if (err$error_type == "missing_columns") {
-      # Formátuj každý chybějící sloupec jako samostatný badge
+      # Format each missing column as a separate badge
       missing_badges <- sapply(err$missing, function(col) {
         sprintf("<span style='background-color: #fff3e0; color: #e65100; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 0.9em;'>%s</span>", col)
       })

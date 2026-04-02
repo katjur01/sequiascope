@@ -1,8 +1,8 @@
-# docker-compose.hub.yml
+# docker-compose.yaml
 # Ready-to-use compose file that pulls pre-built images from Docker Hub.
 # No build required. Use this file if you just want to run sequiaScope with command:
 #
-#   docker compose -f docker-compose.hub.yml up -d
+#   docker compose up -d
 #
 services:
   app:
@@ -28,7 +28,7 @@ services:
       - ./input_files:/input_files
       - ./output_files:/output_files
     environment:
-      - INPUT_DIR=/input_files
-      - OUTPUT_BASE_DIR=/output_files
-      - WATCH_DIR=/output_files/sessions
-      - PROCESSED_DIR=/output_files/.processed_batches
+    - INPUT_DIR=/input_files
+    - OUTPUT_BASE_DIR=/output_files
+    - WATCH_DIR=/output_files/sessions
+    - PROCESSED_DIR=/output_files/.processed_batches

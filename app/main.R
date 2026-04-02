@@ -3,7 +3,7 @@
 # # rhino::pkg_remove("dplyr")
 #
 # restart R session
-# rstudioapi::restartSession()  # Pokud používáš RStudio
+# rstudioapi::restartSession()  # If using RStudio
 #
 # ## when .js file added or changed, run this command:
 # rhino::build_js()
@@ -21,7 +21,7 @@
 # git status
 # git checkout dev (git checkout -b new_branch)
 # git add .
-# git commit -m "Uložení aktuálních změn do nové větve"
+# git commit -m "Save current changes to new branch"
 # git push -u origin dev
 box::use(
   rhino,
@@ -84,7 +84,10 @@ box::use(
       period <- as.numeric(readLines(period_file, n = 1L))
       if (!is.na(quota) && quota > 0 && !is.na(period) && period > 0)
         return(max(floor(quota / period), 1L))
-    }
+    }docker system prune -f
+    docker compose down
+    docker compose build
+    docker compose up -d
     return(NULL)
   }
 
@@ -131,7 +134,7 @@ box::use(
 #####################################################
 
 
-## Methylace nedělají na NGS ale na čipech = genom. pozice a k tomu naměřené intenzity. Výsledkem je report. ##
+## Methylation is not done on NGS but on chips = genomic positions and measured intensities. The result is a report. ##
 
 ui <- function(id){
   ns <- NS(id)
@@ -275,7 +278,7 @@ ui <- function(id){
                     #   tags$script(src = "static/js/app.min.js"),
                     #   tags$script(src = "static/js/radio-button.js")),
                     #
-                    ### JavaScript kód pro zachytávání změn v radio buttonech
+                    ### JavaScript code for capturing radio button changes
                     tags$script(HTML("$(document).on('change', 'input[type=\"radio\"]', function() { 
                                         const inputName = $(this).attr('name');
                                         if (inputName && inputName.includes('visual_check') && inputName.includes('-')) {
@@ -388,7 +391,7 @@ server <- function(id) {
       igv_genome = reactiveVal(character(0)), # genome for IGV
       custom_genome_config = custom_genome_config, # custom genome configuration from reference_paths.json
       
-      # Per-patient fusion prerun tracking (paralelní zpracování)
+      # Per-patient fusion prerun tracking (parallel processing)
       fusion_prerun_status = list(),      # patient_id -> reactiveVal("not_started"|"running"|"completed"|"failed")
       fusion_prerun_progress = list(),    # patient_id -> reactiveVal(0-100)
       fusion_prerun_future = list(),      # patient_id -> future object
@@ -399,7 +402,7 @@ server <- function(id) {
       upload_modules = reactiveVal(list()),
       upload_pending = reactiveVal(list()),
       somatic_modules = reactiveVal(list()),  # patient -> list(methods)
-      somatic_pending = reactiveVal(list()),  # patient -> state (k načtení)
+      somatic_pending = reactiveVal(list()),  # patient -> state (to be loaded)
       germline_modules = reactiveVal(list()),
       germline_pending = reactiveVal(list()),
       fusion_modules = reactiveVal(list()),
@@ -543,7 +546,7 @@ server <- function(id) {
         }
       }
       
-      # Vytvoř nový cache POUZE pokud NENÍ load session
+      # Create new cache ONLY if NOT loading a session
       if (!isTRUE(shared_data$is_loading_session())) {
 
         update_waiter_progress(session, 20, "Preparing session...")

@@ -61,8 +61,8 @@ add_summary_boxes <- function(session,
                                output,
                                shared_data,
                                ui_output_id,
-                               summary_module,        # objekt s $ui a $server (tvůj modul summary)
-                               mounted_ref){          # reactiveValues s polem $mounted (proti duplicitám); když NULL, vytvoří se uvnitř
+                               summary_module,        # object with $ui and $server (your summary module)
+                               mounted_ref){          # reactiveValues with $mounted field (against duplicates); when NULL, created internally
 
   ns <- session$ns
   if (is.null(mounted_ref)) mounted_ref <- reactiveValues(mounted = character(0))
@@ -72,10 +72,10 @@ add_summary_boxes <- function(session,
                                        shared_data$fusion.patients(),
                                        shared_data$expression.patients())) })
 
-  # 1) UI render – karty pro všechny aktuální pacienty
+  # 1) UI render – cards for all current patients
   output[[ui_output_id]] <- renderUI({
     pats <- patients_list()
-    if (!length(pats)) return(div("Žádní pacienti k zobrazení."))
+    if (!length(pats)) return(div("No patients to display."))
     
     tagList(lapply(pats, function(sample) {
       # Check dataset availability for this patient
@@ -103,7 +103,7 @@ add_summary_boxes <- function(session,
     }))
   })
 
-  # 2) Server mount – jen pro NOVÉ pacienty
+  # 2) Server mount – only for NEW patients
   observe({
     pats <- patients_list()
     already <- mounted_ref$mounted

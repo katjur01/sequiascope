@@ -57,7 +57,7 @@ createIGVBatchFile <- function(tumor_bam, chimeric_bam, fusions_tab, batch_file,
   
   writeLines(paste(header, collapse = "\n"), con = batch_file)
   
-  # pro každý řádek: goto + snapshot (jen basename, když máš snapshotDirectory)
+  # for each row: goto + snapshot (just basename, when snapshotDirectory is set)
   for (i in seq_len(nrow(fusions_tab))) {
     goto_line     <- paste0("goto ", fusions_tab$chrom_break_pos[i])
     snapshot_name <- basename(fusions_tab$png_path[i])
@@ -164,8 +164,8 @@ runIGVSnapshotParallel <- function(IGV_batch_file, timeout_seconds = 300, prog_f
   # Helper: read .error, log details, write final entry to igv_log, return 1
   abort_with_error <- function(source) {
     error_content <- tryCatch(readLines(error_file), error = function(e) "(unreadable)")
-    igv_log(source, " – tabulka fúzí se načte bez IGV obrázků", level = "ERROR")
-    igv_log("Obsah .error: ", paste(error_content, collapse = " | "), level = "ERROR")
+    igv_log(source, " – fusion table will load without IGV images", level = "ERROR")
+    igv_log("Contents of .error: ", paste(error_content, collapse = " | "), level = "ERROR")
     igv_log("Bash log: ", bash_log_file, level = "ERROR")
     igv_log("=== IGV run ended (FAILED) ===")
     if (!is.null(prog_file) && nzchar(prog_file)) writeLines(as.character(prog_end), prog_file)
@@ -179,7 +179,7 @@ runIGVSnapshotParallel <- function(IGV_batch_file, timeout_seconds = 300, prog_f
   # ── Watcher alive check ───────────────────────────────────────────────────
   # Bash watcher runs only inside the Docker IGV container.
   # If no .inprogress / .done / .error appears within 15 s → watcher not running.
-  igv_log("Čekám na potvrzení od watcheru (max 15 s)...")
+  igv_log("Waiting for watcher confirmation (max 15 s)...")
   watcher_wait  <- 0L
   watcher_alive <- FALSE
   while (watcher_wait < 15L) {
@@ -192,15 +192,15 @@ runIGVSnapshotParallel <- function(IGV_batch_file, timeout_seconds = 300, prog_f
   }
 
   if (!watcher_alive) {
-    igv_log("Watcher neodpověděl za 15 s – IGV kontejner pravděpodobně není spuštěn", level = "WARN")
-    igv_log("Tabulka fúzí se načte bez IGV obrázků", level = "WARN")
+    igv_log("Watcher did not respond within 15 s – IGV container is probably not running", level = "WARN")
+    igv_log("Fusion table will load without IGV images", level = "WARN")
     igv_log("Tip: docker compose up -d igv", level = "WARN")
     igv_log("=== IGV run ended (NO WATCHER) ===")
     if (!is.null(prog_file) && nzchar(prog_file)) writeLines(as.character(prog_end), prog_file)
     return(3)  # 3 = watcher not running
   }
 
-  igv_log("Watcher potvrdil zahájení zpracování (za ", watcher_wait, " s)")
+  igv_log("Watcher confirmed processing started (after ", watcher_wait, " s)")
   # ── End watcher alive check ───────────────────────────────────────────────
 
   # ── Parse batch file: get snapshot output dir and expected PNG count ──────
@@ -233,8 +233,8 @@ runIGVSnapshotParallel <- function(IGV_batch_file, timeout_seconds = 300, prog_f
 
     if (expected_png > 0L && actual_png >= expected_png) {
       elapsed <- round(as.numeric(difftime(Sys.time(), start_time, units = "secs")))
-      igv_log("Všechny PNG vytvořeny (", actual_png, "/", expected_png, ") za ", elapsed,
-              " s – nečekám na exit IGV procesu")
+      igv_log("All PNGs created (", actual_png, "/", expected_png, ") in ", elapsed,
+              " s – not waiting for IGV process exit")
       igv_log("=== IGV run ended (ALL PNG DONE) ===")
       if (!is.null(prog_file) && nzchar(prog_file)) writeLines(as.character(prog_end), prog_file)
       return(0)
@@ -243,7 +243,7 @@ runIGVSnapshotParallel <- function(IGV_batch_file, timeout_seconds = 300, prog_f
     # ── Fallback: .done file (IGV exited cleanly before we polled) ────────
     if (file.exists(done_file)) {
       elapsed <- round(as.numeric(difftime(Sys.time(), start_time, units = "secs")))
-      igv_log("SUCCESS via .done – IGV dokončil zpracování za ", elapsed, " s")
+      igv_log("SUCCESS via .done – IGV completed processing in ", elapsed, " s")
       igv_log("=== IGV run ended (SUCCESS) ===")
       if (!is.null(prog_file) && nzchar(prog_file)) writeLines(as.character(prog_end), prog_file)
       return(0)
@@ -270,8 +270,8 @@ runIGVSnapshotParallel <- function(IGV_batch_file, timeout_seconds = 300, prog_f
     actual_png_final <- length(list.files(snapshot_dir, pattern = "\\.png$", ignore.case = TRUE))
   }
   igv_log("TIMEOUT po ", elapsed, " s (limit: ", timeout_seconds, " s)", level = "WARN")
-  igv_log("PNG na disku: ", actual_png_final, "/", expected_png, level = "WARN")
-  igv_log("Tabulka fúzí se načte bez IGV obrázků", level = "WARN")
+  igv_log("PNG on disk: ", actual_png_final, "/", expected_png, level = "WARN")
+  igv_log("Fusion table will load without IGV images", level = "WARN")
   igv_log("batch     : ", IGV_batch_file,  " (exists: ", file.exists(IGV_batch_file), ")", level = "WARN")
   igv_log(".done     : ", done_file,        " (exists: ", file.exists(done_file), ")",       level = "WARN")
   igv_log(".error    : ", error_file,       " (exists: ", file.exists(error_file), ")",      level = "WARN")
@@ -374,7 +374,7 @@ process_patient_igv <- function(sample, file_list, session_dir, prog_file = NULL
       message("[IGV] Calculated timeout for ", missing_count, " fusions: ", round(dynamic_timeout), " seconds (~", round(dynamic_timeout/60, 1), " minutes)")
       message("[IGV] ⚠️  Make sure IGV Docker container is running: docker ps | grep igv")
       
-      # Spustit IGV snapshot pomocí watcheru (bezpečné, bez docker exec)
+      # Trigger IGV snapshot via watcher (safe, no docker exec)
       exit_code <- runIGVSnapshotParallel(batch_file, timeout_seconds = dynamic_timeout,
                                            prog_file = prog_file, prog_start = 15L, prog_end = 90L)
       
@@ -388,7 +388,7 @@ process_patient_igv <- function(sample, file_list, session_dir, prog_file = NULL
         message("[IGV] ⏱️ Timeout waiting for IGV watcher")
         return(FALSE)
       } else if (exit_code == 3) {
-        message("[IGV] ⚠️  IGV watcher neběží – snapshots přeskočeny, tabulka se načte bez obrázků")
+        message("[IGV] ⚠️  IGV watcher not running – snapshots skipped, table will load without images")
         # Write sentinel so future app loads don't retry the 15s watcher wait.
         dir.create(igv_snapshot_dir, recursive = TRUE, showWarnings = FALSE)
         writeLines(format(Sys.time()), sentinel_file)
@@ -619,7 +619,7 @@ prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
   fusion_files <- get_files_by_patient(confirmed_paths, "fusion")
   message("Found ", length(fusion_patients), " fusion patients: ", paste(fusion_patients, collapse = ", "))
   
-  # 3) Základní adresáře (idempotentně)
+  # 3) Base directories (idempotent)
   base_dirs <- c(file.path(session_dir, "igv_snapshots"), file.path(session_dir, "arriba_reports"), file.path(session_dir, "manifests", "fusion"))
   for (dir in base_dirs) {
     if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
@@ -645,7 +645,7 @@ prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
   
   total_patients <- length(fusion_patients)
   
-  # Použít future_lapply pro paralelní zpracování
+  # Use future_lapply for parallel processing
   patient_results <- future.apply::future_lapply(
     seq_along(fusion_patients),
     function(i) {
@@ -708,7 +708,7 @@ prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
     future.seed = TRUE
   )
   
-  # Sbírat errors ze všech results
+  # Collect errors from all results
   errors <- character()
   for (result in patient_results) {
     if (!is.null(result$error)) {
@@ -716,7 +716,7 @@ prerun_fusion_data <- function(confirmed_paths, shared_data, prog_file = NULL) {
     }
   }
   
-  # 6) Dokončení
+  # 6) Completion
   if (!is.null(shared_data)) {
     if (is.function(shared_data$fusion_prerun_status)) {
       shared_data$fusion_prerun_status(if (length(errors) == 0) "completed" else "failed")

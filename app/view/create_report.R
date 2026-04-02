@@ -301,7 +301,7 @@ server <- function(id, patient, shared_data) {
 
     
     details_dt <- reactive({
-      # Ukázková tabulka s daty (pro budoucí reference):
+      # Sample data table (for future reference):
       # dt <- data.table(
       #   attribute = c("Specimen type", "Date of collection", "Number of biopsy",
       #                 "Cancer cell content", "Method used", "Library preparation",
@@ -312,7 +312,7 @@ server <- function(id, patient, shared_data) {
       #   expression = c("Frozen tissue", "5.9.2023", "1391/23", "NA", "Whole-transcriptome sequencing", "NEBNext Ultra II Directional RNA Library Prep Kit", "NextSeq 500", "31.10.2023")
       # )
       
-      # Vytvoř prázdnou tabulku pouze s atributy
+      # Create empty table with attributes only
       dt <- data.table(
         attribute = c("Specimen type", "Date of collection", "Number of biopsy",
                       "Cancer cell content", "Method used", "Library preparation",
@@ -343,23 +343,23 @@ server <- function(id, patient, shared_data) {
     })
     
     preprare_details_dt <- function(details_dt) {
-      # Definujeme, které sloupce budou aktivní (bez prázdných mezer)
+      # Define which columns will be active (without empty gaps)
       active_cols <- c("attribute",
                        if ("germline" %in% names(details_dt)) "germline" else NULL,
                        if ("somatic" %in% names(details_dt)) "somatic" else NULL,
                        if ("fusion" %in% names(details_dt)) "fusion" else NULL,
                        if ("expression" %in% names(details_dt)) "expression" else NULL)
       
-      # Definujeme okraje
+      # Define borders
       top_bottom_border <- fp_border(color = "#294779", width = 1)
       
-      # Nejprve vytvoříme flextable objekt
+      # First create the flextable object
       ft <- flextable(details_dt, col_keys = active_cols)
       
-      # Nyní můžeme bezpečně získat poslední řádek
+      # Now we can safely get the last row
       last_row <- nrow_part(ft, part = "body")
       
-      # Aplikujeme formátování - bílé záhlaví, střídání bílá-modrá
+      # Apply formatting - white header, alternating white-blue
       ft <- ft |>
         theme_vanilla() |>
         fontsize(size = 8, part = "all") |>
@@ -390,7 +390,7 @@ server <- function(id, patient, shared_data) {
       ft
     }
 
-    # Cesta k výchozí šabloně (reactive value)
+    # Path to the default template (reactive value)
     default_template_path <- shared_data$report_template_path
     
     # Check if default template is available (reactive)
@@ -426,12 +426,12 @@ server <- function(id, patient, shared_data) {
       })
     })
 
-    # Reaktivní výraz pro získání cesty k šabloně
+    # Reactive expression to get the template path
     template_path <- reactive({
       if (input$template_choice == "default") {
         return(default_template_path())
       } else {
-        # Zkontrolujeme, zda byl nahrán vlastní soubor
+        # Check if a custom file was uploaded
         req(input$custom_template)
         return(input$custom_template$datapath)
       }

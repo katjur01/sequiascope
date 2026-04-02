@@ -188,7 +188,7 @@ step2_ui <- function(id) {
         )
       })
 
-      # Upravte output$dataset_boxes aby používal cached data:
+      # Update output$dataset_boxes to use cached data:
       output$dataset_boxes <- renderUI({
         req(datasets())
 
@@ -236,7 +236,7 @@ step2_ui <- function(id) {
         )
       })
 
-      # Refresh tlačítko
+      # Refresh button
       observeEvent(input$refresh_files, {
         req(!is.null(path()$projects) && length(path()$projects) > 0, patients())
 
@@ -359,7 +359,7 @@ step2_ui <- function(id) {
         if (validation$has_orange_status || has_ref_warnings) {
           warning_parts <- c()
           
-          # IGV nepoběží (chybí BAM/BAI)
+          # IGV will not run (missing BAM/BAI)
           if (length(validation$igv_issues) > 0) {
             igv_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$igv_issues), collapse = "")
             igv_html <- paste0(
@@ -371,7 +371,7 @@ step2_ui <- function(id) {
             warning_parts <- c(warning_parts, igv_html)
           }
           
-          # Arriba report nebude (chybí PDF/TSV)
+          # Arriba report will not be shown (missing PDF/TSV)
           if (length(validation$arriba_issues) > 0) {
             arr_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$arriba_issues), collapse = "")
             arr_html <- paste0(
@@ -383,7 +383,7 @@ step2_ui <- function(id) {
             warning_parts <- c(warning_parts, arr_html)
           }
           
-          # TMB část (ponecháno)
+          # TMB section (kept)
           if (length(validation$TMB_issues) > 0) {
             TMB_lines <- paste(sprintf("<li style='text-align: left'><b>%s</b></li>", validation$TMB_issues), collapse = "")
             TMB_html <- paste0(

@@ -15,26 +15,26 @@ box::use(
 #############################
 #' @export
 prepare_volcano <- function(dt, tissue) {
-  # Dynamicky vybereme relevantní sloupce pro konkrétní tkáň
+  # Dynamically select relevant columns for the given tissue
   
   fc_col <- paste0("log2fc_", tissue)
   pval_col <- paste0("p_value_", tissue)
   padj_col <- paste0("p_adj_", tissue)
   
-  # Kontrola, jestli sloupce existují (pro případ, že by nějaká tkáň chyběla)
+  # Check if columns exist (in case a tissue is missing)
   if (!(fc_col %in% colnames(dt)) || !(pval_col %in% colnames(dt)) || !(padj_col %in% colnames(dt))) {
-    stop(paste("Chybí sloupce pro tkáň:", tissue))
+    stop(paste("Missing columns for tissue:", tissue))
   }
-  # Vytvoření nové datové tabulky s univerzálními názvy sloupců
+  # Create new data table with universal column names
   dt_tissue <- dt[, .(feature_name, geneid,#pathway,
                       log2FC = as.numeric(as.character(get(fc_col))),
                       pval = as.numeric(as.character(get(pval_col))),
                       padj = as.numeric(as.character(get(padj_col))))]
   
-  # Odstranění neplatných hodnot
+  # Remove invalid values
   dt_tissue <- dt_tissue[!is.na(log2FC) & !is.infinite(log2FC) & !is.nan(log2FC)]
   
-  # Přidání názvu tkáně jako nový sloupec
+  # Add tissue name as new column
   dt_tissue[, tissue := tissue]
 
   return(dt_tissue)
@@ -44,11 +44,11 @@ classify_volcano_genes <- function(dt, padj_cutoff = 0.05, logfc_cutoff = 1) {
   
 
   dt[, abs.logfc := abs(log2FC)]
-  dt[, sig := "na"]  # Defaultní barva
+  dt[, sig := "na"]  # Default color
 
   dt[is.na(padj), sig := "na"]
-  dt[padj >= padj_cutoff, sig := "nsig"]  # Nesignifikantní
-  dt[padj < padj_cutoff & log2FC > -logfc_cutoff & log2FC < logfc_cutoff, sig := "sig"]  # Signifikantní
+  dt[padj >= padj_cutoff, sig := "nsig"]  # Not significant
+  dt[padj < padj_cutoff & log2FC > -logfc_cutoff & log2FC < logfc_cutoff, sig := "sig"]  # Significant
   dt[padj < padj_cutoff & log2FC <= -logfc_cutoff, sig := "down"]  # Downregulated
   dt[padj < padj_cutoff & log2FC >= logfc_cutoff, sig := "up"]  # Upregulated
 
@@ -70,26 +70,26 @@ classify_volcano_genes <- function(dt, padj_cutoff = 0.05, logfc_cutoff = 1) {
 #' @export
 volcanoPlot <- function(dt, tissue, top_n = 10, padj_cutoff = 0.05, logfc_cutoff = 1) {
   dt <- dt[!is.na(log2FC) & !is.na(padj)]
-  dt <- classify_volcano_genes(dt, padj_cutoff = padj_cutoff, logfc_cutoff = logfc_cutoff)  # Klasifikace genů s custom cutoffs
+  dt <- classify_volcano_genes(dt, padj_cutoff = padj_cutoff, logfc_cutoff = logfc_cutoff)  # Gene classification with custom cutoffs
   dt[,neg_log10_padj := -log10(padj)]
   
-  # Dynamické nahrazení Inf hodnot velkou konečnou hodnotou
+  # Dynamically replace Inf values with a large finite value
   max_y <- max(dt$neg_log10_padj[is.finite(dt$neg_log10_padj)], na.rm = TRUE)
   
   dt$neg_log10_padj[!is.finite(dt$neg_log10_padj)] <- 
     sign(dt$neg_log10_padj[!is.finite(dt$neg_log10_padj)]) * (abs(max_y) + 10)
   
   
-  # Převod faktorové proměnné na barvy
+  # Convert factor variable to colors
   color_map <- c("sig" = "gray", "down" = "blue", "up" = "red", "nsig" = "black", "na" = "gray")
   
-  # Určení limitů os - zajistíme správné pořadí
+  # Determine axis limits - ensure correct order
   x_min <- min(dt$log2FC, na.rm = TRUE)
   x_max <- max(dt$log2FC, na.rm = TRUE)
   y_min <- min(dt$neg_log10_padj, na.rm = TRUE)
   y_max <- max(dt$neg_log10_padj, na.rm = TRUE)
   
-  # Přidej margin pro lepší zobrazení
+  # Add margin for better display
   x_range <- x_max - x_min
   y_range <- y_max - y_min
   x_min <- x_min - 0.1 * abs(x_range)
@@ -97,14 +97,14 @@ volcanoPlot <- function(dt, tissue, top_n = 10, padj_cutoff = 0.05, logfc_cutoff
   y_min <- y_min - 0.1 * abs(y_range)
   y_max <- y_max + 0.1 * abs(y_range)
   
-  # Vyber top N genů podle p-adj (pokud top_n > 0)
+  # Select top N genes by p-adj (if top_n > 0)
   top_genes <- data.table()
   if (!is.null(top_n) && !is.na(top_n) && top_n > 0 && nrow(dt) > 0) {
     top_genes <- dt[order(padj)][1:min(top_n, nrow(dt))]
   }
   
   
-  # Vytvoření grafu
+  # Create plot
   plot <- plot_ly() %>%
     add_trace(
       data = dt,
@@ -120,7 +120,7 @@ volcanoPlot <- function(dt, tissue, top_n = 10, padj_cutoff = 0.05, logfc_cutoff
       inherit = FALSE
     )
   
-  # Přidej vertikální prahové čáry pouze pokud jsou v rozsahu dat
+  # Add vertical threshold lines only if within data range
   if (!is.null(logfc_cutoff) && !is.na(logfc_cutoff) && abs(logfc_cutoff) <= abs(x_max)) {
     plot <- plot %>%
       add_segments(
@@ -139,7 +139,7 @@ volcanoPlot <- function(dt, tissue, top_n = 10, padj_cutoff = 0.05, logfc_cutoff
       )
   }
   
-  # Přidej horizontální prahovou čáru
+  # Add horizontal threshold line
   if (!is.null(padj_cutoff) && !is.na(padj_cutoff) && padj_cutoff > 0) {
     padj_threshold <- -log10(padj_cutoff)
     if (!is.na(padj_threshold) && is.finite(padj_threshold) && padj_threshold <= y_max) {
@@ -154,7 +154,7 @@ volcanoPlot <- function(dt, tissue, top_n = 10, padj_cutoff = 0.05, logfc_cutoff
     }
   }
   
-  # Přidej labels pro top N genů (pokud existují)
+  # Add labels for top N genes (if they exist)
   if (!is.null(top_genes) && is.data.frame(top_genes) && nrow(top_genes) > 0) {
     plot <- plot %>%
       add_text(
@@ -205,7 +205,7 @@ volcanoPlot <- function(dt, tissue, top_n = 10, padj_cutoff = 0.05, logfc_cutoff
   #   theme_bw()
   # 
   # iplot <- girafe(
-  #   ggobj = plot,  # Převod ggplot na interaktivní girafe
+  #   ggobj = plot,  # Convert ggplot to interactive girafe
   #   options = list(
   #   # opts_sizing(width = .7),
   #   opts_zoom(max = 5),
@@ -218,13 +218,13 @@ volcanoPlot <- function(dt, tissue, top_n = 10, padj_cutoff = 0.05, logfc_cutoff
 #' @export
 ggvolcanoPlot <- function(dt, top_n = 10) {
   # dt <- dt[!is.na(log2FC) & !is.na(padj)]
-  # dt <- classify_volcano_genes(dt)  # Klasifikace genů
+  # dt <- classify_volcano_genes(dt)  # Gene classification
   dt[,neg_log10_padj := -log10(padj)]
   dt[, tissue := factor(tissue, levels = unique(dt$tissue))]
   
   x_min <- floor(min(dt$log2FC, na.rm = TRUE) / 5) * 5
   x_max <- ceiling(max(dt$log2FC, na.rm = TRUE) / 5) * 5
-  tick_marks <- seq(x_min, x_max, by = 5)  # Vytvoříme pravidelné intervaly na ose
+  tick_marks <- seq(x_min, x_max, by = 5)  # Create regular intervals on the axis
   
   plot <- ggplot(dt, aes(x = log2FC, y = neg_log10_padj, color = sig, text = feature_name)) +
     geom_point(alpha = 0.7, size = 1) +
@@ -238,17 +238,17 @@ ggvolcanoPlot <- function(dt, top_n = 10) {
 
   return(plot)
 }
-## paralelní vykreslování grafů
+## parallel plot rendering
 # plot_volcano <- function(dt, tissue) {
 #   future(seed = TRUE,{
 #     set.seed(42)
 #     volcanoPlot(dt, tissue)
 #   }) %...>%
 #     (function(plot) {
-#        plot  # Vrátí ggplot objekt
+#        plot  # Returns ggplot object
 #     }) %>%
 #     catch(function(err) {
-#       message("❌ Chyba při generování grafu:", tissue, " - ", err$message)
+#       message("❌ Error generating plot:", tissue, " - ", err$message)
 #       NULL
 #     })
 # }

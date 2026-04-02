@@ -52,7 +52,7 @@ process_batch_file() {
     echo "[WATCHER] Processing batch file: $batch_name"
     echo "[WATCHER] Patient: $patient_id"
     echo "[WATCHER] Batch path: $batch_file"
-    wlog INFO "=== Watcher zpracování zahájeno ==="
+    wlog INFO "=== Watcher processing started ==="
     wlog INFO "Batch: $batch_file"
     wlog INFO "Patient: $patient_id | Display: :$display_num"
     
@@ -79,8 +79,8 @@ process_batch_file() {
     # Check if Xvfb started successfully
     if ! kill -0 $xvfb_pid 2>/dev/null; then
         echo "[WATCHER] ❌ ERROR: Xvfb failed to start (check $xvfb_log)"
-        wlog ERROR "Xvfb se nepodařilo spustit na DISPLAY :$display_num"
-        wlog ERROR "=== Watcher zpracování ukončeno (XVFB FAIL) ==="
+        wlog ERROR "Failed to start Xvfb on DISPLAY :$display_num"
+        wlog ERROR "=== Watcher processing terminated (XVFB FAIL) ==="
         echo "Failed to start Xvfb" > "$error_file"
         return 1
     fi
@@ -94,25 +94,143 @@ process_batch_file() {
     local expected_count
     expected_count=$(grep -c "^snapshot " "$batch_file" 2>/dev/null || echo 0)
     echo "[WATCHER] Expected snapshots: $expected_count in $snapshot_dir"
-    wlog INFO "Očekávaných PNG: $expected_count | Výstupní složka: $snapshot_dir"
+    wlog INFO "Expected PNGs: $expected_count | Output dir: $snapshot_dir"
 
     # ── Pre-IGV diagnostics ──────────────────────────────────────────────────
+    # These checks run before every IGV launch and are printed to the container
+    # log (docker logs / kubectl logs).  When IGV produces 0 PNGs and the
+    # watchdog kills it, this section is the first place to look for the cause.
+    # Each check is labelled with what a PASS / FAIL means in practice.
     echo "[WATCHER] --- Pre-IGV diagnostics ---"
-    echo "[WATCHER] whoami    : $(whoami 2>/dev/null || id)"
-    echo "[WATCHER] id        : $(id)"
-    echo "[WATCHER] HOME      : $HOME"
-    echo "[WATCHER] DISPLAY   : $DISPLAY"
-    echo "[WATCHER] IGV_SCRIPT: $IGV_SCRIPT"
-    echo "[WATCHER] igv.sh exists: $(test -f $IGV_SCRIPT && echo YES || echo NO)"
-    echo "[WATCHER] igv.sh executable: $(test -x $IGV_SCRIPT && echo YES || echo NO)"
-    echo "[WATCHER] /root perms       : $(ls -la / 2>/dev/null | grep ' root$' || echo 'cannot read')"
-    echo "[WATCHER] /root/.igv        : $(ls -la /root/.igv 2>/dev/null || echo 'does not exist')"
-    echo "[WATCHER] /root/.java       : $(ls -la /root/.java 2>/dev/null || echo 'does not exist')"
-    echo "[WATCHER] write test /root/.igv: $(touch /root/.igv/.wtest 2>/dev/null && echo OK && rm -f /root/.igv/.wtest || echo FAILED)"
-    echo "[WATCHER] snapshot_dir exists: $(test -d "$snapshot_dir" && echo YES || echo NO)"
-    echo "[WATCHER] snapshot_dir writable: $(touch "${snapshot_dir}/.wtest" 2>/dev/null && echo YES && rm -f "${snapshot_dir}/.wtest" || echo NO)"
+
+    # ── 1. Identity & environment ────────────────────────────────────────────
+    # IGV writes prefs/cache to $HOME.  If HOME points somewhere unwritable
+    # (e.g. /nonexistent) Java crashes before reading the batch file.
+    echo "[WATCHER] [1] Identity / environment"
+    echo "[WATCHER]     whoami    : $(whoami 2>/dev/null || id)"
+    echo "[WATCHER]     uid/gid   : $(id)"
+    echo "[WATCHER]     HOME      : $HOME"
+    echo "[WATCHER]     DISPLAY   : $DISPLAY"
+
+    # ── 2. IGV executable ────────────────────────────────────────────────────
+    # FAIL → IGV not installed / wrong path → zero PNGs, no log output at all.
+    echo "[WATCHER] [2] IGV executable"
+    echo "[WATCHER]     IGV_SCRIPT   : $IGV_SCRIPT"
+    echo "[WATCHER]     exists       : $(test -f "$IGV_SCRIPT" && echo YES || echo "NO  ← IGV not installed at this path")"
+    echo "[WATCHER]     executable   : $(test -x "$IGV_SCRIPT" && echo YES || echo "NO  ← chmod +x missing")"
+
+    # ── 3. Write access to IGV home dirs ────────────────────────────────────
+    # IGV stores preferences in $HOME/.igv and Java stores prefs in $HOME/.java.
+    # If these are not writable (common in K8s with runAsUser != image owner),
+    # IGV crashes silently and never reaches [BatchRunner] in the log.
+    echo "[WATCHER] [3] Write access to IGV/Java home dirs"
+    echo "[WATCHER]     /root perms  : $(ls -la / 2>/dev/null | grep ' root$' || echo 'cannot read')"
+    if touch /root/.igv/.wtest 2>/dev/null; then
+        rm -f /root/.igv/.wtest
+        echo "[WATCHER]     /root/.igv   : writable  ✓"
+    else
+        echo "[WATCHER]     /root/.igv   : NOT writable  ← IGV prefs write will fail → crash before batch"
+    fi
+    if touch /root/.java/.wtest 2>/dev/null; then
+        rm -f /root/.java/.wtest
+        echo "[WATCHER]     /root/.java  : writable  ✓"
+    else
+        echo "[WATCHER]     /root/.java  : NOT writable  ← Java prefs write will fail → crash before batch"
+    fi
+    echo "[WATCHER]     /root/.igv   : $(ls -la /root/.igv 2>/dev/null || echo 'does not exist')"
+    echo "[WATCHER]     /root/.java  : $(ls -la /root/.java 2>/dev/null || echo 'does not exist')"
+
+    # ── 4. Snapshot output directory ────────────────────────────────────────
+    # IGV writes PNGs here.  If directory is missing or read-only → 0 PNGs even
+    # if IGV otherwise runs fine.
+    echo "[WATCHER] [4] Snapshot output directory"
+    echo "[WATCHER]     path     : $snapshot_dir"
+    echo "[WATCHER]     exists   : $(test -d "$snapshot_dir" && echo YES || echo "NO  ← will be created by IGV itself; check parent dir perms")"
+    if touch "${snapshot_dir}/.wtest" 2>/dev/null; then
+        rm -f "${snapshot_dir}/.wtest"
+        echo "[WATCHER]     writable : YES  ✓"
+    else
+        echo "[WATCHER]     writable : NO   ← IGV cannot write PNGs here → 0 PNGs"
+    fi
+
+    # ── 5. IGV preferences file ──────────────────────────────────────────────
+    # The prefs file can disable startup network calls (UPDATE_CHECK_ENABLED,
+    # GENOME_SERVER_URL).  Absence is not a hard error but means IGV will use
+    # defaults (which include network calls on every startup).
+    echo "[WATCHER] [5] IGV preferences (/root/.igv/prefs.properties)"
+    if [ -f /root/.igv/prefs.properties ]; then
+        echo "[WATCHER]     EXISTS  ✓"
+        echo "[WATCHER]     --- contents ---"
+        sed 's/^/[WATCHER]     /' /root/.igv/prefs.properties
+        echo "[WATCHER]     --- end ---"
+    else
+        echo "[WATCHER]     NOT FOUND  (IGV will use built-in defaults)"
+    fi
+
+    # ── 6. Java proxy configuration ─────────────────────────────────────────
+    # CRITICAL for secured/firewalled clusters (e.g. e-INFRA kubas):
+    # curl respects HTTPS_PROXY automatically, but JVM does NOT.
+    # If Java proxy JVM flags are missing, IGV tries to reach Broad/Amazon/GitHub
+    # directly → connection hangs silently (firewall drops packets, no RST) →
+    # IGV freezes before [BatchRunner] ever runs → 0 PNGs → watchdog kills it.
+    # The IGV log symptom: last line is "[Main] IGV Directory: /root/igv"
+    # with nothing after it (no [CommandListener], no [BatchRunner]).
+    #
+    # Fix: set in K8s pod spec:
+    #   env:
+    #     - name: JAVA_TOOL_OPTIONS
+    #       value: "-Duser.home=/root -Dhttps.proxyHost=proxy.muni.cz -Dhttps.proxyPort=3128
+    #               -Dhttp.proxyHost=proxy.muni.cz -Dhttp.proxyPort=3128
+    #               -Dhttp.nonProxyHosts=localhost|127.0.0.1|*.cluster.local"
+    echo "[WATCHER] [6] Java proxy (critical on firewalled/K8s clusters)"
+    echo "[WATCHER]     HTTPS_PROXY env  : ${HTTPS_PROXY:-not set}"
+    echo "[WATCHER]     HTTP_PROXY env   : ${HTTP_PROXY:-not set}"
+    _jto="${JAVA_TOOL_OPTIONS:-}"
+    echo "[WATCHER]     JAVA_TOOL_OPTIONS: ${_jto:-not set}"
+    if echo "$_jto" | grep -q "proxyHost"; then
+        echo "[WATCHER]     proxy in JVM flags: YES  ✓  (JVM will route through proxy)"
+    else
+        if [ -n "${HTTPS_PROXY:-}${HTTP_PROXY:-}" ]; then
+            echo "[WATCHER]     proxy in JVM flags: NO  ← WARNING: system proxy is set but JVM ignores it!"
+            echo "[WATCHER]       IGV may hang on startup trying to reach internet directly."
+            echo "[WATCHER]       Add proxy JVM flags to JAVA_TOOL_OPTIONS in K8s pod spec:"
+            echo "[WATCHER]         -Dhttps.proxyHost=<host> -Dhttps.proxyPort=<port>"
+            echo "[WATCHER]         -Dhttp.proxyHost=<host>  -Dhttp.proxyPort=<port>"
+            echo "[WATCHER]         -Dhttp.nonProxyHosts=localhost|127.0.0.1|*.cluster.local"
+        else
+            echo "[WATCHER]     proxy in JVM flags: NO  (no system proxy either – direct internet assumed)"
+        fi
+    fi
+
+    # ── 7. Quick internet connectivity check ────────────────────────────────
+    # IGV needs two external URLs on startup (even when using local BAM files):
+    #   a) GitHub raw – fetches the hg38 genome descriptor JSON
+    #   b) UCSC       – fetches RefSeq annotation for the gene track
+    # If either is unreachable AND no proxy is configured for JVM, IGV hangs.
+    # Curl check uses HTTPS_PROXY automatically; the JVM check above is separate.
+    echo "[WATCHER] [7] Internet connectivity (curl, 5 s timeout)"
+    _proxy_arg=""
+    [ -n "${HTTPS_PROXY:-}" ] && _proxy_arg="--proxy ${HTTPS_PROXY}"
+    # shellcheck disable=SC2086
+    if curl -sf --max-time 5 $_proxy_arg \
+            "https://raw.githubusercontent.com/igvteam/igv-data/refs/heads/main/genomes/legacy/json/hg38.json" \
+            -o /dev/null 2>/dev/null; then
+        echo "[WATCHER]     GitHub (igv-data hg38.json) : reachable  ✓"
+    else
+        echo "[WATCHER]     GitHub (igv-data hg38.json) : UNREACHABLE  ← IGV genome load will fail"
+    fi
+    # shellcheck disable=SC2086
+    if curl -sf --max-time 5 $_proxy_arg \
+            "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/database/ncbiRefSeq.txt.gz" \
+            --range 0-0 -o /dev/null 2>/dev/null; then
+        echo "[WATCHER]     UCSC  (ncbiRefSeq.txt.gz)   : reachable  ✓"
+    else
+        echo "[WATCHER]     UCSC  (ncbiRefSeq.txt.gz)   : UNREACHABLE  ← RefSeq track load will fail"
+    fi
+
     echo "[WATCHER] --- End diagnostics ---"
-    wlog INFO "Pre-IGV: whoami=$(whoami 2>/dev/null || id) | HOME=$HOME | igv.sh=$(test -x $IGV_SCRIPT && echo OK || echo MISSING)"
+    wlog INFO "Pre-IGV: whoami=$(whoami 2>/dev/null || id) | HOME=$HOME | igv.sh=$(test -x "$IGV_SCRIPT" && echo OK || echo MISSING)"
+    wlog INFO "JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-not set}"
     # ─────────────────────────────────────────────────────────────────────────
 
     # Run IGV with a hard timeout (30 min max per patient) in the background
@@ -120,7 +238,7 @@ process_batch_file() {
         > "${batch_file}.log" 2>&1 &
     local igv_pid=$!
     echo "[WATCHER] IGV started (PID: $igv_pid)"
-    wlog INFO "IGV spuštěn (PID: $igv_pid) s hard-timeout 1800 s"
+    wlog INFO "IGV started (PID: $igv_pid) with hard-timeout 1800 s"
 
     # ── WATCHDOG ─────────────────────────────────────────────────────────────
     # Polls every 60 s while IGV is running.
@@ -150,8 +268,8 @@ process_batch_file() {
                     echo "Last 5 lines of IGV log:"
                     tail -5 "${batch_file}.log" 2>/dev/null || echo "(no log)"
                 } > "$error_file"
-                wlog WARN "Watchdog: IGV zabit – 0 PNG za ${wd_elapsed} s (startup stall, PID $igv_pid)"
-                wlog WARN "=== Watcher zpracování ukončeno (WATCHDOG KILL startup) ==="
+                wlog WARN "Watchdog: IGV killed – 0 PNGs after ${wd_elapsed} s (startup stall, PID $igv_pid)"
+                wlog WARN "=== Watcher processing terminated (WATCHDOG KILL startup) ==="
                 exit 0
             fi
 
@@ -175,8 +293,8 @@ process_batch_file() {
                             echo "Last 5 lines of IGV log:"
                             tail -5 "${batch_file}.log" 2>/dev/null || echo "(no log)"
                         } > "$error_file"
-                        wlog WARN "Watchdog: IGV zabit – žádné nové PNG ${stall_secs} s (${png_now}/${expected_count}, PID $igv_pid)"
-                        wlog WARN "=== Watcher zpracování ukončeno (WATCHDOG KILL stall) ==="
+                        wlog WARN "Watchdog: IGV killed – no new PNGs for ${stall_secs} s (${png_now}/${expected_count}, PID $igv_pid)"
+                        wlog WARN "=== Watcher processing terminated (WATCHDOG KILL stall) ==="
                         exit 0
                     fi
                 else
@@ -218,7 +336,7 @@ process_batch_file() {
     local timeout_exit=124  # exit code from `timeout` when it kills the process
     if [ $igv_exit_code -eq $timeout_exit ]; then
         echo "[WATCHER] ⏱️  IGV hard-timeout (30 min) reached – process killed"
-        wlog WARN "Hard-timeout 1800 s dosažen – IGV zabit"
+        wlog WARN "Hard-timeout 1800 s reached – IGV killed"
         igv_exit_code=1
     fi
     
@@ -245,14 +363,14 @@ process_batch_file() {
                     echo "Last 10 lines of IGV log:"
                     tail -10 "${batch_file}.log" 2>/dev/null || echo "(no log)"
                 } > "$error_file"
-                wlog ERROR "IGV exit 0 ale 0/$expected_count PNG – zpracováno jako chyba"
-                wlog ERROR "=== Watcher zpracování ukončeno (0 PNG) ==="
+                wlog ERROR "IGV exit 0 but 0/$expected_count PNGs – treated as error"
+                wlog ERROR "=== Watcher processing terminated (0 PNGs) ==="
             else
                 echo "[WATCHER] ✅ SUCCESS – $produced PNG(s) produced"
                 echo "success" > "$done_file"
                 echo "[WATCHER] Done file created: $done_file"
-                wlog INFO "Úspěch – $produced/$expected_count PNG vytvořeno"
-                wlog INFO "=== Watcher zpracování ukončeno (SUCCESS) ==="
+                wlog INFO "Success – $produced/$expected_count PNGs created"
+                wlog INFO "=== Watcher processing terminated (SUCCESS) ==="
             fi
         else
             {
@@ -267,8 +385,8 @@ process_batch_file() {
             } > "$error_file"
             echo "[WATCHER] ❌ ERROR: IGV failed with exit code $igv_exit_code"
             echo "[WATCHER] Error file created: $error_file"
-            wlog ERROR "IGV skončil s exit code $igv_exit_code"
-            wlog ERROR "=== Watcher zpracování ukončeno (IGV ERROR) ==="
+            wlog ERROR "IGV exited with code $igv_exit_code"
+            wlog ERROR "=== Watcher processing terminated (IGV ERROR) ==="
         fi
     fi
     

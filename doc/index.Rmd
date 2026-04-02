@@ -95,7 +95,7 @@ cd sequiascope
 #### 2. Download the compose file: {-}
 
 ```bash
-curl -O https://raw.githubusercontent.com/katjur01/sequiaScope/main/docker-compose.hub.yml
+curl -O https://raw.githubusercontent.com/katjur01/sequiaScope/main/docker-compose.yaml
 ```
 
 The application uses two separate volumes:
@@ -107,8 +107,8 @@ The application uses two separate volumes:
 #### 3. Pull and start {-}
 
 ```bash
-docker compose -f docker-compose.hub.yml pull
-docker compose -f docker-compose.hub.yml up -d
+docker compose pull
+docker compose up -d
 ```
 
 #### 4. Open in browser {-}
@@ -122,7 +122,7 @@ The app may take 10–20 seconds to initialize on first launch.
 #### 5. Stop {-}
 
 ```bash
-docker compose -f docker-compose.hub.yml down
+docker compose down
 ```
 
 ---
@@ -164,7 +164,7 @@ docker compose up -d
 **App doesn't start**
 
   ```bash
-  docker compose -f docker-compose.hub.yml logs app
+  docker compose logs app
   ```
 
 **No data visible after upload**
@@ -175,7 +175,7 @@ docker compose up -d
 **IGV snapshots not generated**
 
   - Check the IGV container is running: `docker ps | grep igv`
-  - Check IGV logs: `docker compose -f docker-compose.hub.yml logs igv`
+  - Check IGV logs: `docker compose logs igv`
 
 
 ::: {.alert .alert-info style="margin-top: 0.5rem;"}

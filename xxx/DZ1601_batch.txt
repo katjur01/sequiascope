@@ -1,0 +1,39 @@
+genome hg38
+snapshotDirectory /output_files/sessions/117_fusions/igv_snapshots/DZ1601
+load /input_files/713000-cmm/713009-slaby/base/sequencing_results/primary_data/230426_MOII_e117_fuze/mapped/DZ1601fuze.bam
+load /input_files/713000-cmm/713009-slaby/base/sequencing_results/primary_data/230426_MOII_e117_fuze/mapped/DZ1601fuze/DZ1601fuzeChimeric.out.bam
+viewaspairs
+maxPanelHeight 10000
+preference SAM.SHOW_SOFT_CLIPPED TRUE
+preference SAM.SHOW_JUNCTION_TRACK TRUE
+preference SAM.COLOR_BY NONE
+preference IGV.Bounds 94,0,1280,1024
+goto chr2:69720620-69721122 chr8:27397297-27397799
+snapshot DZ1601_001.png
+goto chr22:45842805-45843307 chr1:162754416-162754918
+snapshot DZ1601_002.png
+goto chr2:62135660-62136162 chr2:62221959-62222461
+snapshot DZ1601_003.png
+goto chr5:138933408-138933910 chr20:29299368-29299870
+snapshot DZ1601_004.png
+goto chr1:171813772-171814274 chr1:171921497-171921999
+snapshot DZ1601_005.png
+goto chr11:128484706-128485208 chr5:39020843-39021345
+snapshot DZ1601_006.png
+goto chr3:59922095-59922597 chr3:62003098-62003600
+snapshot DZ1601_007.png
+goto chr5:132449438-132449940 chr5:132559033-132559535
+snapshot DZ1601_008.png
+goto chr17:46170607-46171109 chr17:45591819-45592321
+snapshot DZ1601_009.png
+goto chr17:45597513-45598015 chr17:45545425-45545927
+snapshot DZ1601_010.png
+goto chr11:118482244-118482746 chr9:20365493-20365995
+snapshot DZ1601_011.png
+goto chr1:171813762-171814264 chr1:171987508-171988010
+snapshot DZ1601_012.png
+goto chr7:73097316-73097818 chr7:77167407-77167909
+snapshot DZ1601_013.png
+goto chrX:129448082-129448584 chrX:129169200-129169702
+snapshot DZ1601_014.png
+exit

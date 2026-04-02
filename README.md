@@ -75,7 +75,7 @@ cd sequiascope
 Linux / macOS / Windows:
 
 ```bash
-curl -O https://raw.githubusercontent.com/katjur01/seqUIaSCOPE/main/docker-compose.hub.yml
+curl -O https://raw.githubusercontent.com/katjur01/seqUIaSCOPE/main/docker-compose.yaml
 ```
 
 ---
@@ -85,7 +85,7 @@ The application uses two volumes defined in the compose file:
 - `input_files` — read-only mount for your patient data
 - `output_files` — writable mount for sessions, IGV snapshots, and reports
 
-By default, the compose file expects your data to be placed inside the `input_files` subfolder you just created. If your data lives elsewhere, open `docker-compose.hub.yml` in a text editor and update the `input_files` volume to point to your actual data directory. **You must update this path in both the `app` and `igv` service sections.**
+By default, the compose file expects your data to be placed inside the `input_files` subfolder you just created. If your data lives elsewhere, open `docker-compose.yaml` in a text editor and update the `input_files` volume to point to your actual data directory. **You must update this path in both the `app` and `igv` service sections.**
 
 ```yaml
 volumes:
@@ -108,13 +108,13 @@ volumes:
 #### 3. Pull
 
 ```bash
-docker compose -f docker-compose.hub.yml pull
+docker compose pull
 ```
 
 #### 4. Start
 
 ```bash
-docker compose -f docker-compose.hub.yml up -d
+docker compose up -d
 ```
 
 #### 5. Open in browser
@@ -128,7 +128,7 @@ The app may take 10–20 seconds to initialize on first launch.
 #### 6. Stop
 
 ```bash
-docker compose -f docker-compose.hub.yml down
+docker compose down
 ```
 
 ---
@@ -156,7 +156,7 @@ The app reads a `reference_paths.json` from the working directory. The default c
 
 **App doesn't start**
 ```bash
-docker compose -f docker-compose.hub.yml logs app
+docker compose logs app
 ```
 
 **No data visible after upload**
@@ -165,7 +165,7 @@ docker compose -f docker-compose.hub.yml logs app
 
 **IGV snapshots not generated**
 - Check the IGV container is running: `docker ps | grep igv`
-- Check IGV logs: `docker compose -f docker-compose.hub.yml logs igv`
+- Check IGV logs: `docker compose logs igv`
 
 ## License
 MIT © Kateřina Jurásková

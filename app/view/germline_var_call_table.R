@@ -1,9 +1,9 @@
 # app/view/germline_var_call_table.R
 
 #########################################################################################################
-## to co zpomaluje skript nejvíc je:
-## 1. css styly u řádků Clinvar_sig, CGC_Germline, TruSight_genes a fOne (doba vzroste z 3s na 27s)
-## 2. fce input_data - načítání dat a jejich úprava (doba trvání cca 8.5s)
+## The biggest performance bottlenecks are:
+## 1. CSS styles on Clinvar_sig, CGC_Germline, TruSight_genes and fOne rows (time rises from 3s to 27s)
+## 2. input_data function - loading and transforming data (takes ~8.5s)
 #########################################################################################################
 
 box::use(
@@ -150,7 +150,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       req(filter_state$consequence())
       req(filter_state$selected_columns())
 
-      if (!defaults_applied() && !is_restoring_session()) {      # Aplikuj defaults jen jednou, při prvním načtení
+      if (!defaults_applied() && !is_restoring_session()) {      # Apply defaults only once, on first load
 
         selected_coverage_depth(filter_state$coverage_depth())
         selected_gnomAD_min(filter_state$gnomAD_min())
@@ -206,10 +206,10 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       req(column_defs())
       # start <- Sys.time()
       # message("Rendering Reactable for germline")
-      filtered_data <- filtered_data() # tvoje data pro hlavní tabulku
-      pathogenic_variants <- selected_variants() # seznam variant, které byly označeny jako patogenní
+      filtered_data <- filtered_data() # your data for the main table
+      pathogenic_variants <- selected_variants() # list of variants marked as pathogenic
 
-      # Dynamicky vytvoř defaultSorted jen pro sloupce které existují
+      # Dynamically create defaultSorted only for columns that exist
       sort_cols <- c("cgc_germline", "trusight_genes", "fone")
       existing_sort_cols <- intersect(sort_cols, names(filtered_data))
       default_sorted <- if (length(existing_sort_cols) > 0) {
@@ -235,7 +235,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
             function(index) {
               gene_in_row <- filtered_data$gene_symbol[index]
               var_in_row <- filtered_data$var_name[index]
-                  if (var_in_row %in% pathogenic_variants$var_name &           # Pokud je aktuální řádek v seznamu patogenních variant, zvýrazníme ho
+                  if (var_in_row %in% pathogenic_variants$var_name &           # If current row is in the list of pathogenic variants, highlight it
                       gene_in_row %in% pathogenic_variants$gene_symbol) {
                     list(backgroundColor = "#B5E3B6",fontWeight = "bold")
                   } else {
@@ -259,25 +259,25 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
 
     })
   
-    # Akce po kliknutí na tlačítko pro přidání varianty
+    # Action triggered by clicking the add variant button
     observeEvent(input$selectPathogenic_button, {
       selected_rows <- getReactableState("germline_var_call_tab", "selected")
       req(selected_rows)
       
       new_variants <- filtered_data()[selected_rows, c("var_name", "gene_symbol","variant_freq","coverage_depth", "consequence",
-                                                       "hgvsc","hgvsp","variant_type","feature", "clinvar_sig","gnomad_nfe")]  # Získání vybraných variant
+                                                       "hgvsc","hgvsp","variant_type","feature", "clinvar_sig","gnomad_nfe")]  # Get selected variants
       new_variants$sample <- selected_samples
 
-      current_variants <- selected_variants()  # Stávající přidané varianty
-      new_unique_variants <- new_variants[!(new_variants$var_name %in% current_variants$var_name &       # Porovnání - přidáme pouze ty varianty, které ještě nejsou v tabulce
+      current_variants <- selected_variants()  # Currently added variants
+      new_unique_variants <- new_variants[!(new_variants$var_name %in% current_variants$var_name &       # Comparison - add only variants not yet in the table
                                               new_variants$gene_symbol %in% current_variants$gene_symbol), ]
 
       if (nrow(new_unique_variants) > 0) selected_variants(rbind(current_variants, new_unique_variants))
       
-      # Aktualizace globální proměnné shared_data$germline.variants:
+      # Update global variable shared_data$germline.variants:
       global_data <- shared_data$germline.variants()
 
-      # Pokud je NULL nebo nemá správnou strukturu, inicializujeme
+      # If NULL or missing correct structure, initialize
       if (is.null(global_data) || !is.data.table(global_data) || !("sample" %in% names(global_data))) {
         global_data <- data.table(
           sample = character(),
@@ -297,7 +297,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
 
       global_data <- global_data[sample != selected_samples]
       
-      # Přidáme nově aktualizované lokální data daného pacienta
+      # Add newly updated local data for the given patient
       updated_global_data <- rbindlist(list(global_data, selected_variants()), use.names = TRUE, fill = TRUE)
       shared_data$germline.variants(updated_global_data)
       message("## shared_data$germline_var(): ", shared_data$germline.variants())
@@ -310,14 +310,14 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         return(NULL)
       }
       
-      # Vyber pouze sloupce které existují
+      # Select only columns that exist
       required_cols <- c("var_name", "gene_symbol", "consequence", "clinvar_sig", "feature")
       optional_cols <- c("hgvsc", "hgvsp")
       available_cols <- intersect(c(required_cols, optional_cols), names(variants))
       
       variants <- as.data.table(variants)[, available_cols, with = FALSE]
       
-      # Dynamicky vytvoř column definitions jen pro existující sloupce
+      # Dynamically create column definitions only for existing columns
       col_list <- list(
         var_name = colDef(name = "Variant name"),
         gene_symbol = colDef(name = "Gene name"),
@@ -377,10 +377,10 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
       }
     })
     
-    # Při stisku tlačítka pro výběr varianty
+    # When the variant selection button is pressed
     observeEvent(input$selectPathogenic_button, {
       if (is.null(selected_variants()) || nrow(selected_variants()) == 0) {
-        # Pokud nejsou vybrány žádné řádky, zůstaň u původního stavu
+        # If no rows are selected, keep the original state
         # variant_selected(FALSE)
         hide("delete_button")
         
@@ -393,15 +393,15 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
           callbackR = function(value) {
             # value bude TRUE pro OK, FALSE pro "Go to variant"
             if (!value) {
-              # updateTabItems(session = session$userData$parent_session,  # použijeme parent session
+              # updateTabItems(session = session$userData$parent_session,  # use parent session
               #                inputId = "sidebar_menu",  # bez namespace
               #                selected = "fusion_genes")
             }})
       } else {
-        # Pokud jsou nějaké řádky vybrány, nastav fusion_selected na TRUE
+        # If any rows are selected, set fusion_selected to TRUE
         # variant_selected(TRUE)
         
-        # Zobraz tlačítka pomocí shinyjs
+        # Show buttons using shinyjs
         show("delete_button")
       }
     })
@@ -472,10 +472,10 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
         )
         
       } else {
-        shared_data$navigation_context("germline")   # odkud otevíráme IGV
+        shared_data$navigation_context("germline")   # where we are opening IGV from
         message("Selected patients for IGV (germline): ", paste(selected_patients, collapse = ", "))
         
-        # Vytvoř seznam BAM souborů pro každého pacienta
+        # Create list of BAM files for each patient
         track_lists <- lapply(selected_patients, function(patient_id) {
           tracks <- list()
           
@@ -487,7 +487,7 @@ server <- function(id, selected_samples, shared_data, file, file_list) {
           fresh_fl      <- get_files_by_patient(isolate(shared_data$confirmed_paths()), "germline")
           patient_files <- if (patient_id %in% names(fresh_fl)) fresh_fl[[patient_id]] else list()
 
-          # Přidej pouze normal BAM (germline)
+          # Add only normal BAM (germline)
           if ("normal" %in% names(patient_files) && length(patient_files$normal) > 0) {
             normal_bam <- patient_files$normal[grepl("\\.bam$", patient_files$normal)][1]
             if (!is.na(normal_bam)) {
@@ -571,7 +571,7 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, maf
     initialized <- reactiveVal(FALSE)
     
     # ===== HELPERY =====
-    # Normalizace výběru sloupců (umí přijmout labely i values)
+    # Normalize column selection (accepts both labels and values)
     normalize_column_selection <- function(selection, choices_map, default_cols) {
       if (is.null(selection) || length(selection) == 0) {
         return(ch(default_cols))
@@ -621,15 +621,15 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, maf
     update_gene_region_choices <- function() {
       gene_choices <- sort(unique(ch(data$gene_region)))
       
-      # Při první inicializaci použij default (exon, splice), jinak zachovej current
+      # On first initialization use default (exon, splice), otherwise keep current
       if (!initialized()) {
         default_regions <- c("exon", "splice")
-        # Jen ty, které skutečně existují v datech
+        # Only those that actually exist in the data
         selected <- intersect(default_regions, gene_choices)
       } else {
         current <- isolate(input$gene_regions)
         selected <- if (is.null(current)) intersect(c("exon", "splice"), gene_choices) else current
-        selected <- intersect(ch(selected), gene_choices)  # jen platné hodnoty
+        selected <- intersect(ch(selected), gene_choices)  # only valid values
       }
       
       updatePrettyCheckboxGroup(
@@ -651,7 +651,7 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, maf
       clinvar_list <- ch(clinvar_list)
       
       if (!initialized()) {
-        # výchozí: pokud existují benignní kategorie, vynech je; jinak vyber vše
+        # default: if benign categories exist, exclude them; otherwise select all
         benign_like <- c("Benign", "Likely_benign", "Benign/Likely_benign", "benign", "likely_benign")
         selected <- if (length(intersect(benign_like, clinvar_list))) {
           setdiff(clinvar_list, intersect(benign_like, clinvar_list))
@@ -676,7 +676,7 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, maf
     update_column_choices <- function() {
       req(mapped_checkbox_names())
       
-      # Seřaď podle LABELŮ (names)
+      # Sort by LABELS (names)
       checkbox_names <- mapped_checkbox_names()
       col_choices_ordered <- checkbox_names[order(names(checkbox_names))]
       
@@ -717,7 +717,7 @@ filterTab_server <- function(id, colnames_list, data, mapped_checkbox_names, maf
     
     # ===== MAIN OBSERVE =====
     observe({
-      # během restore nepřepisovat UI
+      # do not overwrite UI during restore
       if (!is.null(is_restoring) && isTruthy(is_restoring())) return()
       
       update_consequence_choices()

@@ -13,7 +13,7 @@ selectedTab_UI <- function(id){
   tagList(
     tags$head(tags$style(HTML("
       .selectedTab-hidden {
-        display: none !important; /* Skryjeme tabulku úplně, pokud není třeba */
+        display: none !important; /* Hide table completely when not needed */
       }
 
       .selectedTab-visible {
@@ -27,8 +27,8 @@ selectedTab_UI <- function(id){
     "))),
     
     div(
-      id = ns("selectedTab_container"),  # ID pro použití v JS
-      class = "selectedTab-hidden",  # Výchozí stav: skrytý
+      id = ns("selectedTab_container"),  # ID for use in JS
+      class = "selectedTab-hidden",  # Default state: hidden
       reactableOutput(ns("selected_tab"))
     )
   )
@@ -106,7 +106,7 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
     
     observeEvent(input$selected_row, {
       selectedRow <- input$selected_row
-      message("Vybraný gen z tabulky: ", selectedRow)
+      message("Selected gene from table: ", selectedRow)
       
       session$sendCustomMessage("cy-add-node-selection", list(gene = selectedRow, patientId = patient))
       session$sendCustomMessage("highlight-row", list(gene = selectedRow))
@@ -127,7 +127,7 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
                       log2fc = colDef(name = "log2FC", minWidth = 100),
                       p_value = colDef(name = "p-value", minWidth = 100),
                       pathway = colDef(name = "Pathway name", minWidth = 200, resizable = TRUE),
-                      # Skrýt všechny ostatní sloupce
+                      # Hide all other columns
                       fc = colDef(show = FALSE),
                       geneid = colDef(show = FALSE),
                       refseq_id = colDef(show = FALSE),
@@ -187,7 +187,7 @@ tab_server <- function(id, tissue_dt, subTissue_dt, selected_nodes,selected_dt,p
       for (col in missing_columns) {
         data[[col]] <- ""
       }
-      # Vyber jen relevantní sloupce
+      # Select only relevant columns
       data <- data[, c("gene_symbol", "var_name", "fusion", "pathway")]
       
       reactable(

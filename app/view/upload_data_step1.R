@@ -216,20 +216,20 @@ step1_server <- function(id, path, patients, datasets, tumor_pattern, normal_pat
         return()
       }
       
-      # Rozdělení podle čárek NEBO nových řádků
+      # Split by commas OR newlines
       new <- unlist(strsplit(input$new_patients, "[,\n\r]+"))
       new <- trimws(new)
       new <- new[new != ""]
       new <- new[!is.na(new)]
       
-      # Kontrola, zda zbyli nějací validní pacienti
+      # Check if any valid patients remain
       if (length(new) > 0) {
         all <- unique(c(patients(), new))
         updateVirtualSelect("patient_list", choices = all, selected = all, open = TRUE)
         updateTextAreaInput(session, "new_patients", value = "")
         patients(all)
         
-        # Úspěšné přidání
+        # Successful addition
         showNotification(
           paste("Added", length(new), "patient(s):", paste(new, collapse = ", ")), 
           type = "message", 

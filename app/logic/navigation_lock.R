@@ -58,7 +58,7 @@ get_navigation_lock_js <- function() {
         menuLocked = !!msg.lock;
         allowedValue = msg.allowValue;
 
-        // Zamkni/odemkni všechny odkazy s data-value (funguje pro nav-link i dropdown-item)
+        // Lock/unlock all links with data-value (works for nav-link and dropdown-item)
         var anchors = document.querySelectorAll('a.nav-link[data-value], a.dropdown-item[data-value]');
         anchors.forEach(function(a){
           var v = a.getAttribute('data-value');
@@ -75,7 +75,7 @@ get_navigation_lock_js <- function() {
         });
       });
 
-      // Tvrdý click guard i když by třída selhala
+      // Hard click guard in case the class check fails
       document.addEventListener('click', function(e){
         var t = e.target.closest('a.nav-link[data-value], a.dropdown-item[data-value]');
         if (!t) return;
@@ -87,7 +87,7 @@ get_navigation_lock_js <- function() {
             return false;
           }
         }
-      }, true); // capture fáze pro jistotu
+      }, true); // capture phase for safety
     })();
   "))
 }
