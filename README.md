@@ -7,13 +7,13 @@ SeqUIaSCOPE is a web application designed for routine clinical oncology diagnost
 ## Quick start
  
 - 🚀 **[Live demo](https://sequiascope.dyn.cloud.e-infra.cz)** — try the application with simulated sample data, no setup required
-- 📖 **[Documentation](https://katjur01.github.io/sequiascope)** — detailed user guide, supported formats, and workflow description
+- 📖 **[Documentation](https://bioit-ceitec.github.io/sequiascope)** — detailed user guide, supported formats, and workflow description
  
 ---
 
 ## Deployment options
 
-sequiaScope can be deployed in two ways:
+SeqUIaSCOPE can be deployed in two ways:
 
 - **On a cluster** using Kubernetes + Helm — suitable for shared or production environments
 - **Locally** using Docker Compose — suitable for single-machine use
@@ -29,9 +29,9 @@ Pre-built images for both scenarios are available on Docker Hub — no need to b
 
 ## Option A — Cluster deployment (Kubernetes + Helm)
 
-For cluster environments, sequiaScope can be deployed using the provided Helm chart. Full instructions and configuration options are maintained in a separate repository:
+For cluster environments, SeqUIaSCOPE can be deployed using the provided Helm chart. Full instructions and configuration options are maintained in a separate repository:
 
-👉 **[sequiascope-helm](https://github.com/KrKOo/sequiascope-helm)**
+👉 **[sequiascope-helm](https://bioit-ceitec.github.io/sequiascope-helm)**
 
 The Helm chart uses the same pre-built Docker Hub images listed above.
 

@@ -161,7 +161,7 @@ ui <- function(id){
         tags$li(class = "dropdown",
           tags$a(href = "javascript:void(0);",onclick = sprintf("Shiny.setInputValue('%s', Math.random(), {priority: 'event'});", ns("save_session_btn")),title = "Save session",class = "btn btn-link",style = "color: #74c0fc; font-size: 18px; padding: 12px 10px;",icon("floppy-disk"))),
         tags$li(class = "dropdown",
-          tags$a(href = "https://katjur01.github.io/seqUIaSCOPE/",target = "_blank", title = "Open documentation", class = "btn btn-link", style = "color: #74c0fc; font-size: 18px; padding: 12px 10px; margin-right: 30px;", icon("circle-question"))))),
+          tags$a(href = "https://bioit-ceitec.github.io/sequiascope/",target = "_blank", title = "Open documentation", class = "btn btn-link", style = "color: #74c0fc; font-size: 18px; padding: 12px 10px; margin-right: 30px;", icon("circle-question"))))),
     sidebar = dashboardSidebar(disable = TRUE),
     body = dashboardBody(#style = "background-color: white;",
       tags$head(

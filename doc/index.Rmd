@@ -65,7 +65,7 @@ Pre-built images for both scenarios are available on Docker Hub — no need to b
 
 For cluster environments, SeqUIaSCOPE can be deployed using the provided Helm chart. Full instructions and configuration options are maintained in a separate repository:
 
-👉 **[sequiascope-helm](https://github.com/KrKOo/sequiascope-helm)**
+👉 **[sequiascope-helm](https://github.com/BioIT-CEITEC/sequiascope-helm)**
 
 The Helm chart uses the same pre-built Docker Hub images listed above.
 
@@ -95,7 +95,7 @@ cd sequiascope
 #### 2. Download the compose file: {-}
 
 ```bash
-curl -O https://raw.githubusercontent.com/katjur01/sequiaScope/main/docker-compose.yaml
+curl -O https://raw.githubusercontent.com/BioIT-CEITEC/sequiascope/master/docker-compose.yaml
 ```
 
 The application uses two separate volumes:
@@ -151,8 +151,8 @@ volumes:
 Building from source is not required for standard use. If you need to modify the application itself:
 
 ```bash
-git clone https://github.com/katjur01/seqUIaSCOPE.git
-cd seqUIaSCOPE
+git clone https://github.com/BioIT-CEITEC/sequiascope.git
+cd sequiascope
 docker compose build
 docker compose up -d
 ```
