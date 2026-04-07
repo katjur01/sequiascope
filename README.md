@@ -154,10 +154,8 @@ The app reads a `reference_paths.json` from the working directory. The default c
 
 ## Troubleshooting
 
-**App doesn't start**
-```bash
-docker compose logs app
-```
+**App doesn't start**: 
+- Check app logs:`docker compose logs app`
 
 **No data visible after upload**
 - Check that file names match expected patterns (see Data requirements)
@@ -167,10 +165,15 @@ docker compose logs app
 - Check the IGV container is running: `docker ps | grep igv`
 - Check IGV logs: `docker compose logs igv`
 
+**Local Deployment Performance**
+If you are running the application locally via Docker (rather than through a cluster deployment), **performance depends on your local hardware and system configuration**. If the application feels slow and there is no obvious reason — such as a large number of patients or large input files — the issue is most likely with the device rather than the application. This is particularly common on macOS and Windows, where Docker runs inside a virtual machine and has higher system overhead than on native Linux. If you experience slowdowns, try allocating more CPU and RAM to Docker in Docker Desktop → Settings → Resources. **On older or low-spec machines, some performance limitations may be unavoidable**.
+
+**Cluster Deployment Performance**
+If you are accessing the application through a cluster deployment, **performance is largely independent of your local device**. However, you may still experience slowdowns depending on your network connection. Operations that involve scanning large directory structures on the connected storage (PVC) are particularly sensitive to network latency. For the best experience, a low-latency connection to the cluster (e.g., a **wired connection** within the local network) **is recommended**.
+
 ## Notes
 **For organizational deployment**: If you're interested in using SeqUIaSCOPE but don't have Docker expertise, contact your bioinformatics team or IT department. They can help set up and maintain SeqUIaSCOPE in your organization's infrastructure.
 
-**For local deployment**: If you are running the application locally via Docker (rather than through a cluster deployment), **performance depends on your local hardware and system configuration**. If the application feels slow and there is no obvious reason — such as a large number of patients or large input files — the issue is most likely with the device rather than the application. This is particularly common on macOS and Windows, where Docker runs inside a virtual machine and has higher system overhead than on native Linux. If you experience slowdowns, try allocating more CPU and RAM to Docker in Docker Desktop → Settings → Resources. **On older or low-spec machines, some performance limitations may be unavoidable**.
 
 ## License
 MIT © Kateřina Jurásková
