@@ -31,7 +31,7 @@ Pre-built images for both scenarios are available on Docker Hub — no need to b
 
 For cluster environments, SeqUIaSCOPE can be deployed using the provided Helm chart. Full instructions and configuration options are maintained in a separate repository:
 
-👉 **[sequiascope-helm](https://bioit-ceitec.github.io/sequiascope-helm)**
+👉 **[sequiascope-helm](https://github.com/BioIT-CEITEC/sequiascope-helm)**
 
 The Helm chart uses the same pre-built Docker Hub images listed above.
 
@@ -167,7 +167,7 @@ docker compose logs app
 - Check the IGV container is running: `docker ps | grep igv`
 - Check IGV logs: `docker compose logs igv`
 
-## Notes {-}
+## Notes
 **For organizational deployment**: If you're interested in using SeqUIaSCOPE but don't have Docker expertise, contact your bioinformatics team or IT department. They can help set up and maintain SeqUIaSCOPE in your organization's infrastructure.
 
 ## License
