@@ -6,7 +6,7 @@
 #
 services:
   app:
-    image: juraskovakaterina/sequiascope-app:latest
+    image: juraskovakaterina/sequiascope-app:1.0.0
     container_name: sequiascope-app
     ports:
       - "8080:8080"
@@ -20,7 +20,7 @@ services:
       - IGV_PORT=8081
 
   igv:
-    image: juraskovakaterina/sequiascope-igv:latest
+    image: juraskovakaterina/sequiascope-igv:1.0.0
     container_name: sequiascope-igv
     ports:
       - "8081:8081"
